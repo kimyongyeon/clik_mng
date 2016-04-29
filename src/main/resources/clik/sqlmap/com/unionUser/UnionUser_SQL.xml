@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="UserInfo">
+
+   <select id="dlib.op.user.UserNanetSearchCount" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+        SELECT 
+          COUNT(*) 
+        FROM TUSERINFO
+        WHERE 1=1
+        <dynamic>
+	        <isNotEmpty prepend="AND" property="USERID">
+	            USER_ID LIKE '$USERID$%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="USER_NAME">
+	            USER_NAME = #USER_NAME#
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="USER_MAIL">
+	            USER_EMAIL = #USER_MAIL#
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="USER_BIRTH">
+	            USER_BIRTHDAY = #USER_BIRTH#
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="REG_DATE">
+	            REG_DATE = REPLACE('$REG_DATE$','-','/')
+	        </isNotEmpty>
+        </dynamic>
+    </select>
+    
+    <select id="dlib.op.user.UserNanetSearch" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+        SELECT 
+            <isNotEmpty property="firstRecordIndex">
+                skip #firstRecordIndex# first #recordCountPerPage# 
+            </isNotEmpty>
+          USER_ID AS USERID
+          , USER_NAME
+          , USER_EMAIL AS USER_MAIL
+          , USER_BIRTHDAY AS BIRTH
+          , USER_JOB AS JOB
+          , REG_DATE
+          , 'NANET' AS SEL_DB
+          FROM TUSERINFO
+          WHERE 1=1
+         <dynamic>
+            <isNotEmpty prepend="AND" property="USERID">
+                USER_ID LIKE '$USERID$%'
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="USER_NAME">
+                USER_NAME = #USER_NAME#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="USER_MAIL">
+                USER_EMAIL = #USER_MAIL#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="USER_BIRTH">
+                USER_BIRTHDAY = #USER_BIRTH#
+            </isNotEmpty>
+            <isNotEmpty prepend="AND" property="REG_DATE">
+                REG_DATE = REPLACE('$REG_DATE$','-','/')
+            </isNotEmpty>
+	        <isNotEmpty property="ORDER_FIELD">
+		        <isEqual property="ORDER_FIELD" compareValue="user_id">
+		            ORDER BY USER_ID
+		        </isEqual>          
+                <isEqual property="ORDER_FIELD" compareValue="user_name">
+                    ORDER BY USER_NAME
+                </isEqual>          
+                <isEqual property="ORDER_FIELD" compareValue="user_birthday">
+                    ORDER BY USER_BIRTHDAY
+                </isEqual>          
+                <isEqual property="ORDER_FIELD" compareValue="user_email">
+                    ORDER BY USER_EMAIL
+                </isEqual>          
+                <isEqual property="ORDER_FIELD" compareValue="reg_date">
+                    ORDER BY REG_DATE
+                </isEqual>          
+                <isEqual property="ORDER_SORT" compareValue="ASC">
+                    ASC
+                </isEqual> 
+                <isEqual property="ORDER_SORT" compareValue="DESC">
+                    DESC
+                </isEqual> 
+	        </isNotEmpty>
+	    </dynamic>
+    </select>
+
+    <select id="dlib.op.user.UserNanetInfo" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+        SELECT 
+          USER_ID AS USERID
+          , USER_NAME
+          , USER_EMAIL AS USER_MAIL
+          , USER_BIRTHDAY AS BIRTH
+          , USER_JOB AS JOB
+          , HINT_Q
+          , HINT_A
+          , REG_DATE
+          , 'NANET' AS SEL_DB
+          , '0' AS CLASS
+          , NO_SEQ
+          , decode(nvl(certify_cd,''),'','D',certify_cd) certify_cd
+          , nvl(zipcode,'') zipcode
+          , nvl(address,'') address
+          , nvl(address_detail,'') address_detail
+          , use_system
+          , nvl(user_tel,'') user_tel
+          FROM TUSERINFO
+          WHERE USER_ID = #USERID#
+    </select>
+
+</sqlMap>

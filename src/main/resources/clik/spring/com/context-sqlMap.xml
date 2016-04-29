@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+<!-- 	
+	<bean id="egov.propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:/clik/clikProps/globals.properties</value>
+                <value>classpath:/clik/clikProps/jdbc.properties</value>
+            </list>
+        </property>
+    </bean>
+ -->    
+    <!-- 실행환경에서 빈이름 참조(EgovAbstractDAO) -->
+	<bean id="egov.lobHandler" class="org.springframework.jdbc.support.lob.DefaultLobHandler" lazy-init="true" />
+
+	<!-- SqlMap setup for iBATIS Database Layer -->
+	<bean id="egov.sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="configLocations">
+			<list>
+				<value>classpath:/clik/sqlmap/config/${Globals.DbType}/*.xml</value>
+			</list>
+		</property>
+		<property name="dataSource" ref="egov.dataSource"/>
+		<property name="lobHandler" ref="egov.lobHandler"/>
+	</bean>
+	
+	<!-- DOCS SERVER  -->
+    <bean id="docsSqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+        <property name="configLocations">
+            <list>
+                <value>classpath:/clik/sqlmap/config/docs/sql-map-config-docs.xml</value>
+            </list>
+        </property>
+        <property name="dataSource" ref="docsDataSource"/>
+        <property name="lobHandler" ref="egov.lobHandler"/>
+    </bean>
+    
+	<!-- 통합 아이디 DB : 개발  -->
+    <bean id="nanetSqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+        <property name="configLocations">
+            <list>
+                <value>classpath:/clik/sqlmap/config/unionUser/sql-map-config-unionUser.xml</value>
+            </list>
+        </property>
+        <property name="dataSource" ref="nanetDataSource"/>
+        <property name="lobHandler" ref="egov.lobHandler"/>
+    </bean>    
+
+	<!-- 통합 아이디 DB : 개발  -->
+    <bean id="nadlSqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+        <property name="configLocations">
+            <list>
+                <value>classpath:/clik/sqlmap/config/agrmAgency/sql-map-config-agrmAgency.xml</value>
+            </list>
+        </property>
+        <property name="dataSource" ref="nadlDataSource"/>
+        <property name="lobHandler" ref="egov.lobHandler"/>
+    </bean>    	
+	
+</beans>	

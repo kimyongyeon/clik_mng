@@ -1,0 +1,1577 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="MdmManage">
+
+	<typeAlias  alias="mdmTnsrAsmblyAsembyVO" 	 type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyAsembyVO"/>
+	<typeAlias  alias="mdmTnsrAsmblyAsembyActVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyAsembyActVO"/>
+	<typeAlias  alias="mdmSearchVO" 			 type="clikmng.nanet.go.kr.mdm.model.MdmSearchVO"/>
+	<typeAlias  alias="mdmIsViewVO" 			 type="clikmng.nanet.go.kr.mdm.model.MdmIsViewVO"/>
+	<typeAlias  alias="mdmTnsrAsmblyMtgNmVO" 	 type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyMtgNmVO"/>
+	<typeAlias  alias="mdmTnsrAsmblyEstVO" 	     type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyEstVO"/>
+	<typeAlias  alias="mdmTnsrAsmblyOfCpsVO" 	 type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyOfCpsVO"/>
+	
+	<resultMap class="java.util.HashMap" id="hashMap">
+		<result property="TOTCNT" 		column="TOTCNT" />
+		<result property="MTGNM" 		column="MTGNM" />
+		<result property="RASMBLY_SESN" column="RASMBLY_SESN" />
+		<result property="MINTS_ODR" 	column="MINTS_ODR" />
+		<result property="MTG_DE" 		column="MTG_DE" />
+		<result property="MINTS_CN" 	column="MINTS_CN" />
+		<result property="SPKNG_CN" 	column="SPKNG_CN" jdbcType="CLOB" javaType="java.lang.String"/>
+	</resultMap>
+	
+	<!-- 의원 다음 CN값을 조회한다 -->
+    <select id="MdmTnsrAsmblyAsembyDAO.selectMdmTnsrAsmblyAsembySeq" resultClass="int">
+        <![CDATA[
+			SELECT 
+				TNSRASMBLYASEMBYSEQ.NEXTVAL AS SEQ 
+			FROM 
+				DUAL
+		]]>
+    </select>
+
+	<!-- 의원정보 최근 수집일을 조회한다 -->
+    <select id="MdmTnsrAsmblyAsembyDAO.selectMdmTnsrAsmblyAsembyActMaxRegDate" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				SUBSTR(MAX(FRST_REGIST_DT), 0, 8) AS REGDATE 
+			FROM 
+				laman 
+			WHERE
+				FRST_REGIST_DT <= REPLACE(#TODAY#, '-', '') || '999999'
+		]]>
+    </select>
+
+	<!-- 미사용 -->
+    <select id="MdmTnsrAsmblyAsembyDAO.selectMdmTnsrAsmblyAsembyActDfltListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 	
+				COUNT(*) AS CNT 
+			FROM 
+				laman_activity T, laman M
+			WHERE
+				T.ASEMBY_ID = M.ASEMBY_ID
+	        	]]>
+				<isNotEmpty prepend="AND" property="schDt1">				  
+					 <![CDATA[ M.FRST_REGIST_DT >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDt2">				  
+		 			<![CDATA[ M.FRST_REGIST_DT <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+				</isNotEmpty>
+    </select>
+	
+	<!-- 미사용 -->
+    <select id="MdmTnsrAsmblyAsembyDAO.selectMdmTnsrAsmblyAsembyActDfltList" parameterClass="mdmSearchVO" resultClass="mdmTnsrAsmblyAsembyActVO">
+        <![CDATA[
+			SELECT 	
+				M.*  
+			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+					SELECT
+						T.RASMBLY_ID, T.ASEMBY_ID, T.RASMBLY_NUMPR, M.ASEMBY_NM, T.FRST_REGIST_DT, PHOTO_FILE_PATH, M.ISVIEW, M.ASEMBY_CN, T.CUD_CODE
+						,(SELECT CODE_NM FROM common_detail_code WHERE CODE_ID = 'RKS002' AND CODE = SUBSTRING(T.RASMBLY_ID, 0, 3) AND ROWNUM = 1) RASMBLY_NM
+						,(SELECT E.EST_NM FROM colgover_edistrict E  WHERE E.RASMBLY_NUMPR = T.RASMBLY_NUMPR AND E.RASMBLY_ID = T.RASMBLY_ID	AND E.EST_ID = T.EST_ID AND ROWNUM = 1) EST_NM 
+						,(SELECT PPRTY_NM FROM colgover_party P WHERE P.PPRTY_CODE = T.PPRTY_CODE AND ROWNUM = 1) PPRTY_NM
+						, M.TWITTER, M.FACEBOOK, M.HMPG, M.BRTHDY 
+					FROM
+						laman_activity T, laman M
+					WHERE
+						T.ASEMBY_ID = M.ASEMBY_ID
+					]]>
+					<isNotEmpty prepend="AND" property="schDt1">				  
+						 <![CDATA[ M.FRST_REGIST_DT >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schDt2">				  
+						 <![CDATA[ M.FRST_REGIST_DT <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+					</isNotEmpty>
+					<![CDATA[
+					ORDER BY 
+						M.FRST_REGIST_DT DESC, T.RASMBLY_NUMPR DESC, M.ASEMBY_NM ASC 
+				) A 
+			) M
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+		]]>
+    </select>
+
+	<!-- 의원 목록 카운트를 조회한다 -->
+	<!-- 20151216 쿼리 변경으로 이전 쿼리 보관 -->
+	<select id="MdmTnsrAsmblyAsembyDAO.selectMdmTnsrAsmblyAsembyActListTotCntOld" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT
+				COUNT(AA.ASEMBY_ID) AS CNT
+			FROM
+			( 
+				SELECT
+					M.ASEMBY_ID 	
+				FROM 
+					LAMAN M
+			]]>
+				<!-- 활동정보와 JOIN시 검색되지 않는 의원이 있어서 대수정보 OR 내용 조회시에만 JOIN되도록 함 S -->
+				<isNotEmpty property="schRasmblyNumpr">
+					, LAMAN_ACTIVITY T
+					, ORGAN O
+					, COLGOVER_EDISTRICT E
+				</isNotEmpty>	
+				<isNotEmpty property="schKw">
+					<isEqual property="schKey" compareValue="schContent">
+					    <isEmpty property="schRasmblyNumpr">
+					        , LAMAN_ACTIVITY T
+							, ORGAN O
+							, COLGOVER_EDISTRICT E
+						</isEmpty>
+					</isEqual>
+				</isNotEmpty> 
+				<!-- E -->
+				
+				<!-- 기관유형 조회 할 경우 -->
+				<isNotEmpty property="schOrgCodeStep2">
+					<isEqual property="schOrgCodeStep2" compareValue="004">
+						<![CDATA[
+						, LAMAN_ACTIVITY T
+					  	, (
+							SELECT LOASM_CODE, WS.SITEID
+					  		  FROM ORGAN OG
+					  	           , ORGAN_CLASS OC
+					  	           , WEBROBOT_SITE WS
+					  	     WHERE OG.INSTT_CL_CODE = OC.INSTT_CL_CODE
+					   		   AND OC.UPPER_INSTT_CL_CODE = 'INTSTTCL_000012'
+		                       AND OG.BRTC_CODE = WS.REGION
+						]]>                       
+			   			<isNotEmpty property="schOrgCodeStep3">
+		            		<![CDATA[   AND WS.ORG_3 = #schOrgCodeStep3# ]]>
+		            	</isNotEmpty>
+		            	<isNotEmpty property="schOrgCodeStep4">
+		            		<![CDATA[   AND WS.SITEID = #schOrgCodeStep4# ]]>
+		            	</isNotEmpty>
+		            	<![CDATA[   
+						) BT
+						]]>
+					</isEqual>
+				</isNotEmpty>		
+				
+				WHERE
+					1=1
+				
+				<!-- 활동정보와 JOIN시 검색되지 않는 의원이 있어서 대수정보 OR 내용 조회시에만 JOIN되도록 함 S -->	
+				<isNotEmpty property="schRasmblyNumpr">
+				<![CDATA[						
+						AND M.ASEMBY_ID = T.ASEMBY_ID
+                    	AND M.RASMBLY_ID = T.RASMBLY_ID
+                    	AND M.RASMBLY_ID = T.RASMBLY_ID
+						AND O.LOASM_CODE(+) = T.RASMBLY_ID
+						AND E.RASMBLY_NUMPR(+) = T.RASMBLY_NUMPR 
+						AND E.RASMBLY_ID(+) = T.RASMBLY_ID	
+						AND E.EST_ID(+) = T.EST_ID
+						AND T.CUD_CODE != 'D'
+				]]>
+				</isNotEmpty>
+				<isNotEmpty property="schKw">
+					<isEqual property="schKey" compareValue="schContent">
+					    <isEmpty property="schRasmblyNumpr">
+						<![CDATA[						
+							AND M.ASEMBY_ID = T.ASEMBY_ID
+	                    	AND M.RASMBLY_ID = T.RASMBLY_ID
+							AND E.RASMBLY_NUMPR(+) = T.RASMBLY_NUMPR 
+							AND E.RASMBLY_ID(+) = T.RASMBLY_ID	
+							AND E.EST_ID(+) = T.EST_ID
+							AND T.CUD_CODE != 'D'
+						]]>
+						</isEmpty>
+					</isEqual>				  
+				</isNotEmpty>
+				<!-- E -->
+				
+				<!-- 기관유형 조회 할 경우 -->
+				<isNotEmpty property="schOrgCodeStep2">
+					<isEqual property="schOrgCodeStep2" compareValue="004">
+					<![CDATA[
+						AND BT.LOASM_CODE(+) = T.RASMBLY_ID
+					]]>
+					</isEqual>
+				</isNotEmpty>
+							
+	<!-- 공통 검색 부분 S -->
+				<!-- 검색어 -->
+				<isNotEmpty prepend="AND" property="schKw">
+					<isEqual property="schKey" compareValue="schTitle">
+						<![CDATA[ M.ASEMBY_NM like '%' || #schKw# || '%' ]]>
+					</isEqual>
+					<isEqual property="schKey" compareValue="cnId">
+						<![CDATA[ M.ASEMBY_CN IN ( $schKw$ ) ]]>
+					</isEqual>
+					<isEqual property="schKey" compareValue="schContent">
+						<![CDATA[ T.CAREER_MATTER LIKE '%' || #schKw# || '%' ]]>
+					</isEqual>				  
+				</isNotEmpty>
+			
+				<!-- 수집일자 -->
+				<isNotEmpty prepend="AND" property="schDt1">				  
+					 <![CDATA[ M.FRST_REGIST_DT >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDt2">				  
+					 <![CDATA[ M.FRST_REGIST_DT <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+				</isNotEmpty>
+				
+				<!-- 등록일자 -->
+<!-- 				<isNotEmpty prepend="AND" property="schDt3">				   -->
+<!-- 					 <![CDATA[ M.FRST_REGIST_DT >= REPLACE(#schDt3#, '-', '') || '000000' ]]> -->
+<!-- 				</isNotEmpty> -->
+<!-- 				<isNotEmpty prepend="AND" property="schDt4">				   -->
+<!-- 					 <![CDATA[ M.FRST_REGIST_DT <= REPLACE(#schDt4#, '-', '') || '999999' ]]> -->
+<!-- 				</isNotEmpty> -->
+				
+				<!-- 중복 -->
+				<isNotEmpty prepend="AND" property="schDuplication">
+					<isEqual property="schDuplication" compareValue="Y">
+						<![CDATA[ M.ASEMBY_ID IN (SELECT ASEMBY_ID FROM laman GROUP BY RASMBLY_ID, ASEMBY_ID HAVING COUNT(*) > 1) ]]>
+				  	</isEqual>
+					<isEqual property="schDuplication" compareValue="N">
+						<![CDATA[ M.ASEMBY_ID IN (SELECT ASEMBY_ID FROM laman GROUP BY RASMBLY_ID, ASEMBY_ID HAVING COUNT(*) < 2) ]]>
+				  	</isEqual>
+				</isNotEmpty>
+				
+				<!-- 게시 -->
+				<isNotEmpty prepend="AND" property="schIsView">
+					<isEqual property="schIsView" compareValue="N">
+					    M.ISVIEW = 'N'
+					</isEqual>
+					<isEqual property="schIsView" compareValue="Y">
+					    NVL(M.ISVIEW,'Y') = 'Y'
+					</isEqual>				  
+				</isNotEmpty>
+				
+				<!-- 삭제 -->
+				<isNotEmpty prepend="AND" property="schDel">				  
+					<isEqual property="schDel" compareValue="D">
+					    M.CUD_CODE = 'D'
+					</isEqual>
+					<isEqual property="schDel" compareValue="Y">
+					    M.CUD_CODE != 'D'
+					</isEqual>
+				</isNotEmpty>
+			
+				<!-- 변환 -->
+				<isNotEmpty prepend="AND" property="schConversion">				  
+					<isEqual property="schConversion" compareValue="1">
+					    M.PHOTO_FILE_PATH IS NOT NULL
+					</isEqual>
+					<isEqual property="schConversion" compareValue="2">
+					    M.PHOTO_FILE_PATH IS NULL
+					</isEqual>
+				</isNotEmpty>
+	<!-- 공통 검색 부분 E -->
+						
+				<!-- 의회구분 -->
+				<isNotEmpty property="schLoAsmTyCode">
+					<isEmpty property="schRegion">
+						AND M.RASMBLY_ID
+					<iterate prepend="IN" property="schLoAsmTyCodeList" open="(" close=")" conjunction=","> 
+		     			#schLoAsmTyCodeList[]# 
+		   			</iterate>
+		   				</isEmpty>
+				</isNotEmpty>
+				
+				<!-- 지역 -->
+				<isNotEmpty property="schRegion">
+					AND M.RASMBLY_ID
+					<iterate prepend="IN" property="schRegionList" open="(" close=")" conjunction=","> 
+		     			#schRegionList[]# 
+		   			</iterate>				
+				</isNotEmpty>
+				
+				<!-- 의회명 -->
+				<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+				     M.RASMBLY_ID = #schLoAsmCode#
+				</isNotEmpty>
+				
+				<!-- 대수 -->
+				<isNotEmpty prepend="AND" property="schRasmblyNumpr">
+				    <isNotEqual property="schRasmblyNumpr" compareValue="ALL">
+					    T.RASMBLY_NUMPR = #schRasmblyNumpr# 
+					</isNotEqual>
+				</isNotEmpty>
+				
+				<![CDATA[
+				GROUP BY
+					M.RASMBLY_ID, M.ASEMBY_ID
+				]]>
+				) AA
+    </select>
+ 
+ 	<!-- 지방의회 의원 목록을 조회한다 -->
+ 	<!-- 20151216 쿼리 변경으로 이전 쿼리 보관 -->
+    <select id="MdmTnsrAsmblyAsembyDAO.selectMdmTnsrAsmblyAsembyActListOld" parameterClass="mdmSearchVO" resultClass="mdmTnsrAsmblyAsembyActVO" remapResults="true">
+        <![CDATA[
+			SELECT 	
+				M.*  
+			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+				SELECT *
+					FROM (
+					SELECT
+						M.RASMBLY_ID
+						, M.ASEMBY_ID
+						, M.ASEMBY_NM
+						, M.FRST_REGIST_DT
+						, M.PHOTO_FILE_PATH
+						, M.ISVIEW
+						, M.ASEMBY_CN
+						, M.CUD_CODE
+						, M.TWITTER
+						, M.FACEBOOK
+						, M.HMPG
+						, M.BRTHDY
+						, O.LOASM_NM AS RASMBLY_NM
+		]]>
+				<!-- 활동정보와 JOIN시 검색되지 않는 의원이 있어서 대수정보 OR 내용 조회시에만 JOIN되도록 함 S -->
+				<isNotEmpty property="schRasmblyNumpr">						
+					, AGGR_CONCAT(E.EST_NM,',') AS EST_NM
+				</isNotEmpty>
+				<isNotEmpty property="schKw">
+					<isEqual property="schKey" compareValue="schContent">
+						<isEmpty property="schRasmblyNumpr">						
+							, AGGR_CONCAT(E.EST_NM,',') AS EST_NM
+						</isEmpty>
+					</isEqual>				  
+				</isNotEmpty>
+				<!-- E -->
+						
+						, (SELECT COUNT(*)
+                        	FROM LAMAN
+                        	WHERE LAMAN.RASMBLY_ID = M.RASMBLY_ID
+                        	AND LAMAN.BRTHDY = M.BRTHDY
+                        	AND LAMAN.ASEMBY_NM = M.ASEMBY_NM
+                        	) AS  DUPCNT
+					<!-- 활동정보와 JOIN시 검색되지 않는 의원이 있어서 대수정보 OR 내용 조회시에만 JOIN되도록 함 S -->
+					<isNotEmpty property="schRasmblyNumpr">						
+						, AGGR_CONCAT(T.RASMBLY_NUMPR,',' ORDER BY T.RASMBLY_NUMPR ASC) AS RASMBLY_NUMPR
+						, AGGR_CONCAT(T.PPRTY_NM,',') AS PPRTY_NM
+					</isNotEmpty>
+					<isNotEmpty property="schKw">
+						<isEqual property="schKey" compareValue="schContent">
+							<isEmpty property="schRasmblyNumpr">						
+								, AGGR_CONCAT(T.RASMBLY_NUMPR,',' ORDER BY T.RASMBLY_NUMPR ASC) AS RASMBLY_NUMPR
+								, AGGR_CONCAT(T.PPRTY_NM,',') AS PPRTY_NM
+							</isEmpty>
+						</isEqual>				  
+					</isNotEmpty>
+						
+					FROM
+						LAMAN M
+						, ORGAN O
+					<!-- 활동정보와 JOIN시 검색되지 않는 의원이 있어서 대수정보 OR 내용 조회시에만 JOIN되도록 함 S -->
+					<isNotEmpty property="schRasmblyNumpr">						
+						, LAMAN_ACTIVITY T
+						, COLGOVER_EDISTRICT E
+					</isNotEmpty>
+					<isNotEmpty property="schKw">
+						<isEqual property="schKey" compareValue="schContent">
+							<isEmpty property="schRasmblyNumpr">						
+								, LAMAN_ACTIVITY T
+								, COLGOVER_EDISTRICT E
+							</isEmpty>
+						</isEqual>				  
+					</isNotEmpty>
+					<!-- E -->
+					
+					<!-- 기관유형 조회 할 경우 -->
+					<isNotEmpty property="schOrgCodeStep2">
+						<isEqual property="schOrgCodeStep2" compareValue="004">
+							<![CDATA[
+							, LAMAN_ACTIVITY T
+						  	, (
+								SELECT LOASM_CODE, WS.SITEID
+						  		  FROM ORGAN OG
+						  	           , ORGAN_CLASS OC
+						  	           , WEBROBOT_SITE WS
+						  	     WHERE OG.INSTT_CL_CODE = OC.INSTT_CL_CODE
+						   		   AND OC.UPPER_INSTT_CL_CODE = 'INTSTTCL_000012'
+			                       AND OG.BRTC_CODE = WS.REGION
+							]]>                       
+				   			<isNotEmpty property="schOrgCodeStep3">
+			            		<![CDATA[   AND WS.ORG_3 = #schOrgCodeStep3# ]]>
+			            	</isNotEmpty>
+			            	<isNotEmpty property="schOrgCodeStep4">
+			            		<![CDATA[   AND WS.SITEID = #schOrgCodeStep4# ]]>
+			            	</isNotEmpty>
+			            	<![CDATA[   
+							) BT
+							]]>
+						</isEqual>
+					</isNotEmpty>
+					
+					WHERE
+						1=1
+						AND O.LOASM_CODE(+) = M.RASMBLY_ID
+					
+					<!-- 활동정보와 JOIN시 검색되지 않는 의원이 있어서 대수정보 OR 내용 조회시에만 JOIN되도록 함 S -->	
+					<isNotEmpty property="schRasmblyNumpr">
+					<![CDATA[						
+						AND M.ASEMBY_ID = T.ASEMBY_ID
+                    	AND M.RASMBLY_ID = T.RASMBLY_ID
+						AND E.RASMBLY_NUMPR(+) = T.RASMBLY_NUMPR 
+						AND E.RASMBLY_ID(+) = T.RASMBLY_ID	
+						AND E.EST_ID(+) = T.EST_ID
+						AND T.CUD_CODE != 'D'
+					]]>
+					</isNotEmpty>
+					<isNotEmpty property="schKw">
+						<isEqual property="schKey" compareValue="schContent">
+						    <isEmpty property="schRasmblyNumpr">
+							<![CDATA[						
+								AND M.ASEMBY_ID = T.ASEMBY_ID
+		                    	AND M.RASMBLY_ID = T.RASMBLY_ID
+								AND E.RASMBLY_NUMPR(+) = T.RASMBLY_NUMPR 
+								AND E.RASMBLY_ID(+) = T.RASMBLY_ID	
+								AND E.EST_ID(+) = T.EST_ID
+								AND T.CUD_CODE != 'D'
+							]]>
+							</isEmpty>
+						</isEqual>				  
+					</isNotEmpty>
+					<!-- E -->
+					
+					<!-- 기관유형 조회 할 경우 -->
+					<isNotEmpty property="schOrgCodeStep2">
+						<isEqual property="schOrgCodeStep2" compareValue="004">
+						<![CDATA[
+							AND BT.LOASM_CODE(+) = T.RASMBLY_ID
+						]]>
+						</isEqual>
+					</isNotEmpty>
+					
+<!-- 공통 검색 부분 S -->
+					<!-- 검색어 -->
+					<isNotEmpty prepend="AND" property="schKw">
+						<isEqual property="schKey" compareValue="schTitle">
+							<![CDATA[ M.ASEMBY_NM like '%' || #schKw# || '%' ]]>
+						</isEqual>
+						<isEqual property="schKey" compareValue="cnId">
+							<![CDATA[ M.ASEMBY_CN IN ( $schKw$ ) ]]>
+						</isEqual>
+						<isEqual property="schKey" compareValue="schContent">
+							<![CDATA[ T.CAREER_MATTER LIKE '%' || #schKw# || '%' ]]>
+						</isEqual>				  
+					</isNotEmpty>
+					
+					<!-- 수집일자 -->
+					<isNotEmpty prepend="AND" property="schDt1">				  
+						 <![CDATA[ M.FRST_REGIST_DT >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schDt2">				  
+						 <![CDATA[ M.FRST_REGIST_DT <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+					</isNotEmpty>
+					
+					<!-- 등록일자 -->
+<!-- 					<isNotEmpty prepend="AND" property="schDt3">				   -->
+<!-- 						 <![CDATA[ M.FRST_REGIST_DT >= REPLACE(#schDt3#, '-', '') || '000000' ]]> -->
+<!-- 					</isNotEmpty> -->
+<!-- 					<isNotEmpty prepend="AND" property="schDt4">				   -->
+<!-- 						 <![CDATA[ M.FRST_REGIST_DT <= REPLACE(#schDt4#, '-', '') || '999999' ]]> -->
+<!-- 					</isNotEmpty> -->
+					
+					<!-- 중복 -->
+					<isNotEmpty prepend="AND" property="schDuplication">
+						<isEqual property="schDuplication" compareValue="Y">
+							<![CDATA[ M.ASEMBY_ID IN (SELECT ASEMBY_ID FROM laman GROUP BY RASMBLY_ID, ASEMBY_ID HAVING COUNT(*) > 1) ]]>
+					  	</isEqual>
+						<isEqual property="schDuplication" compareValue="N">
+							<![CDATA[ M.ASEMBY_ID IN (SELECT ASEMBY_ID FROM laman GROUP BY RASMBLY_ID, ASEMBY_ID HAVING COUNT(*) < 2) ]]>
+					  	</isEqual>
+					</isNotEmpty>
+					
+					<!-- 게시 -->
+					<isNotEmpty prepend="AND" property="schIsView">
+						<isEqual property="schIsView" compareValue="N">
+						    M.ISVIEW = 'N'
+						</isEqual>
+						<isEqual property="schIsView" compareValue="Y">
+						    NVL(M.ISVIEW,'Y') = 'Y'
+						</isEqual>				  
+					</isNotEmpty>
+					
+					<!-- 삭제 -->
+					<isNotEmpty prepend="AND" property="schDel">				  
+						<isEqual property="schDel" compareValue="D">
+						    M.CUD_CODE = 'D'
+						</isEqual>
+						<isEqual property="schDel" compareValue="Y">
+						    M.CUD_CODE != 'D'
+						</isEqual>
+					</isNotEmpty>
+					
+					<!-- 변환 -->
+					<isNotEmpty prepend="AND" property="schConversion">				  
+						<isEqual property="schConversion" compareValue="1">
+						    M.PHOTO_FILE_PATH IS NOT NULL
+						</isEqual>
+						<isEqual property="schConversion" compareValue="2">
+						    M.PHOTO_FILE_PATH IS NULL
+						</isEqual>
+					</isNotEmpty>
+<!-- 공통 검색 부분 E -->
+								
+					<!-- 의회구분 -->
+					<isNotEmpty property="schLoAsmTyCode">
+						<isEmpty property="schRegion">
+							AND M.RASMBLY_ID
+						<iterate prepend="IN" property="schLoAsmTyCodeList" open="(" close=")" conjunction=","> 
+		      				#schLoAsmTyCodeList[]# 
+		    			</iterate>
+		    				</isEmpty>
+					</isNotEmpty>
+					
+					<!-- 지역 -->
+					<isNotEmpty property="schRegion">
+							AND M.RASMBLY_ID
+						<iterate prepend="IN" property="schRegionList" open="(" close=")" conjunction=","> 
+		      				#schRegionList[]# 
+		    			</iterate>				
+					</isNotEmpty>
+					
+					<!-- 의회명 -->
+					<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+					     M.RASMBLY_ID = #schLoAsmCode#
+					</isNotEmpty>
+					
+					<!-- 대수 -->
+					<isNotEmpty prepend="AND" property="schRasmblyNumpr">
+					    <isNotEqual property="schRasmblyNumpr" compareValue="ALL">
+						    T.RASMBLY_NUMPR = #schRasmblyNumpr# 
+						</isNotEqual>
+					</isNotEmpty>
+					
+					GROUP BY
+						M.RASMBLY_ID
+						, M.ASEMBY_ID
+						, M.ASEMBY_NM
+						, M.FRST_REGIST_DT
+						, M.PHOTO_FILE_PATH
+						, M.ISVIEW
+						, M.ASEMBY_CN
+						, M.CUD_CODE
+						, M.TWITTER
+						, M.FACEBOOK
+						, M.HMPG
+						, M.BRTHDY
+						, O.LOASM_NM
+				) B 
+					ORDER BY 
+				<isEmpty property="sort">
+					B.FRST_REGIST_DT DESC, B.ASEMBY_NM ASC
+				</isEmpty>
+					
+				<isNotEmpty property="sort">
+				    B.$sort$
+				</isNotEmpty>
+				) A  
+			) M
+	<![CDATA[
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+        ]]>
+    </select>
+    
+    <!-- 의원 목록 카운트를 조회한다 -->
+	<select id="MdmTnsrAsmblyAsembyDAO.selectMdmTnsrAsmblyAsembyActListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT
+				COUNT(AA.ASEMBY_ID) AS CNT
+			FROM
+			( 
+				SELECT
+					M.ASEMBY_ID 	
+				FROM 
+					LAMAN M
+					, LAMAN_ACTIVITY T
+					, ORGAN O
+					, COLGOVER_EDISTRICT E
+			]]>
+				
+			<!-- 기관유형 조회 할 경우 -->
+			<isNotEmpty property="schOrgCodeStep2">
+				<isEqual property="schOrgCodeStep2" compareValue="004">
+					<![CDATA[
+					, LAMAN_ACTIVITY T
+				  	, (
+						SELECT LOASM_CODE, WS.SITEID
+				  		  FROM ORGAN OG
+				  	           , ORGAN_CLASS OC
+				  	           , WEBROBOT_SITE WS
+				  	     WHERE OG.INSTT_CL_CODE = OC.INSTT_CL_CODE
+				   		   AND OC.UPPER_INSTT_CL_CODE = 'INTSTTCL_000012'
+	                       AND OG.BRTC_CODE = WS.REGION
+					]]>                       
+		   			<isNotEmpty property="schOrgCodeStep3">
+	            		<![CDATA[   AND WS.ORG_3 = #schOrgCodeStep3# ]]>
+	            	</isNotEmpty>
+	            	<isNotEmpty property="schOrgCodeStep4">
+	            		<![CDATA[   AND WS.SITEID = #schOrgCodeStep4# ]]>
+	            	</isNotEmpty>
+	            	<![CDATA[   
+					) BT
+					]]>
+				</isEqual>
+			</isNotEmpty>		
+				
+				WHERE
+					M.ASEMBY_CN = T.ASEMBY_CN(+)
+					AND O.LOASM_CODE(+) = T.RASMBLY_ID
+					AND E.RASMBLY_NUMPR(+) = T.RASMBLY_NUMPR 
+					AND E.RASMBLY_ID(+) = T.RASMBLY_ID	
+					AND E.EST_ID(+) = T.EST_ID
+					AND T.CUD_CODE != 'D'
+				
+			<!-- 기관유형 조회 할 경우 -->
+			<isNotEmpty property="schOrgCodeStep2">
+				<isEqual property="schOrgCodeStep2" compareValue="004">
+				<![CDATA[
+					AND BT.LOASM_CODE(+) = T.RASMBLY_ID
+				]]>
+				</isEqual>
+			</isNotEmpty>
+							
+	<!-- 공통 검색 부분 S -->
+				<!-- 검색어 -->
+				<isNotEmpty prepend="AND" property="schKw">
+					<isEqual property="schKey" compareValue="schTitle">
+						<![CDATA[ M.ASEMBY_NM like '%' || #schKw# || '%' ]]>
+					</isEqual>
+					<isEqual property="schKey" compareValue="cnId">
+						<![CDATA[ M.ASEMBY_CN IN ( $schKw$ ) ]]>
+					</isEqual>
+					<isEqual property="schKey" compareValue="schContent">
+						<![CDATA[ T.CAREER_MATTER LIKE '%' || #schKw# || '%' ]]>
+					</isEqual>				  
+				</isNotEmpty>
+			
+				<!-- 수집일자 -->
+				<isNotEmpty prepend="AND" property="schDt1">				  
+					 <![CDATA[ M.FRST_REGIST_DT >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDt2">				  
+					 <![CDATA[ M.FRST_REGIST_DT <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+				</isNotEmpty>
+				
+				<!-- 중복 -->
+				<isNotEmpty prepend="AND" property="schDuplication">
+					<isEqual property="schDuplication" compareValue="Y">
+						<![CDATA[ M.ASEMBY_ID IN (SELECT ASEMBY_ID FROM laman GROUP BY RASMBLY_ID, ASEMBY_ID HAVING COUNT(*) > 1) ]]>
+				  	</isEqual>
+					<isEqual property="schDuplication" compareValue="N">
+						<![CDATA[ M.ASEMBY_ID IN (SELECT ASEMBY_ID FROM laman GROUP BY RASMBLY_ID, ASEMBY_ID HAVING COUNT(*) < 2) ]]>
+				  	</isEqual>
+				</isNotEmpty>
+				
+				<!-- 게시 -->
+				<isNotEmpty prepend="AND" property="schIsView">
+					<isEqual property="schIsView" compareValue="N">
+					    M.ISVIEW = 'N'
+					</isEqual>
+					<isEqual property="schIsView" compareValue="Y">
+					    NVL(M.ISVIEW,'Y') = 'Y'
+					</isEqual>				  
+				</isNotEmpty>
+				
+				<!-- 삭제 -->
+				<isNotEmpty prepend="AND" property="schDel">				  
+					<isEqual property="schDel" compareValue="D">
+					    M.CUD_CODE = 'D'
+					</isEqual>
+					<isEqual property="schDel" compareValue="Y">
+					    M.CUD_CODE != 'D'
+					</isEqual>
+				</isNotEmpty>
+			
+				<!-- 변환 -->
+				<isNotEmpty prepend="AND" property="schConversion">				  
+					<isEqual property="schConversion" compareValue="1">
+					    M.PHOTO_FILE_PATH IS NOT NULL
+					</isEqual>
+					<isEqual property="schConversion" compareValue="2">
+					    M.PHOTO_FILE_PATH IS NULL
+					</isEqual>
+				</isNotEmpty>
+	<!-- 공통 검색 부분 E -->
+						
+				<!-- 의회구분 -->
+				<isNotEmpty property="schLoAsmTyCode">
+					<isEmpty property="schRegion">
+						AND M.RASMBLY_ID
+					<iterate prepend="IN" property="schLoAsmTyCodeList" open="(" close=")" conjunction=","> 
+		     			#schLoAsmTyCodeList[]# 
+		   			</iterate>
+		   				</isEmpty>
+				</isNotEmpty>
+				
+				<!-- 지역 -->
+				<isNotEmpty property="schRegion">
+					AND M.RASMBLY_ID
+					<iterate prepend="IN" property="schRegionList" open="(" close=")" conjunction=","> 
+		     			#schRegionList[]# 
+		   			</iterate>				
+				</isNotEmpty>
+				
+				<!-- 의회명 -->
+				<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+				     M.RASMBLY_ID = #schLoAsmCode#
+				</isNotEmpty>
+				
+				<!-- 대수 -->
+				<isNotEmpty prepend="AND" property="schRasmblyNumpr">
+				    <isNotEqual property="schRasmblyNumpr" compareValue="ALL">
+					    T.RASMBLY_NUMPR = #schRasmblyNumpr# 
+					</isNotEqual>
+				</isNotEmpty>
+				
+				<![CDATA[
+				GROUP BY
+					M.RASMBLY_ID, M.ASEMBY_ID
+				]]>
+				) AA
+    </select>
+    
+    <!-- 지방의회의원 목록을 조회한다 -->
+    <select id="MdmTnsrAsmblyAsembyDAO.selectMdmTnsrAsmblyAsembyActList" parameterClass="mdmSearchVO" resultClass="mdmTnsrAsmblyAsembyActVO" remapResults="true">
+        <![CDATA[
+			SELECT 	
+				M.*  
+			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+				SELECT *
+					FROM (
+					SELECT
+						M.RASMBLY_ID
+						, M.ASEMBY_ID
+						, M.ASEMBY_NM
+						, M.FRST_REGIST_DT
+						, M.PHOTO_FILE_PATH
+						, M.ISVIEW
+						, M.ASEMBY_CN
+						, M.CUD_CODE
+						, M.TWITTER
+						, M.FACEBOOK
+						, M.HMPG
+						, M.BRTHDY
+						, O.LOASM_NM AS RASMBLY_NM
+						, AGGR_CONCAT(E.EST_NM,',') AS EST_NM
+						, AGGR_CONCAT(T.RASMBLY_NUMPR,',' ORDER BY T.RASMBLY_NUMPR ASC) AS RASMBLY_NUMPR
+						, AGGR_CONCAT(T.PPRTY_NM,',') AS PPRTY_NM
+						, (SELECT COUNT(*)
+                        	FROM LAMAN
+                        	WHERE LAMAN.RASMBLY_ID = M.RASMBLY_ID
+                        	AND NVL(LAMAN.BRTHDY,'-') = NVL(M.BRTHDY,'-')
+                        	AND LAMAN.ASEMBY_NM = M.ASEMBY_NM
+                        ) AS  DUPCNT
+					FROM
+						LAMAN M
+						, ORGAN O
+						, LAMAN_ACTIVITY T
+						, COLGOVER_EDISTRICT E
+		]]>
+				<!-- 기관유형 조회 할 경우 -->
+				<isNotEmpty property="schOrgCodeStep2">
+					<isEqual property="schOrgCodeStep2" compareValue="004">
+						<![CDATA[
+						, LAMAN_ACTIVITY T
+					  	, (
+							SELECT LOASM_CODE, WS.SITEID
+					  		  FROM ORGAN OG
+					  	           , ORGAN_CLASS OC
+					  	           , WEBROBOT_SITE WS
+					  	     WHERE OG.INSTT_CL_CODE = OC.INSTT_CL_CODE
+					   		   AND OC.UPPER_INSTT_CL_CODE = 'INTSTTCL_000012'
+		                       AND OG.BRTC_CODE = WS.REGION
+						]]>                       
+			   			<isNotEmpty property="schOrgCodeStep3">
+		            		<![CDATA[   AND WS.ORG_3 = #schOrgCodeStep3# ]]>
+		            	</isNotEmpty>
+		            	<isNotEmpty property="schOrgCodeStep4">
+		            		<![CDATA[   AND WS.SITEID = #schOrgCodeStep4# ]]>
+		            	</isNotEmpty>
+		            	<![CDATA[   
+						) BT
+						]]>
+					</isEqual>
+				</isNotEmpty>
+					
+					WHERE
+						O.LOASM_CODE(+) = M.RASMBLY_ID
+						AND M.ASEMBY_CN = T.ASEMBY_CN(+)
+						AND E.RASMBLY_NUMPR(+) = T.RASMBLY_NUMPR 
+						AND E.RASMBLY_ID(+) = T.RASMBLY_ID	
+						AND E.EST_ID(+) = T.EST_ID
+						AND T.CUD_CODE != 'D'
+						
+				<!-- 기관유형 조회 할 경우 -->
+				<isNotEmpty property="schOrgCodeStep2">
+					<isEqual property="schOrgCodeStep2" compareValue="004">
+					<![CDATA[
+						AND BT.LOASM_CODE(+) = T.RASMBLY_ID
+					]]>
+					</isEqual>
+				</isNotEmpty>
+					
+<!-- 공통 검색 부분 S -->
+					<!-- 검색어 -->
+					<isNotEmpty prepend="AND" property="schKw">
+						<isEqual property="schKey" compareValue="schTitle">
+							<![CDATA[ M.ASEMBY_NM like '%' || #schKw# || '%' ]]>
+						</isEqual>
+						<isEqual property="schKey" compareValue="cnId">
+							<![CDATA[ M.ASEMBY_CN IN ( $schKw$ ) ]]>
+						</isEqual>
+						<isEqual property="schKey" compareValue="schContent">
+							<![CDATA[ T.CAREER_MATTER LIKE '%' || #schKw# || '%' ]]>
+						</isEqual>				  
+					</isNotEmpty>
+					
+					<!-- 수집일자 -->
+					<isNotEmpty prepend="AND" property="schDt1">				  
+						 <![CDATA[ M.FRST_REGIST_DT >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schDt2">				  
+						 <![CDATA[ M.FRST_REGIST_DT <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+					</isNotEmpty>
+					
+					<!-- 중복 -->
+					<isNotEmpty prepend="AND" property="schDuplication">
+						<isEqual property="schDuplication" compareValue="Y">
+							<![CDATA[ M.ASEMBY_ID IN (SELECT ASEMBY_ID FROM laman GROUP BY RASMBLY_ID, ASEMBY_ID HAVING COUNT(*) > 1) ]]>
+					  	</isEqual>
+						<isEqual property="schDuplication" compareValue="N">
+							<![CDATA[ M.ASEMBY_ID IN (SELECT ASEMBY_ID FROM laman GROUP BY RASMBLY_ID, ASEMBY_ID HAVING COUNT(*) < 2) ]]>
+					  	</isEqual>
+					</isNotEmpty>
+					
+					<!-- 게시 -->
+					<isNotEmpty prepend="AND" property="schIsView">
+						<isEqual property="schIsView" compareValue="N">
+						    M.ISVIEW = 'N'
+						</isEqual>
+						<isEqual property="schIsView" compareValue="Y">
+						    NVL(M.ISVIEW,'Y') = 'Y'
+						</isEqual>				  
+					</isNotEmpty>
+					
+					<!-- 삭제 -->
+					<isNotEmpty prepend="AND" property="schDel">				  
+						<isEqual property="schDel" compareValue="D">
+						    M.CUD_CODE = 'D'
+						</isEqual>
+						<isEqual property="schDel" compareValue="Y">
+						    M.CUD_CODE != 'D'
+						</isEqual>
+					</isNotEmpty>
+					
+					<!-- 변환 -->
+					<isNotEmpty prepend="AND" property="schConversion">				  
+						<isEqual property="schConversion" compareValue="1">
+						    M.PHOTO_FILE_PATH IS NOT NULL
+						</isEqual>
+						<isEqual property="schConversion" compareValue="2">
+						    M.PHOTO_FILE_PATH IS NULL
+						</isEqual>
+					</isNotEmpty>
+<!-- 공통 검색 부분 E -->
+								
+					<!-- 의회구분 -->
+					<isNotEmpty property="schLoAsmTyCode">
+						<isEmpty property="schRegion">
+							AND M.RASMBLY_ID
+						<iterate prepend="IN" property="schLoAsmTyCodeList" open="(" close=")" conjunction=","> 
+		      				#schLoAsmTyCodeList[]# 
+		    			</iterate>
+		    				</isEmpty>
+					</isNotEmpty>
+					
+					<!-- 지역 -->
+					<isNotEmpty property="schRegion">
+							AND M.RASMBLY_ID
+						<iterate prepend="IN" property="schRegionList" open="(" close=")" conjunction=","> 
+		      				#schRegionList[]# 
+		    			</iterate>				
+					</isNotEmpty>
+					
+					<!-- 의회명 -->
+					<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+					     M.RASMBLY_ID = #schLoAsmCode#
+					</isNotEmpty>
+					
+					<!-- 대수 -->
+					<isNotEmpty prepend="AND" property="schRasmblyNumpr">
+					    <isNotEqual property="schRasmblyNumpr" compareValue="ALL">
+						    T.RASMBLY_NUMPR = #schRasmblyNumpr# 
+						</isNotEqual>
+					</isNotEmpty>
+					
+					GROUP BY
+						M.RASMBLY_ID
+						, M.ASEMBY_ID
+						, M.ASEMBY_NM
+						, M.FRST_REGIST_DT
+						, M.PHOTO_FILE_PATH
+						, M.ISVIEW
+						, M.ASEMBY_CN
+						, M.CUD_CODE
+						, M.TWITTER
+						, M.FACEBOOK
+						, M.HMPG
+						, M.BRTHDY
+						, O.LOASM_NM
+				) B 
+					ORDER BY 
+				<isEmpty property="sort">
+					B.FRST_REGIST_DT DESC, B.ASEMBY_NM ASC
+				</isEmpty>
+					
+				<isNotEmpty property="sort">
+				    B.$sort$
+				</isNotEmpty>
+				) A  
+			) M
+	<![CDATA[
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+        ]]>
+    </select>
+
+	<!-- 의원 상세 정보를 조회한다 -->
+    <select id="MdmTnsrAsmblyAsembyDAO.selectMdmTnsrAsmblyAsembyView" parameterClass="mdmSearchVO" resultClass="mdmTnsrAsmblyAsembyVO">
+        <![CDATA[
+			SELECT
+				LAMAN.ASEMBY_CN
+				,LAMAN.ASEMBY_ID
+				,LAMAN.RASMBLY_ID
+				,LAMAN.ASEMBY_NM
+				,LAMAN.BRTHDY
+				,COLGOVER.RASMBLY_NM
+				,LAMAN.ADRES
+				,LAMAN.RDNMADR
+				,LAMAN.OWNHOM_TLPHON
+				,LAMAN.MBTLNUM
+				,LAMAN.OFFM_TLPHON
+				,LAMAN.FAX
+				,LAMAN.EMAIL
+				,LAMAN.TWITTER
+				,LAMAN.FACEBOOK
+				,LAMAN.HMPG
+				,LAMAN.PHOTO_FILE_PATH
+				,LAMAN.CUD_CODE
+				,LAMAN.COLCT_AT
+				,SUBSTR(LAMAN.FRST_REGIST_DT,0,4) || '-'
+				|| SUBSTR(LAMAN.FRST_REGIST_DT,5,2) || '-'
+				|| SUBSTR(LAMAN.FRST_REGIST_DT,7,2) AS FRST_REGIST_DT
+				,CASE WHEN LAMAN.LAST_UPDT_DT IS NOT NULL
+				THEN
+				SUBSTR(LAMAN.LAST_UPDT_DT,0,4) || '-'
+				|| SUBSTR(LAMAN.LAST_UPDT_DT,5,2) || '-'
+				|| SUBSTR(LAMAN.LAST_UPDT_DT,7,2)
+				END AS LAST_UPDT_DT
+				,CASE WHEN LAMAN.DELETE_DT IS NOT NULL
+				THEN
+				SUBSTR(LAMAN.DELETE_DT,0,4) || '-'
+				|| SUBSTR(LAMAN.DELETE_DT,5,2) || '-'
+				|| SUBSTR(LAMAN.DELETE_DT,7,2)
+				END AS DELETE_DT
+				,LAMAN.LAST_UPDUSR_ID
+			FROM
+				LAMAN
+				,COLGOVER
+			WHERE
+				LAMAN.RASMBLY_ID = COLGOVER.RASMBLY_ID
+	        ]]>
+				<isNotEmpty property="rasmblyId">
+				<isNotEmpty property="asembyId">
+				AND LAMAN.RASMBLY_ID = #rasmblyId#
+				AND LAMAN.ASEMBY_ID = #asembyId#
+				</isNotEmpty>
+				</isNotEmpty>
+				
+				<isNotEmpty property="cnId">
+				AND LAMAN.ASEMBY_CN = #cnId#
+				</isNotEmpty>
+    </select>
+
+	<!-- 소속위원회를 조회한다 -->
+    <select id="MdmTnsrAsmblyAsembyDAO.selectMdmTnsrJrsdCmitIdList" parameterClass="mdmTnsrAsmblyMtgNmVO" resultClass="mdmTnsrAsmblyMtgNmVO">
+        <![CDATA[
+			SELECT 
+				MTGNM_ID, MTGNM
+			FROM 
+				scommit
+			WHERE
+				RASMBLY_ID = #RASMBLY_ID#
+				AND RASMBLY_NUMPR = #RASMBLY_NUMPR#
+				AND (MTGNM_KND_STDCD = 'MNK001' OR MTGNM_KND_STDCD = 'MNK002' OR MTGNM_KND_STDCD = 'MNK003')
+			ORDER BY
+				MTGNM_ID ASC
+		]]>
+    </select>
+
+	<!-- 선거구 목록을 조회한다 -->
+    <select id="MdmTnsrAsmblyAsembyDAO.selectMdmTnsrEstIdList" parameterClass="mdmTnsrAsmblyEstVO" resultClass="mdmTnsrAsmblyEstVO">
+        <![CDATA[
+			SELECT 
+				EST_ID, EST_NM, RASMBLY_NUMPR
+			FROM 
+				colgover_edistrict
+			WHERE
+				RASMBLY_ID = #RASMBLY_ID#
+		]]>	
+			<isNotEqual property="RASMBLY_NUMPR" compareValue="0">
+				AND RASMBLY_NUMPR = #RASMBLY_NUMPR#
+			</isNotEqual>
+		<![CDATA[
+			ORDER BY
+				EST_ID ASC
+		]]>
+    </select>
+
+	<!-- 직위 목록을 조회한다 -->
+    <select id="MdmTnsrAsmblyAsembyDAO.selectMdmTnsrAsmblyOfCps" parameterClass="mdmTnsrAsmblyOfCpsVO" resultClass="mdmTnsrAsmblyOfCpsVO">
+        <![CDATA[
+			SELECT 
+				*
+			FROM 
+				position
+			WHERE
+				RASMBLY_ID = #RASMBLY_ID#
+				AND RASMBLY_NUMPR = #RASMBLY_NUMPR#
+				AND ASEMBY_ID = #ASEMBY_ID#
+				AND HT_SE_STDCD = #HT_SE_STDCD#
+				AND ROWNUM = 1
+		]]>
+    </select>
+	
+	<!-- 의원정보를 등록한다 -->
+    <insert id="MdmTnsrAsmblyAsembyDAO.insertMdmTnsrAsmblyAsemby" parameterClass="mdmTnsrAsmblyAsembyVO">
+        <![CDATA[
+			INSERT 
+				INTO 
+			laman (
+				 ASEMBY_ID
+				,ASEMBY_CN
+				,ASEMBY_NM
+				,PHOTO_FILE_NM
+				,BRTHDY
+				,OWNHOM_TLPHON
+				,MBTLNUM
+				,OFFM_TLPHON
+				,FAX
+				,ADRES
+				,RDNMADR
+				,EMAIL
+				,TWITTER
+				,FACEBOOK
+				,HMPG
+				,RASMBLY_ID
+				,PHOTO_FILE_URL
+				,FRST_REGIST_DT
+				,LAST_UPDT_DT
+				,DELETE_DT
+				,CUD_CODE
+				,PHOTO_FILE_LAST_UPDT_TM
+				,PHOTO_FILE_HASH
+				,PHOTO_FILE_PATH
+				,RASMBLY_ASEMBY_ID
+				,CNTC_INPUT_SE_CODE
+				,ISVIEW
+				,COLCT_AT
+			) VALUES (
+				#ASEMBY_ID#
+				,#ASEMBY_CN#
+				,#ASEMBY_NM#
+				,#PHOTO_FILE_NM#
+				,#BRTHDY#
+				,#OWNHOM_TLPHON#
+				,#MBTLNUM#
+				,#OFFM_TLPHON#
+				,#FAX#
+				,#ADRES#
+				,#RDNMADR#
+				,#EMAIL#
+				,#TWITTER#
+				,#FACEBOOK#
+				,#HMPG#
+				,#RASMBLY_ID#
+				,#PHOTO_FILE_URL#
+				,#FRST_REGIST_DT#
+				,#LAST_UPDT_DT#
+				,#DELETE_DT#
+				,'C'
+				,#PHOTO_FILE_LAST_UPDT_TM#
+				,#PHOTO_FILE_HASH#
+				,#PHOTO_FILE_PATH#
+				,#RASMBLY_ASEMBY_ID#
+				,'MANUAL'
+				,'Y'
+				,#COLCT_AT#
+			)
+		]]>
+    </insert>
+
+	<!-- 의원 활동 정보를 등록한다 -->
+    <insert id="MdmTnsrAsmblyAsembyDAO.insertMdmTnsrAsmblyAsembyAct" parameterClass="mdmTnsrAsmblyAsembyActVO">
+        <![CDATA[
+			INSERT 
+				INTO 
+			laman_activity (
+				 RASMBLY_NUMPR
+				,RASMBLY_ID
+				,ACT_AT
+				,NOACT_RESN_STDCD
+				,EST_ID
+				,PPRTY_CODE
+				,CAREER_MATTER
+				,ACDMCR_MATTER
+				,GRT
+				,ASEMBY_CAREER
+				,WNPZ_CAREER
+				,ASEMBY_ID
+				,FRST_REGIST_DT
+				,DELETE_DT
+				,CUD_CODE
+				,PPRTY_NM
+				,CNTC_INPUT_SE_CODE
+				,ASEMBY_CN
+				,ISVIEW
+			) VALUES (
+				 #RASMBLY_NUMPR#
+				,#RASMBLY_ID#
+				,#ACT_AT#
+				,#NOACT_RESN_STDCD#
+				,#EST_ID#
+				,#PPRTY_CODE#
+				,#CAREER_MATTER:CLOB#
+				,#ACDMCR_MATTER:CLOB#
+				,#GRT:CLOB#
+				,#ASEMBY_CAREER:CLOB#
+				,#WNPZ_CAREER:CLOB#
+				,#ASEMBY_ID#
+				,TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				,#DELETE_DT#
+				,'C'
+				,(SELECT PPRTY_NM FROM COLGOVER_PARTY WHERE PPRTY_CODE = #PPRTY_CODE#)
+				,'MANUAL'
+				,#ASEMBY_CN#
+				,#ISVIEW#
+			)
+		]]>
+    </insert>
+
+	<!-- 의원 직위 정보를 등록한다 -->
+    <insert id="MdmTnsrAsmblyAsembyDAO.insertMdmTnsrAsmblyOfCps" parameterClass="mdmTnsrAsmblyAsembyVO">
+        <![CDATA[
+			INSERT 
+				INTO 
+			position (
+				 HT_SE_STDCD
+				,ASEMBY_OFCPS_STDCD
+				,MTGNM_ID
+				,ASEMBY_ID
+				,RASMBLY_ID
+				,RASMBLY_NUMPR
+				,FRST_REGIST_DT
+				,CUD_CODE
+				,CNTC_INPUT_SE_CODE
+				,ASEMBY_CN
+			) VALUES (
+				 #HT_SE_STDCD#
+				,#ASEMBY_OFCPS_STDCD#
+				,#MTGNM_ID#
+				,#ASEMBY_ID#
+				,#RASMBLY_ID#
+				,#RASMBLY_NUMPR#
+				,TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				,'C'
+				,'MANUAL'
+				,#ASEMBY_CN#
+			)
+		]]>
+    </insert>
+
+	<!-- 의원정보를 수정한다 -->
+    <update id="MdmTnsrAsmblyAsembyDAO.updateMdmTnsrAsmblyAsemby" parameterClass="mdmTnsrAsmblyAsembyVO">
+        <![CDATA[
+			UPDATE 
+				laman
+			SET
+				BRTHDY 			= #BRTHDY#
+				,OWNHOM_TLPHON 	= #OWNHOM_TLPHON#
+				,MBTLNUM 		= #MBTLNUM#
+				,OFFM_TLPHON 	= #OFFM_TLPHON#
+				,FAX 			= #FAX#
+				,ADRES 			= #ADRES#
+				,RDNMADR 		= #RDNMADR#
+				,EMAIL 			= #EMAIL#
+				,TWITTER 		= #TWITTER#
+				,FACEBOOK 		= #FACEBOOK#
+				,HMPG 			= #HMPG#
+				,LAST_UPDT_DT 	= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				,LAST_UPDUSR_ID	= #LAST_UPDUSR_ID#
+				,CUD_CODE 		= 'U'
+				,COLCT_AT		= #COLCT_AT#
+		]]>		
+				<isNotEmpty property="PHOTO_FILE_URL">	
+				,PHOTO_FILE_URL = #PHOTO_FILE_URL#
+				</isNotEmpty>
+				<isNotEmpty property="PHOTO_FILE_NM">	
+				,PHOTO_FILE_NM = #PHOTO_FILE_NM#
+				</isNotEmpty>
+				<isNotEmpty property="PHOTO_FILE_HASH">
+				,PHOTO_FILE_HASH = #PHOTO_FILE_HASH#
+				,PHOTO_FILE_LAST_UPDT_TM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				</isNotEmpty>
+				<isNotEmpty property="PHOTO_FILE_PATH">
+				,PHOTO_FILE_PATH = #PHOTO_FILE_PATH#
+				</isNotEmpty>
+		<![CDATA[
+			WHERE
+				RASMBLY_ID 		= #RASMBLY_ID#
+				AND ASEMBY_ID 	= #ASEMBY_ID#
+		]]>
+    </update>
+
+	<!-- 의원활동정보를 수정한다. -->
+    <update id="MdmTnsrAsmblyAsembyDAO.updateMdmTnsrAsmblyAsembyAct" parameterClass="mdmTnsrAsmblyAsembyActVO">
+        <![CDATA[
+			UPDATE
+				laman_activity
+			SET
+				ACT_AT 				= #ACT_AT#
+				,NOACT_RESN_STDCD 	= #NOACT_RESN_STDCD#
+				,EST_ID 			= #EST_ID#
+				,PPRTY_CODE 		= #PPRTY_CODE#
+				,CAREER_MATTER 		= #CAREER_MATTER:CLOB#
+				,ACDMCR_MATTER 		= #ACDMCR_MATTER:CLOB#
+				,GRT 				= #GRT:CLOB#
+				,ASEMBY_CAREER 		= #ASEMBY_CAREER:CLOB#
+				,WNPZ_CAREER 		= #WNPZ_CAREER:CLOB#
+				,LAST_UPDT_DT 		= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				,CUD_CODE 			= #CUD_CODE#
+				,PPRTY_NM 			= (SELECT PPRTY_NM FROM COLGOVER_PARTY WHERE PPRTY_CODE = #PPRTY_CODE#)
+		]]>
+				<isNotEqual property="NOACT_RESN_STDCD" compareValue="NAR902">
+				,ISVIEW 			= 'Y'
+				</isNotEqual>
+				<isEqual property="NOACT_RESN_STDCD" compareValue="NAR902">
+				,ISVIEW 			= 'N'
+				</isEqual>
+				
+				<isEqual property="CUD_CODE" compareValue="D">
+				,DELETE_DT 			= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				</isEqual>
+				<isNotEqual property="CUD_CODE" compareValue="D">
+				,DELETE_DT 			= null
+				</isNotEqual>
+		<![CDATA[		
+			WHERE
+				RASMBLY_ID 			= #RASMBLY_ID#
+				AND RASMBLY_NUMPR 	= #RASMBLY_NUMPR#
+				AND ASEMBY_ID 		= #ASEMBY_ID#
+		]]>
+    </update>
+	
+	<!-- 직위 정보를 수정한다. -->
+	<update id="MdmTnsrAsmblyAsembyDAO.updateMdmTnsrAsmblyOfCps" parameterClass="mdmTnsrAsmblyAsembyVO">
+        <![CDATA[
+			UPDATE 
+				position
+			SET
+				 ASEMBY_OFCPS_STDCD = #ASEMBY_OFCPS_STDCD#
+				,LAST_UPDT_DT 		= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				,CUD_CODE 			= #CUD_CODE#
+		]]>
+				<isEqual property="CUD_CODE" compareValue="D">
+				,DELETE_DT 			= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				</isEqual>
+		<![CDATA[
+			WHERE
+				HT_SE_STDCD 		= #HT_SE_STDCD#
+				AND ASEMBY_ID 		= #ASEMBY_ID#
+				AND RASMBLY_ID 		= #RASMBLY_ID#
+				AND MTGNM_ID		= #MTGNM_ID#
+				AND RASMBLY_NUMPR 	= #RASMBLY_NUMPR#
+		]]>
+    </update>
+    
+    <update id="MdmTnsrAsmblyAsembyDAO.updateMdmTnsrAsmblyOfCps01" parameterClass="mdmTnsrAsmblyAsembyVO">
+        <![CDATA[
+			UPDATE 
+				position
+			SET
+				 ASEMBY_OFCPS_STDCD = #ASEMBY_OFCPS_STDCD01#
+				,MTGNM_ID = #MTGNM_ID01# 
+				,LAST_UPDT_DT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				,CUD_CODE = 'U'
+			WHERE
+				HT_SE_STDCD = 'HTS001'
+				AND ASEMBY_ID = #ASEMBY_ID#
+				AND RASMBLY_ID = #RASMBLY_ID#
+				AND RASMBLY_NUMPR = #RASMBLY_NUMPR#
+		]]>
+    </update>
+
+    <update id="MdmTnsrAsmblyAsembyDAO.updateMdmTnsrAsmblyOfCps02" parameterClass="mdmTnsrAsmblyAsembyVO">
+        <![CDATA[
+			UPDATE 
+				position
+			SET
+				 ASEMBY_OFCPS_STDCD = #ASEMBY_OFCPS_STDCD02#
+				,MTGNM_ID = #MTGNM_ID02# 
+				,LAST_UPDT_DT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				,CUD_CODE = 'U'
+			WHERE
+				HT_SE_STDCD = 'HTS002'
+				AND ASEMBY_ID = #ASEMBY_ID#
+				AND RASMBLY_ID = #RASMBLY_ID#
+				AND RASMBLY_NUMPR = #RASMBLY_NUMPR#
+		]]>
+    </update>
+
+	<!-- 의원 게시 여부를 수정한다 -->
+    <update id="MdmTnsrAsmblyAsembyDAO.updateMdmTnsrAsmblyAsembyIsView" parameterClass="mdmTnsrAsmblyAsembyVO">
+        <![CDATA[
+			UPDATE 
+				laman
+			SET
+				ISVIEW = #ISVIEW#
+				,LAST_UPDT_DT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			WHERE 
+				RASMBLY_ID = #RASMBLY_ID#
+				AND ASEMBY_ID = #ASEMBY_ID#
+		]]>
+    </update>
+
+	<!-- 의원 활동 정보를 삭제한다 -->
+    <update id="MdmTnsrAsmblyAsembyDAO.deleteMdmTnsrAsmblyAsembyChk" parameterClass="mdmTnsrAsmblyAsembyVO">
+        <![CDATA[
+			UPDATE 
+				laman_activity
+			SET
+				CUD_CODE = #ISVIEW#
+				,DELETE_DT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			WHERE 
+				RASMBLY_ID = #RASMBLY_ID#
+				AND ASEMBY_ID = #ASEMBY_ID#
+		]]>
+    </update>
+	
+	<!-- 의원 정보를 삭제한다 -->
+    <update id="MdmTnsrAsmblyAsembyDAO.deleteMdmTnsrAsmblyAsemby" parameterClass="mdmTnsrAsmblyAsembyVO">
+        <![CDATA[
+			UPDATE 
+				laman
+			SET
+				CUD_CODE 		= #ISVIEW#
+				,DELETE_DT 		= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				,LAST_UPDUSR_ID	= #LAST_UPDUSR_ID#
+			WHERE 
+				RASMBLY_ID 		= #RASMBLY_ID#
+				AND ASEMBY_ID 	= #ASEMBY_ID#
+		]]>
+    </update>
+	
+	<!-- 의원 상세화면 활동/경력 사항 정보를 조회한다. -->
+	<select id="MdmTnsrAsmblyAsembyDAO.selectMdmLamanActivityList" parameterClass="mdmTnsrAsmblyAsembyVO" resultClass="java.util.HashMap">
+	<![CDATA[
+		WITH LAMAN_POSITION AS (
+			SELECT
+				POSITION.RASMBLY_ID
+				,POSITION.RASMBLY_NUMPR
+				,POSITION.ASEMBY_ID
+				,AGGR_CONCAT('[' || CDC1.CODE_NM || ' / ' || SCOMMIT.MTGNM || '] ', ',') AS POSITION1
+				,AGGR_CONCAT(CDC1.CODE || '@' || SCOMMIT.MTGNM_ID || '@' || CDC2.CODE,',') AS POSITION2
+			FROM
+				POSITION
+				,SCOMMIT
+				,COMMON_DETAIL_CODE CDC1
+				,COMMON_DETAIL_CODE CDC2
+			WHERE
+				POSITION.RASMBLY_ID = SCOMMIT.RASMBLY_ID
+				AND POSITION.RASMBLY_NUMPR = SCOMMIT.RASMBLY_NUMPR
+				AND POSITION.MTGNM_ID = SCOMMIT.MTGNM_ID
+				AND POSITION.HT_SE_STDCD = CDC1.CODE
+				AND POSITION.ASEMBY_OFCPS_STDCD = CDC2.CODE
+				AND POSITION.RASMBLY_ID = #RASMBLY_ID#
+				AND POSITION.ASEMBY_ID = #ASEMBY_ID#
+				AND POSITION.CUD_CODE != 'D'
+			GROUP BY
+				POSITION.RASMBLY_ID
+				,POSITION.RASMBLY_NUMPR
+				,POSITION.ASEMBY_ID
+		)
+		
+		SELECT
+			LAMAN_ACTIVITY.ASEMBY_CN
+			,LAMAN_ACTIVITY.RASMBLY_NUMPR
+			,LAMAN_ACTIVITY.RASMBLY_ID
+			,LAMAN_ACTIVITY.ASEMBY_ID
+			,NVL(LAMAN_ACTIVITY.ACT_AT,'Y') AS ACT_AT
+			,LAMAN_ACTIVITY.NOACT_RESN_STDCD
+			,LAMAN_ACTIVITY.EST_ID
+			,LAMAN_ACTIVITY.CAREER_MATTER
+			,LAMAN_ACTIVITY.ACDMCR_MATTER
+			,LAMAN_ACTIVITY.GRT
+			,LAMAN_ACTIVITY.ASEMBY_CAREER
+			,LAMAN_ACTIVITY.WNPZ_CAREER
+			,LAMAN_ACTIVITY.PPRTY_NM
+			,LAMAN_ACTIVITY.PPRTY_CODE
+			,LAMAN_POSITION.POSITION1
+			,LAMAN_POSITION.POSITION2
+			,LAMAN_ACTIVITY.CUD_CODE
+			,SUBSTR(LAMAN_ACTIVITY.FRST_REGIST_DT,0,4) || '-'
+			|| SUBSTR(LAMAN_ACTIVITY.FRST_REGIST_DT,5,2) || '-'
+			|| SUBSTR(LAMAN_ACTIVITY.FRST_REGIST_DT,7,2) AS FRST_REGIST_DT
+			,CASE WHEN LAMAN_ACTIVITY.LAST_UPDT_DT IS NOT NULL
+			THEN
+			SUBSTR(LAMAN_ACTIVITY.LAST_UPDT_DT,0,4) || '-'
+			|| SUBSTR(LAMAN_ACTIVITY.LAST_UPDT_DT,5,2) || '-'
+			|| SUBSTR(LAMAN_ACTIVITY.LAST_UPDT_DT,7,2)
+			END AS LAST_UPDT_DT
+			,CASE WHEN LAMAN_ACTIVITY.DELETE_DT IS NOT NULL
+			THEN
+			SUBSTR(LAMAN_ACTIVITY.DELETE_DT,0,4) || '-'
+			|| SUBSTR(LAMAN_ACTIVITY.DELETE_DT,5,2) || '-'
+			|| SUBSTR(LAMAN_ACTIVITY.DELETE_DT,7,2)
+			END AS DELETE_DT
+		FROM
+			LAMAN_ACTIVITY
+			,LAMAN_POSITION
+		WHERE 
+			LAMAN_ACTIVITY.ASEMBY_CN = #ASEMBY_CN#
+			AND LAMAN_ACTIVITY.RASMBLY_ID = LAMAN_POSITION.RASMBLY_ID(+)
+			AND LAMAN_ACTIVITY.RASMBLY_NUMPR = LAMAN_POSITION.RASMBLY_NUMPR(+)
+			AND LAMAN_ACTIVITY.ASEMBY_ID = LAMAN_POSITION.ASEMBY_ID(+)
+			AND LAMAN_ACTIVITY.CUD_CODE != 'D'
+		ORDER BY
+			LAMAN_ACTIVITY.RASMBLY_NUMPR ASC
+		]]>
+	</select>
+	
+	<!-- 의원 사진 정보를 제거한다. -->
+	<update id="MdmTnsrAsmblyAsembyDAO.deleteAsembyPhotoFile" parameterClass="mdmSearchVO">
+		UPDATE 
+			LAMAN
+		SET
+			PHOTO_FILE_NM 				= NULL
+			,PHOTO_FILE_HASH 			= NULL
+			,PHOTO_FILE_PATH 			= NULL
+			,PHOTO_FILE_LAST_UPDT_TM 	= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			,LAST_UPDT_DT 				= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+		WHERE
+			RASMBLY_ID = #rasmblyId#
+			AND ASEMBY_ID = #asembyId#
+	</update>
+	
+	<!-- 관련 회의록 / 발언 정보를 조회한다. -->
+	<select id="MdmTnsrAsmblyAsembyDAO.selectMdmTnsrMinutes" parameterClass="mdmSearchVO" resultMap="hashMap">
+		WITH MINTS_CN_LIST AS (
+			SELECT MINTS_CN FROM (
+				 SELECT ROWNUM AS RNUM, AA.MINTS_CN FROM ( 
+				 	SELECT MINUTES_STATEMENT.MINTS_CN
+				    FROM MINUTES_STATEMENT
+				    WHERE MINUTES_STATEMENT.RASMBLY_ID = #rasmblyId#
+				    AND MINUTES_STATEMENT.ASEMBY_ID = #asembyId#
+				    GROUP BY MINUTES_STATEMENT.MINTS_CN
+				    ORDER BY MINUTES_STATEMENT.MINTS_CN DESC 
+				 ) AA 
+			) AAA
+			WHERE AAA.RNUM = #pageNum#
+		)
+		
+		SELECT
+			A.TOTCNT, B.*
+		FROM
+		(
+			SELECT
+				COUNT(COUNT(*)) AS TOTCNT
+			FROM
+				MINUTES_STATEMENT
+			WHERE
+				MINUTES_STATEMENT.RASMBLY_ID = #rasmblyId#
+				AND MINUTES_STATEMENT.ASEMBY_ID = #asembyId#
+			GROUP BY
+				MINUTES_STATEMENT.MINTS_CN
+		) A,
+		(
+		SELECT
+			SCOMMIT.MTGNM
+			,MINUTES.RASMBLY_SESN
+			,MINUTES.MINTS_ODR
+			,SUBSTR(MINUTES.MTG_DE,0,4) || '-'
+			|| SUBSTR(MINUTES.MTG_DE,5,2) || '-'
+			|| SUBSTR(MINUTES.MTG_DE,7,2) AS MTG_DE
+			,MINUTES_STATEMENT.MINTS_CN
+			,MINUTES_STATEMENT.SPKNG_CN
+		FROM
+			MINUTES
+			,SCOMMIT
+			,MINUTES_STATEMENT
+			,MINTS_CN_LIST
+		WHERE
+			MINUTES.RASMBLY_ID = SCOMMIT.RASMBLY_ID
+			AND MINUTES.RASMBLY_NUMPR = SCOMMIT.RASMBLY_NUMPR
+			AND MINUTES.MTGNM_ID = SCOMMIT.MTGNM_ID
+			AND MINUTES.RASMBLY_ID = MINUTES_STATEMENT.RASMBLY_ID
+			AND MINUTES.RASMBLY_NUMPR = MINUTES_STATEMENT.RASMBLY_NUMPR
+			AND MINUTES.SESN_SE_STDCD = MINUTES_STATEMENT.SESN_SE_STDCD
+			AND MINUTES.RASMBLY_SESN = MINUTES_STATEMENT.RASMBLY_SESN
+			AND MINUTES.MTGNM_ID = MINUTES_STATEMENT.MTGNM_ID
+			AND MINUTES.MINTS_ODR = MINUTES_STATEMENT.MINTS_ODR
+			AND MINUTES.MINTS_SN = MINUTES_STATEMENT.MINTS_SN
+			AND MINUTES.MINTS_CN = MINTS_CN_LIST.MINTS_CN
+			AND MINUTES_STATEMENT.RASMBLY_ID = #rasmblyId#
+			AND MINUTES_STATEMENT.ASEMBY_ID = #asembyId#
+		) B
+	</select>
+	
+	<!-- 지방의회 대수 목록을 조회한다. -->
+	<select id="MdmTnsrAsmblyAsembyDAO.MdmTnsrRasmblyList" parameterClass="mdmSearchVO" resultClass="java.util.HashMap">
+        <![CDATA[
+			SELECT
+				GENER.RASMBLY_NUMPR
+			FROM
+				COLGOVER
+				,GENER
+			WHERE
+				COLGOVER.RASMBLY_ID = GENER.RASMBLY_ID
+				AND GENER.RASMBLY_ID = #rasmblyId#
+		]]>
+    </select>
+    
+    <!-- 지방의회 회의명 목록을 조회한다. -->
+	<select id="MdmTnsrAsmblyAsembyDAO.MdmTnsrMtgnmList" parameterClass="mdmSearchVO" resultClass="java.util.HashMap">
+        <![CDATA[
+			SELECT
+				RASMBLY_ID
+				,RASMBLY_NUMPR
+				,MTGNM_ID
+				,MTGNM
+				,MTGNM_KND_STDCD
+			FROM
+				SCOMMIT
+			WHERE
+				RASMBLY_ID = #rasmblyId#
+				AND RASMBLY_NUMPR = #rasmblyNumpr#
+		]]>
+    </select>
+</sqlMap>

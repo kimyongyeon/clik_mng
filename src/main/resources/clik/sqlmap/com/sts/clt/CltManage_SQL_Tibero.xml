@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="CltManage">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="CltManageVO" type="clikmng.nanet.go.kr.sts.clt.service.CltManageVO"/>
+	<typeAlias  alias="CltStsVO" type="clikmng.nanet.go.kr.sts.clt.service.CltStsVO"/>
+	
+
+	
+	<!-- 수집통계 - 기간별 -->
+	<select id="cltManageDAO.selectCltList" parameterClass="CltManageVO" resultClass="CltStsVO">
+		<![CDATA[			
+			SELECT 
+				data.term
+				, NVL(MAX(DECODE(data.doctype, 'bill', data.cnt)), '0') AS bill
+				, NVL(MAX(DECODE(data.doctype, 'minutes', data.cnt)), '0') AS minutes
+				, NVL(MAX(DECODE(data.doctype, '100', data.cnt)), '0') AS _100
+				, NVL(MAX(DECODE(data.doctype, '200', data.cnt)), '0') AS _200
+				, NVL(MAX(DECODE(data.doctype, '300', data.cnt)), '0') AS _300
+				, NVL(MAX(DECODE(data.doctype, '400', data.cnt)), '0') AS _400
+				, NVL(MAX(DECODE(data.doctype, '500', data.cnt)), '0') AS _500
+				, NVL(MAX(DECODE(data.doctype, '600', data.cnt)), '0') AS _600
+				, NVL(MAX(DECODE(data.doctype, '700', data.cnt)), '0') AS _700
+				, NVL(MAX(DECODE(data.doctype, '800', data.cnt)), '0') AS _800
+				, NVL(MAX(DECODE(data.doctype, '900', data.cnt)), '0') AS _900
+				, NVL(MAX(DECODE(data.doctype, '999', data.cnt)), '0') AS _999
+				, NVL(MAX(DECODE(data.doctype, 'tot_sub', data.cnt)), '0') AS tot_sub
+				, NVL(MAX(DECODE(data.doctype, 'assemblyinfo', data.cnt)), '0') AS assemblyinfo
+				, NVL(MAX(DECODE(data.doctype, 'news', data.cnt)), '0') AS news
+				, NVL(MAX(DECODE(data.doctype, '140', data.cnt)), '0') AS _140
+				, NVL(SUM(data.tot_sub), '0') AS tot_cnt
+			FROM(
+			 
+				/* bill, minutes, assemblyinfo */
+				(
+				SELECT SUBSTR(a.OCCRRNC_DE, 1, $searchGubun$) AS term
+					, (CASE WHEN PROVD_SVC_ID = 'RES401' THEN 'bill'
+					WHEN PROVD_SVC_ID = 'RES301' THEN 'minutes'
+					WHEN PROVD_SVC_ID = 'RES203' THEN 'assemblyinfo' END) AS doctype
+					, SUM(a.CRTCNT) AS cnt
+					, SUM(a.CRTCNT) AS tot_sub
+				FROM (SELECT * 
+					FROM LOG_TAR_SUMMARY 
+					WHERE	CRTCNT IS NOT NULL
+						AND TRSMRCV_SE_CODE = '002' 
+						AND PROVD_SVC_ID IN('RES203', 'RES301', 'RES401')
+						AND OCCRRNC_DE BETWEEN #schDt1# AND #schDt2#) a
+				GROUP BY SUBSTR(a.OCCRRNC_DE, 1, $searchGubun$), a.PROVD_SVC_ID
+				)
+				
+				UNION ALL
+				
+				/* policyinfo */
+				(
+				SELECT SUBSTR(regdate, 1, $searchGubun$) AS term, NVL(doctype, 'tot_sub') AS doctype
+					, COUNT(*) AS cnt, CASE WHEN NVL(doctype, 'tot_sub') = 'tot_sub' THEN COUNT(*) ELSE 0 END AS tot_sub
+				FROM WEBROBOT_CONTENTS 
+				WHERE DOCTYPE IN ('100' ,'200' ,'300' ,'400' ,'500' ,'600' ,'700' ,'800' ,'900' ,'999')
+					AND regdate BETWEEN #schDt1# AND #schDt2#
+				GROUP BY ROLLUP(SUBSTR(regdate, 1, $searchGubun$), doctype)
+				)
+				
+				UNION ALL
+				
+				/* news */
+				(
+				SELECT SUBSTR(regdate,1,4) AS term,'news' AS doctype,count(*) AS cnt,COUNT(*) AS tot_sub
+				FROM WEBROBOT_NEWS
+				where regdate BETWEEN TO_CHAR(TO_DATE(#schDt1#, 'YYYY.MM.DD HH24:MI:SS'), 'YYYY.MM.DD HH24:MI:SS') AND TO_CHAR(TO_DATE(#schDt2#, 'YYYY.MM.DD HH24:MI:SS'), 'YYYY.MM.DD HH24:MI:SS')
+				GROUP BY SUBSTR(regdate, 1, 4) 
+				)
+				
+				UNION ALL
+				
+				/*manual*/
+				(
+				SELECT SUBSTR(regdate, 1, $searchGubun$) AS term, a.doctype, count(*) AS cnt, COUNT(*) AS tot_sub
+				FROM (SELECT regdate, doctype FROM WEBROBOT_CONTENTS WHERE doctype = '140' AND regdate BETWEEN #schDt1# AND #schDt2#) a
+				GROUP BY SUBSTR(regdate, 1, $searchGubun$), a.doctype
+				)
+				
+			) data
+			WHERE data.term IS NOT NULL 
+			GROUP BY data.term
+			ORDER BY data.term ASC
+		]]>
+	</select>
+	
+	<!-- 수집통계 - 기간합산 -->
+	<select id="cltManageDAO.selectCltStsTermSumList" parameterClass="CltManageVO" resultClass="CltStsVO">
+		<![CDATA[
+			SELECT 
+				data.RASMBLY_ID
+				, data.RASMBLY_NM
+				, data.ORDR
+				, data.RASMBLY_TY_CODE
+				, NVL(MAX(DECODE(data.doctype, 'bill', data.cnt)), '0') AS bill
+				, NVL(MAX(DECODE(data.doctype, 'minutes', data.cnt)), '0') AS minutes
+				, NVL(MAX(DECODE(data.doctype, '100', data.cnt)), '0') AS _100
+				, NVL(MAX(DECODE(data.doctype, '200', data.cnt)), '0') AS _200
+				, NVL(MAX(DECODE(data.doctype, '300', data.cnt)), '0') AS _300
+				, NVL(MAX(DECODE(data.doctype, '400', data.cnt)), '0') AS _400
+				, NVL(MAX(DECODE(data.doctype, '500', data.cnt)), '0') AS _500
+				, NVL(MAX(DECODE(data.doctype, '600', data.cnt)), '0') AS _600
+				, NVL(MAX(DECODE(data.doctype, '700', data.cnt)), '0') AS _700
+				, NVL(MAX(DECODE(data.doctype, '800', data.cnt)), '0') AS _800
+				, NVL(MAX(DECODE(data.doctype, '900', data.cnt)), '0') AS _900
+				, NVL(MAX(DECODE(data.doctype, '999', data.cnt)), '0') AS _999
+				, NVL(MAX(DECODE(data.doctype, 'tot_sub', data.cnt)), '0') AS tot_sub
+				, NVL(MAX(DECODE(data.doctype, 'assemblyinfo', data.cnt)), '0') AS assemblyinfo
+				, NVL(MAX(DECODE(data.doctype, 'news', data.cnt)), '0') AS news
+				, NVL(MAX(DECODE(data.doctype, '140', data.cnt)), '0') AS _140
+				, NVL(SUM(data.tot_sub), '0') AS tot_cnt
+			FROM(
+				/*광역의회,기초의회*/
+				/*bill, minutes, assemblyinfo*/
+				(SELECT 
+					a.RASMBLY_ID
+					, a.RASMBLY_NM
+					, a.ORDR
+					, (CASE WHEN b.PROVD_SVC_ID = 'RES301' THEN 'minutes'
+					WHEN b.PROVD_SVC_ID = 'RES401' THEN 'bill'
+					WHEN b.PROVD_SVC_ID = 'RES203' THEN 'assemblyinfo' END) AS doctype
+					, a.RASMBLY_TY_CODE
+					, SUM(b.CRTCNT) AS cnt
+					, SUM(b.CRTCNT) AS tot_sub
+				FROM 
+					(SELECT ORGAN.LOASM_CODE AS RASMBLY_ID, ORGAN.LOASM_NM AS RASMBLY_NM, ORGAN.LOASM_TY_CODE AS RASMBLY_TY_CODE, COLGOVER.ORDR
+					FROM (SELECT * FROM COLGOVER WHERE RASMBLY_STTUS_CODE = 'RAS001' AND DELETE_AT = 'N') COLGOVER
+						LEFT JOIN (SELECT * FROM ORGAN WHERE INSTT_CL_CODE IN ('INTSTTCL_000023', 'INTSTTCL_000024')) ORGAN
+						ON ORGAN.LOASM_CODE = COLGOVER.RASMBLY_ID) a
+					LEFT JOIN 
+					(SELECT * 
+					FROM LOG_TAR_SUMMARY 
+					WHERE	CRTCNT IS NOT NULL
+						AND TRSMRCV_SE_CODE = '002' 
+						AND PROVD_SVC_ID IN ('RES301', 'RES401', 'RES203')
+						AND OCCRRNC_DE BETWEEN #schDt1# AND #schDt2#) b
+					ON a.RASMBLY_ID = TRIM(b.PROVD_INSTT_ID)
+				GROUP BY a.RASMBLY_ID, a.RASMBLY_NM, a.ORDR, b.PROVD_SVC_ID, a.RASMBLY_TY_CODE)
+				
+				UNION ALL
+				
+				/*policyinfo*/
+				SELECT a.RASMBLY_ID, a.RASMBLY_NM, a.ORDR, CASE WHEN GROUPING(b.doctype) = 1 THEN 'tot_sub' ELSE b.doctype END AS doctype, a.RASMBLY_TY_CODE
+						, COUNT(b.SITEID) AS cnt, CASE WHEN GROUPING(b.doctype) = 1 THEN COUNT(b.SITEID) ELSE 0 END AS tot_sub
+				FROM
+					(SELECT ORGAN.LOASM_CODE AS RASMBLY_ID, ORGAN.LOASM_NM AS RASMBLY_NM, ORGAN.LOASM_TY_CODE AS RASMBLY_TY_CODE, COLGOVER.ORDR, SITEID
+					FROM (SELECT * FROM COLGOVER WHERE RASMBLY_STTUS_CODE = 'RAS001' AND DELETE_AT = 'N') COLGOVER
+						LEFT JOIN (SELECT * FROM ORGAN WHERE INSTT_CL_CODE IN ('INTSTTCL_000023', 'INTSTTCL_000024') ) ORGAN
+						ON ORGAN.LOASM_CODE = COLGOVER.RASMBLY_ID) a
+					LEFT JOIN 
+					(SELECT SITEID, RASMBLY_ID, doctype FROM WEBROBOT_CONTENTS WHERE DOCTYPE IN ('100' ,'200' ,'300' ,'400' ,'500' ,'600' ,'700' ,'800' ,'900' ,'999') AND regdate BETWEEN #schDt1# AND #schDt2#) b
+					ON a.SITEID = b.SITEID
+				GROUP BY a.RASMBLY_ID, a.RASMBLY_NM, a.ORDR, ROLLUP(b.doctype), a.RASMBLY_TY_CODE
+				
+				UNION ALL
+				
+				/*news*/
+				
+				/*manual*/
+				(SELECT a.RASMBLY_ID, a.RASMBLY_NM, a.ORDR, '140' as doctype, a.RASMBLY_TY_CODE, COUNT(b.SITEID) AS cnt, COUNT(b.SITEID) AS tot_sub
+				FROM 
+					(SELECT ORGAN.LOASM_CODE AS RASMBLY_ID, ORGAN.LOASM_NM AS RASMBLY_NM, ORGAN.LOASM_TY_CODE AS RASMBLY_TY_CODE, COLGOVER.ORDR, SITEID
+					FROM (SELECT * FROM COLGOVER WHERE RASMBLY_STTUS_CODE = 'RAS001' AND DELETE_AT = 'N') COLGOVER
+						LEFT JOIN (SELECT * FROM ORGAN WHERE INSTT_CL_CODE IN ('INTSTTCL_000023', 'INTSTTCL_000024') ) ORGAN
+						ON ORGAN.LOASM_CODE = COLGOVER.RASMBLY_ID) a
+					LEFT JOIN 
+					(SELECT * FROM WEBROBOT_CONTENTS WHERE DOCTYPE = '140' AND regdate BETWEEN #schDt1# AND #schDt2#) b
+					ON a.SITEID = b.SITEID
+				GROUP BY a.RASMBLY_ID, a.RASMBLY_NM, a.ORDR, a.RASMBLY_TY_CODE)
+				
+				UNION ALL
+			 
+				/*정부기관, 연구기관, 기타*/
+				(
+				SELECT 
+					c.ORGCODE AS RASMBLY_ID
+					, c.ORGNM AS RASMBLY_NM
+					, (CASE WHEN c.ORGCODE = '001' THEN 901
+						WHEN c.ORGCODE = '003' THEN 902
+						WHEN c.ORGCODE = '004' THEN 903 END )AS ORDR
+					, CASE WHEN GROUPING(b.doctype) = 1 THEN 'tot_sub' ELSE b.doctype END AS doctype
+					, 'ETC' AS RASMBLY_TY_CODE
+					, COUNT(b.SITEID) AS cnt
+					, CASE WHEN GROUPING(b.doctype) = 1 OR b.doctype = '140' THEN COUNT(b.SITEID) ELSE 0 END AS tot_sub
+				FROM
+					(SELECT * FROM OUTORGCODESTEP1 WHERE ORGCODE <> '002') c
+					LEFT JOIN 
+					(SELECT SITEID, SITENM, ORG_1 FROM WEBROBOT_SITE 
+					 WHERE ORG_1 <> '002' ) a ON a.ORG_1 = c.ORGCODE
+					LEFT JOIN 
+					(SELECT * FROM WEBROBOT_CONTENTS 
+					 WHERE DOCTYPE IN ('100' ,'200' ,'300' ,'400' ,'500' ,'600' ,'700' ,'800' ,'900' ,'999', '140')
+					       AND regdate BETWEEN #schDt1# AND #schDt2# ) b ON a.SITEID = b.SITEID
+				GROUP BY c.ORGCODE, c.ORGNM, ROLLUP(b.doctype)
+				)
+				
+			) data
+			GROUP BY data.RASMBLY_ID, data.RASMBLY_NM, data.ORDR, data.RASMBLY_TY_CODE
+			ORDER BY data.ORDR ASC, data.RASMBLY_ID ASC
+		]]>
+	</select>
+</sqlMap>

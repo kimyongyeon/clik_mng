@@ -1,0 +1,57 @@
+@CHARSET "UTF-8";
+
+/* 베이스  */
+body{width:100%; font:normal 75% "돋움", Dotum, sans-serif; line-height:150%;background:#eeeeee;}
+input, select, textarea, button{color:#2f2f2f; font:100% "돋움", Dotum, sans-serif;}
+textarea{border:1px solid #ccc;}
+html, body, div, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, address, dl, dt, dd, ol, ul, li, fieldset, form, legend, table, caption, tbody, tfoot, thead, tr, th, td, input, select, textarea{margin:0; padding:0; }
+hr{display:none;}
+ul, ol, li{list-style:none;}
+img, fieldset{border:none; vertical-align:middle;}
+h1, h2, h3, h4, h5, h6{font-size:100%;}
+table{border-collapse:collapse;}
+address, em, optgroup{font-style:normal;}
+object{vertical-align:top;}
+input, button, select{vertical-align:middle;}
+legend, caption{position:absolute; left:-5000px; width:0; height:0; font-size:0; line-height:0; overflow:hidden;}
+caption{position:static;}
+			
+a{color:#2f2f2f; text-decoration:none;}
+a:link,
+a:visited{color:#2f2f2f; text-decoration:none;}
+a:active,
+a:focus,
+a:hover{color:#369; text-decoration:underline;}
+
+/* 본문  */
+#printarea{position:relative; overflow:hidden; margin:10px auto;width:96%; background:#fff;}
+#printarea #viewer{float:left; font-size:140%; line-height:150%; text-align:justify; letter-spacing:-1px; border:1px solid #a0a0a0; padding:10px;}
+#printarea #viewer #none_conference_text{width:100%; height:720px; margin:40px 0 0 0;line-height:5em;font-size:26pt;text-align:center;}
+#printarea #viewer #minutes{width:100%;}
+#printarea #viewer #minutes .highlight{background-color:#F6FF00;}
+#printarea #viewer #minutes .minutes_title{}
+#printarea #viewer #minutes .minutes_subject{line-height:150%; font-size:230%;text-align:center; font-family:"NanumGothicBold"; letter-spacing:-1px;}
+#printarea #viewer #minutes .meeting_datetime{border-bottom:1px solid #afafaf;padding:0 0 7px 0;}
+#printarea #viewer #minutes .fixation_group_title{font-size:120%; font-weight:bold;}
+#printarea #viewer #minutes .matter_group_title{font-size:120%;font-weight:bold;}
+#printarea #viewer #minutes .matter_group_items{color:#00f;text-decoreation:underline;cursor:pointer;}
+
+#printarea #viewer #minutes .office {text-align:right;border-bottom:1px solid #aaa;}
+#printarea #viewer #minutes .office li{display:block;}
+#printarea #viewer #minutes .intro_content{padding:10px 0 10px 0;border-top:1px solid #aaa;} 
+#printarea #viewer #minutes .start_time{;text-align:right;}
+#printarea #viewer #minutes .end_time{float:right;}
+
+#printarea #viewer #minutes .matter_content{padding:10px 0 10px 0;border-top:1px solid #aaa;}
+#printarea #viewer #minutes .etc_content{padding:10px 0 10px 0;border-top:1px solid #aaa;}
+
+#printarea #viewer #minutes .matter_subject{font-weight:bold;}
+#printarea #viewer #minutes .speaking_content{}
+#printarea #viewer #minutes .speaking_content .speaker1{font-weight:bold}
+#printarea #viewer #minutes .speaking_content .speaker2{font-weight:bold}
+#printarea #viewer #minutes .speaking_content .speaker_name{color:#00f;cursor:pointer;}
+
+#printarea #viewer #minutes .etc_info_asemby{border-top:1px solid #aaa;padding:2px 0 0 0; }
+#printarea #viewer #minutes .etc_info_asemby .title{font-weight:bold;}
+#printarea #viewer #minutes .etc_info{border-top:1px solid #aaa;padding:2px 0 0 0; }
+#printarea #viewer #minutes .etc_info .title{font-weight:bold;}

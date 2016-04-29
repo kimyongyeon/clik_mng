@@ -1,0 +1,528 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MTV>
+	<ViewCouncilCode>1</ViewCouncilCode>
+	<ViewDaesu>2</ViewDaesu>
+	<ViewTh>54</ViewTh>
+	<ViewCha>1</ViewCha>
+	<ViewCmt>A011</ViewCmt>
+	<Viewtitle>제54회 충청남도의회(임시회) 본회의 제1호</Viewtitle>
+	<Bill>
+		<No>1</No>
+		<Idx>1</Idx>
+		<Title>사무국장 집회보고</Title>
+	</Bill>
+	<Bill>
+		<No>2</No>
+		<Idx>2</Idx>
+		<Title>의장,부의장선거</Title>
+	</Bill>
+	<Bill>
+		<No>3</No>
+		<Idx>3</Idx>
+		<Title>의장(이대희)당선인사</Title>
+	</Bill>
+	<Bill>
+		<No>4</No>
+		<Idx>4</Idx>
+		<Title>의장,부의장선거계속</Title>
+	</Bill>
+	<Bill>
+		<No>5</No>
+		<Idx>5</Idx>
+		<Title>부의장(김용호, 김고성)당선인사</Title>
+	</Bill>
+	<Appendix>
+			<No>1</No>
+			<Idx>1</Idx>
+			<Title>임시의석배치도</Title>
+			<Location>javascript:void(alert('다운로드지롱!'))</Location>
+	</Appendix>
+	<Speaker>
+		<Code>1</Code>
+		<Name>이종수</Name>
+		<Photo>1</Photo>
+	</Speaker>
+	<Speaker>
+		<Code>2</Code>
+		<Name>맹치호</Name>
+		<Photo>1</Photo>
+	</Speaker>
+	<Speaker>
+		<Code>3</Code>
+		<Name>김선태</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>4</Code>
+		<Name>나영진</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>5</Code>
+		<Name>박종무</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>6</Code>
+		<Name>이시우</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>7</Code>
+		<Name>김재봉</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>8</Code>
+		<Name>김종환</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>9</Code>
+		<Name>이복구</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>10</Code>
+		<Name>이갑준</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>11</Code>
+		<Name>김현근</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>12</Code>
+		<Name>최원식</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>13</Code>
+		<Name>양희철</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>14</Code>
+		<Name>이기봉</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>15</Code>
+		<Name>강기세</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>16</Code>
+		<Name>김고성</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>17</Code>
+		<Name>구흥서</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>18</Code>
+		<Name>유재원</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>19</Code>
+		<Name>조일동</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>20</Code>
+		<Name>박원래</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>21</Code>
+		<Name>공균</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>22</Code>
+		<Name>김용호(논산)</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>23</Code>
+		<Name>유재갑</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>24</Code>
+		<Name>이준철</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>25</Code>
+		<Name>조길연</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>26</Code>
+		<Name>송선규</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>27</Code>
+		<Name>나신찬</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>28</Code>
+		<Name>이상돈</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>29</Code>
+		<Name>강신국</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>30</Code>
+		<Name>이대희</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>31</Code>
+		<Name>정선흥</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>32</Code>
+		<Name>우지명</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>33</Code>
+		<Name>서중철</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>34</Code>
+		<Name>김영창</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>35</Code>
+		<Name>전용설</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>36</Code>
+		<Name>이근용</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>37</Code>
+		<Name>한도원</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>38</Code>
+		<Name>이동욱</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>39</Code>
+		<Name>강모준</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>40</Code>
+		<Name>김진경</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>41</Code>
+		<Name>김기흥</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>42</Code>
+		<Name>김세호</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>43</Code>
+		<Name>박동윤</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>44</Code>
+		<Name>김성진</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>45</Code>
+		<Name>이홍근</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>46</Code>
+		<Name>김종성</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>47</Code>
+		<Name>김좌영</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>48</Code>
+		<Name>전영준</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>49</Code>
+		<Name>이원창</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>50</Code>
+		<Name>김남호</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>51</Code>
+		<Name>김문규</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>52</Code>
+		<Name>장기일</Name>
+		<Photo>1</Photo>
+		</Speaker>
+	<Speaker>
+		<Code>53</Code>
+		<Name>이걸재 </Name>
+		<Photo>1</Photo>
+	</Speaker>
+	<ViewText>
+	<![CDATA[
+	<div id='minutes'><div class='minutes_title'>제54회 충청남도의회(임시회)</div>
+<div class='minutes_subject'>본회의회의록</div><ul class='office'><li> 제1호</li>
+<li>충청남도의회사무국</li></ul>
+<br />
+<div class='meeting_datetime'>1991년7월8일(월) 14시</div>
+<br />
+<div class='fixation_group_title'>    의사일정(제1차본회의)</div>
+  1. 의장,부의장선거<br />
+<br />
+<div class='matter_group_title'>    부의된안건</div>
+<div class='matter_group_items'><div id='matter_group_item_1' class='matter_group_item' mtr_id='matter_1'>  1. 사무국장집회보고</div>
+<div id='matter_group_item_2' class='matter_group_item' mtr_id='matter_2'>  2. 의장,부의장선거</div>
+<div id='matter_group_item_3' class='matter_group_item' mtr_id='matter_3'>  3. 의장(이대희)당선인사</div>
+<div id='matter_group_item_4' class='matter_group_item' mtr_id='matter_4'>  4. 의장,부의장선거계속</div>
+<div id='matter_group_item_5' class='matter_group_item' mtr_id='matter_5'>  5. 부의장(김용호, 김고성)당선인사</div></div>
+<div class='intro_content'>
+
+<div class='start_time'>(10시02분 개의)</div></div>
+<div class='matter_content'><div id='matter_1' class='matter_subject'>  1. 사무국장집회보고</div>
+  <br />
+<div class='speaking_content' id='speaking_content_1'>○<span class='speaker1'>의사국장</span> <span class='speaker2'>임봉순</span>  임봉순입니다.
+  먼저 여러 의원님들의 등원을 충심으로 축하드립니다. <br />
+오늘 충청남도의회 임시회 집회에 관하여 간략히 보고 올리겠습니다.<br />
+  지난 6월 20일 제4대 충청남도의회 의원 총선거가 실시되어 도내에서 55명의 의원님이 당선 되셨고, 그 의원 전원이 등록을 마치셨습니다.<br />
+  이에 이어서 오늘 충청남도의회 제54회 임시회의는 지방자치법 제39조 제1항의 규정에 의하여 지난 6월 29일 충청남도지사의 집회 공고로서 소집케 되었습니다.<br />
+  현재 출석하신 의원 수는 정족수에 달하고 있어 지방자치법 제48조의 규정에 의하여 출석의원 중 연장 의원이신 김남호의원 님께서 임시 의장의 직무를 수행하여 회의를 주재, 의장 선거를 하시게 되겠습니다.<br />
+  김남호의원 님 단상으로 모시겠습니다.<br />
+(10시05분)</div>
+<div class='speaking_content' id='speaking_content_2'>○<span class='speaker1'>의장직무대행</span> <span class='speaker2'>김남호</span> 지금부터 제54회 충청남도의회 임시회 제1차 본회의를 개의하겠습니다.
+  금번 사무국장께서 보고가 있은 바와 같이 지방자치법 제48조 규정에 의하여 본 의원이 연장 의원으로서 의장 선거를 위한 의사를 주재 하겠습니다.<br />
+  동지 여러분께서의 당선을 마음 속 깊이 축하드리며 오늘 우리 모두가 모인 이 자리가 30년만에 다시 부활된 지방의회의원, 충청남도의회 본회의장 올시다.<br />
+  지방주민의 대표로서 복지도정 수행에 한치의 차질도 없도록 앞으로 우리 의원동지 여러분이 크나큰 역량 발휘가 있어야 한다고 믿습니다.<br />
+  저는 비록 법에 의하여 연장 의원으로서 이 자리에 섰습니다마는 이 역사적인 우리 충청남도 도정에 큰 발전의 계기가 될 수 있는 제4대 충청남도의회의 첫 의사 봉을 맡게 되었다고 하는 점을 감개 무량하게 생각하면서 또한 저 일생의 무한한 영광으로 생각합니다.<br />
+  제4대 충청남도의회 의장을 선출하는 짧은 기간 동안이지만 의원동지 여러분의 아낌없는 협조를 바랍니다.<br />
+  감사합니다.<br />
+</div></div>
+<div class='matter_content'><div id='matter_2' class='matter_subject'>  2. 의장,부의장선거</div>
+(10시08분)<br />
+<div class='speaking_content' id='speaking_content_3'>○<span class='speaker1'>의장직무대행</span> <span class='speaker2'>김남호</span>  의사일정 제1항 의장. 부의장 선거를 상정하겠습니다.
+  의장. 부의장 선거는 지방자치법 제42조 제1항의 규정에 의하여 의장 한 분과 부의장 두 분을 각각 무기명투표로 선거하게 되겠습니다.<br />
+  그러면 투표에 앞서 충청남도의회 회의규칙 제47조 제2항의 규정에 의하여 감표위원을 네 분을 지명하도록 하겠습니다.<br />
+  감표위원은 각 정당의 의원 수를 감안하여 본인이 지명하고자 하는데 이의가 없으십니까?<br />
+      (「없습니다」하는 의원 많음)<br />
+  이의가 없으시면 본 의원이 감표위원으로 수고하여 주실 의원님을 지명하도록 하겠습니다.<br />
+  먼저 서천의 송선규의원, 연기의 강기세의원, 서산의 이갑준의원, 온양의 김재봉의원님 네 분은 수고하여 주시기 바랍니다.<br />
+  지명된 감표 위원 님께서는 감표위원석으로 나와 주시기 바랍니다. <br />
+투표 방법에 관하여 사무국으로부터 설명이 있은 다음 바로 투표를 시작하겠습니다.<br />
+  감사합니다.<br />
+  사무국 말씀하여 주시기 바랍니다.</div>
+<div class='speaking_content' id='speaking_content_4'>○<span class='speaker1'>사무과장</span> <span class='speaker2'>이승학</span>  이승학 입니다.
+  의장 한 분과 부의장 두 분을 선거하는 투표 방법에 관하여 설명 드리겠습니다.<br />
+  투표는 제가 말씀드리고 있는 발언대의 좌측 기표소에서 각각 투표하시도록 되어 있습니다.  <br />
+투표하시는 순서는 호명해 드리는 순서가 되겠습니다.  <br />
+호명해 드리는 순서는 맨 첫열 좌측부터 차례로 호명하여 드리겠습니다.<br />
+  호명 받으신 의원님께서는 앞에 의사직원으로부터 투표명패와 투표용지를 받으신 다음에 그 옆에 있는 기표소에서 용지뒷면 공란에 의장으로 선출하실 의원의 성명을 한글 또는 한자로 기재하시면 되겠습니다.  <br />
+투표명패와 투표용지는 앞에 설치된 명패 함에 투표명패를 넣으시고 투표용지는 투표함에 따로 따로 넣으신 후 의석으로 돌아가시면 되겠습니다.<br />
+  이상으로 설명을 마치겠습니다.<br />
+  그러면 지금부터 투표하실 의원님을 호명하겠습니다.<br />
+  편의상 존칭은 생략하겠습니다.  <br />
+양해하여 주시기 바랍니다.<br />
+(10시12분 투표개시)<br />
+      (의사과장 : 의원성명 호명)<br />
+  김남호 임시 의장께서는 감표위원의 확인 하에 투표를 하시겠습니다.<br />
+  감표위원 투표를 해주시기 바랍니다.<br />
+  김재봉의원, 이갑준의원, 강기세의원, 송선규의원.</div>
+<div class='speaking_content' id='speaking_content_5'>○<span class='speaker1'>의장직무대행</span> <span class='speaker2'>김남호</span>  투표를 안 하신 분 안 계시죠.
+ 투표를 다 마쳤으면 이제 투표를 마치고 개표를 시작하겠습니다.<br />
+(10시22분 투표종료)<br />
+  먼저 명패 함을 열겠습니다.<br />
+      (명패함 개함)<br />
+      (명패수 점검)<br />
+  지금 명패 함 숫자를 점검한 결과 53매입니다.  <br />
+  다음은 투표함을 열겠습니다.<br />
+      (투표함 개함)<br />
+      (투표수 점검)<br />
+  투표수를 계산한 결과 투표수도 53매로서 명패 수와 같습니다.<br />
+  투표결과는 집계가 끝나는 대로 말씀드리겠습니다.<br />
+      (계표)<br />
+  투표결과를 말씀드리겠습니다.<br />
+  총 투표수 53표 중 이대희 30표, 김남호 18표, 기권 2표, 무효 3표로서 충청남도의회회의규칙 제8조 제1항의 규정에 의하여 재적의원 과반수의 출석과 출석의원 과반수 이상을 득표한 이대희 의원이 의장에 당선되었음을 선언합니다.<br />
+</div></div>
+<div class='matter_content'><div id='matter_3' class='matter_subject'>  3. 의장(이대희)당선인사</div>
+(10시34분)<br />
+<div class='speaking_content' id='speaking_content_6'>○<span class='speaker1'>의장직무대행</span> <span class='speaker2'>김남호</span>  그러면 의장으로부터 당선인사가 있겠는데, 의장으로 당선된 이대희 의원님은 나와서 인사해 주시기 바랍니다.</div>
+<div class='speaking_content' id='speaking_content_7'>○<span class='speaker1'>의장</span> <span class='speaker2'>이대희</span>  학식과 덕망이 높으신 훌륭하신 의원 여러분들이 많으신 데도 불구하고 모든 면에 부족한 저를 제4대 충청남도의회 의장으로 뽑아 주신데 대하여 깊은 감사의 말씀을 드립니다.
+  우리 의회 의원들은 주민의 대표로서 어려운 현안문제들을 조화와 타협으로 해결해 나가면서 지역사회 발전과 주민복지 증진을 위하여 합심 노력하여 그 어느 때보다도 도정발전을 위해 앞서 가는 의회, 활동적이고 생산적인 의회가 되도록 노력하여야 할 것입니다.<br />
+  저는 의원동지 여러분들의 뜻을 받들어 새로운 마음과 각오로 도의회를 위해서 분골쇄신 열과 성을 다 해 일하겠습니다.<br />
+  짐을 가득 실은 수레는 두 개의 수레바퀴로 굴러갑니다.<br />
+  소리를 내면서 일정한 간격을 유지하고 흐트러지지 않고 굴러갑니다.<br />
+  도정을 집행하는 기관과 주민의 대표자인 의회는 두 개의 수레바퀴와 같다고 봅니다.<br />
+  저 혼자만 열심히 뛴다고 해서 수레가 잘 굴러갈 수 있다고 보지 않습니다.<br />
+  의원 여러분과 제가 하나의 수레바퀴가 되어 균형을 이룬다면 도정발전을 휘한 의회가 될 것입니다.  <br />
+이렇게 될 때에 도정발전과 주민복지 증진이 한층 높이 이루어 질 것입니다.<br />
+  훌륭하신 동료의원 여러분과 의견을 집약해서 의회를 알차게 운영할 것을 마음깊이 새기면서 간단하나마 당선인사에 가름하고자 합니다.<br />
+  감사합니다.<br />
+      (일동박수)<br />
+</div></div>
+<div class='matter_content'><div id='matter_4' class='matter_subject'>  4. 의장,부의장선거계속</div>
+(10시37분)<br />
+<div class='speaking_content' id='speaking_content_8'>○<span class='speaker1'>의장</span> <span class='speaker2'>이대희</span>  의사일정에 따라서 계속해서 부의장선거를 해야겠습니다.
+  의사진행 발언이 신청되었기에 우리 이시우의원 발언해 드리겠습니다.</div>
+<div class='speaking_content' id='speaking_content_9'>○<span class='speaker1'><span class='speaker2'>이</span>시우의원</span>  이 자리에서 현명하신 도의회 당선자 여러분께서 방금 이대희 당선자를 의장으로 선출해 주셨습니다.
+  당선을 축하드립니다.<br />
+  이 자리에 계신 당선자 여러분께서 이 방법이 민주적인 발상인지 아닌지는 너무도 잘 아실 줄 믿습니다.<br />
+  이미 전국 시. 도에 민자당에서 당선되신 분 중에서 의장 누구, 부의장 두 분을 누구누구 이렇게 내정을 해서 언론사에서 이미 보도가 되고 있습니다.<br />
+  이 자리에 계신 여러분 제가 긴 말씀 안 드리겠습니다.<br />
+  저희는 무소속 민주당 당선자중에서 한 분의 부의장을 할애 해 달라고 하는 것을 몇 몇 분에게 건의도 했고, 촉구를 했습니다.<br />
+  이 자리에서 저희들이 물론, 의석은 적습니다마는 무소속, 민주당 당선자들의 의견이 관철이 되리라고 기대하지 않습니다.<br />
+  첫번 원 구성하는 과정에서 첫 단추부터 잘못 끼워지고 있기 때문에 자리에 계신 여러분께는 대단히 죄송합니다마는 저는 대천시 제2선거구에서 민주당으로 당선된 이시우입니다.<br />
+  저와 함께 당선되어 주신 민주당 당선자 또 무소속 당선자는 대단히 죄송합니다마는 부의장 두 분을 선출하는 이 자리에서 본의는 아닙니다마는 퇴장을 하고자 합니다.<br />
+  대단히 죄송합니다.<br />
+(퇴장하는 의원 있음)</div>
+<div class='speaking_content' id='speaking_content_10'>○<span class='speaker1'>의장</span> <span class='speaker2'>이대희</span>  방금 이시우의원님께서 말씀하셨는데 도의회의 의장과 부의장 두 분을 선출함에 있어서 의원 중에서 무기명 비밀투표로 하도록 이렇게 되어 있습니다.
+  이 점을 양지해 주시기 바랍니다.<br />
+  부의장은 두 분을 선거하되 한 분 한 분 각각 선거하게 되겠습니다.<br />
+  현재 재석의원이 의사정족수와 의결정족수를 충족하는 43인으로 계속 선거를 진행하겠습니다.<br />
+  의장선거에서 수고해주신 감표위원께서 다시 나와 주시면 감사하겠습니다.<br />
+  선거 방법은 의장선거 때와 같은 방법으로 해 주시면 감사하겠습니다.<br />
+  사무국에서 호명이 있겠습니다.<br />
+  감표위원 한 분이 자리를 떴습니다.<br />
+  그래서 제가 호명해도 되겠습니까?  한 분...<br />
+  그러면 제가 호명하겠습니다. <br />
+  우리 저 김선태의원, 감표위원 나오세요.</div>
+<div class='speaking_content' id='speaking_content_11'>○<span class='speaker1'>의사과장</span> <span class='speaker2'>이승학</span>  이승학입니다.
+  지금부터 투표하실 의원님을 호명하겠습니다.<br />
+  편의상 존칭은 생략하겠습니다.<br />
+  양해해 주시기 바랍니다.<br />
+(10시43분 투표개시)<br />
+      (의사과장 : 의원성명 호명)<br />
+  다음 감표위원 투표하시겠습니다.</div>
+<div class='speaking_content' id='speaking_content_12'>○<span class='speaker1'>의장</span> <span class='speaker2'>이대희</span>  투표를 하지 않으신 분 계십니까?
+  다 하셨죠?<br />
+  투표를 다 하셨으면 투표를 마치고 개표를 시작하도록 하겠습니다.<br />
+(10시51분 투표종료)<br />
+      (명패함 및 투표함 폐함)<br />
+  먼저 명패 함을 열도록 하겠습니다.<br />
+      (명패함 개함)<br />
+      (명패수 점검)<br />
+  지금 명패 함을 계산한 바 43매입니다.<br />
+  다음은 투표함을 열겠습니다.<br />
+      (투표함 개함)<br />
+      (투표수 점검)<br />
+  투표수도 43매로서 명패 수와 같습니다.<br />
+  투표결과는 집계가 끝나는 대로 말씀을 드리겠습니다.<br />
+   잠시 기다려 주시기 바랍니다.<br />
+      (계표)<br />
+  투표결과 말씀드리겠습니다.<br />
+  총 투표수 43표 중 김용호의원이 25표, 공균의원이 7표, 김고성의원이 3표, 이기봉의원이 1표, 맹치호의원이 1표, 기권 4표, 무효 2표 이렇게 나왔습니다.<br />
+  충청남도의회 회의규칙 제8조 제1항의 규정에 의하여 재적의원의 과반수 출석과 출석의원 과반수의 득표를 한 김용호의원이 부의장에 당선되었음을 선포합니다.<br />
+  계속해서 부의장 한 분의 선거를 하도록 하겠습니다.<br />
+  감표위원 여러분께서는 한번 더 수고해 주시기 바랍니다.<br />
+  사무국에서 호명이 있겠습니다.</div>
+<div class='speaking_content' id='speaking_content_13'>○<span class='speaker1'>의사과장</span> <span class='speaker2'>이승학</span>  지금부터 투표하실 의원님을 호명하겠습니다.
+  편의상 존칭은 생략하겠습니다.<br />
+  양해해 주시기 바랍니다.<br />
+      (의사과장 : 의원성명 호명)<br />
+  다음 감표위원 투표하시겠습니다.</div>
+<div class='speaking_content' id='speaking_content_14'>○<span class='speaker1'>의장</span> <span class='speaker2'>이대희</span>  투표를 하지 않으신 분은 안 계시죠?
+  투표를 다 마치셨으면 개표를 시작하겠습니다.<br />
+(11시08분 투표종료)<br />
+      (명패함 및 투표함 폐함)<br />
+  먼저 명패 함을 열도록 하겠습니다.<br />
+      (명패함 개함)<br />
+      (명패수 점검)<br />
+  지금 명패 함을 계산한 바 43매입니다.<br />
+  다음은 투표함을 열겠습니다.<br />
+      (투표함 개함)<br />
+      (투표수 점검)<br />
+  투표수도 43매로서 명패 수와 같습니다.<br />
+  투표결과는 집계가 끝나는 대로 말씀드리겠습니다.<br />
+  잠깐만 기다려 주십시오.<br />
+      (계표)<br />
+  개표된 투표결과 말씀드리겠습니다.<br />
+  총 투표수 43표 중 김고성의원이 28표, 공균의원이 3표, 맹치호의원이 2표, 박종무의원이 2표, 기권 6표, 무효 2표 이렇게 나왔습니다.  충청남도의회 회의규칙 제8조 제1항의 규정에 의하여 재적의원의 과반수의 출석과 출석의원 과반수의 득표를 한 김고성의원이 부의장에 당선되었음을 선포합니다.<br />
+</div></div>
+<div class='matter_content'><div id='matter_5' class='matter_subject'>  5. 부의장(김용호, 김고성)당선인사</div>
+(11시16분)<br />
+<div class='speaking_content' id='speaking_content_15'>○<span class='speaker1'>의장</span> <span class='speaker2'>이대희</span>  그러면 부의장으로 당선되신 두 분께서 당선인사를 해주시기 바랍니다.
+  부의장 당선인사는 먼저 선출되신 김용호 부의장님부터 먼저 해주시기 바랍니다.</div>
+<div class='speaking_content' id='speaking_content_16'>○<span class='speaker1'>부의장</span> 김용호(논산)  충청남도의회 동료 여러분들의 성원에 의해서 부의장이라고 하는 막중한 자리를 제가 앞으로 수행해 나가겠습니다.
+  이대희 의장을 보필해 가면서 도와 연계해가며 항상 상호부조적으로 앞으로 도의회를 이끌어 나가는데 하나의 부조자로서 역할을 할까 합니다.<br />
+  도의회 동료 여러분 앞으로 많은 협조와 편달이 있으시기를 바랍니다.<br />
+  감사합니다.</div>
+<div class='speaking_content' id='speaking_content_17'>○<span class='speaker1'>의장</span> <span class='speaker2'>이대희</span>  다음은 김고성 부의장님 나오셔서 인사해 주시기 바랍니다.</div>
+<div class='speaking_content' id='speaking_content_18'>○<span class='speaker1'>부의장</span> <span class='speaker2'>김고성</span>  부덕한 이 사람을 여러 의원님께서 부의장에 당선시켜 준데 대해 진심으로 감사드리겠습니다.
+  앞으로 의장님을 보좌하고 여러 의원님들을 잘 모시고 발전하는 충청남도를 위해 최선을 다하겠습니다.<br />
+  여러 의원님들!<br />
+  많은 지도편달을 바라면서 인사의 말씀에 갈음하겠습니다.<br />
+  감사합니다.</div>
+<div class='speaking_content' id='speaking_content_19'>○<span class='speaker1'>의장</span> <span class='speaker2'>이대희</span>  다음은 지방자치법 제64조 제2항의 규정에 의거 회의록 서명의원을 2인이상 선출하여 회의록에 서명하도록 되어있습니다.
+  의원 여러분이 양해해 주신다면 본 의장이 서명의원을 추천하여 여러분의 동의를 받아 선출하고자 하는데 이의 없으십니까?<br />
+      (「없습니다」하는 의원 있음)<br />
+  그러면 본 의장이 우선 저쪽 천안서부터 해야 되겠습니다.<br />
+  천안 이종수의원님, 맹치호의원님 두 분을 추천하여 본회의 회기동안 회의록 서명 의원으로 지명코자 합니다.<br />
+  그러면은 서명해 주실 것으로 알고 오늘 회의는 이것으로 마치겠습니다.  <br />
+  제2차 본회의는 내일 오후2시에 개의하도록 하겠습니다.<br />
+  산회하기 전에 한 말씀드릴 것은 오늘 오후 2시에 개회식이 거행되겠습니다.<br />
+  또한 중요한 것은 우리 의원 여러분들의 의원선서가 있습니다.<br />
+  의원선서를 하심으로서 여러분은 실제로 도민 앞에 의원으로서 체모를 갖추게 될 것입니다.<br />
+  의원 여러분께서는 한 분도 빠짐없이 참석해 주시기 바랍니다.<br />
+  제2차 본회의 의사일정으로 상정된 의원님들의 상임위원회 배정의 건은 의원님들의 의견을 충분히 반영코자 합니다.<br />
+  의석에 배부하여 드린 신청서에 희망 위원회를 기재하시어 본회의 산회 후 입구에서 의사과 직원에게 제출해 주시면 고맙겠습니다.<br />
+  그러면 산회를 선포합니다.</div></div>
+<div class='end_time'>(11시20분 산회)</div>
+<br />
+  (참조)<br />
+  !#P2947##임시의석배치도#!<br />
+  (끝에 실</>음)
+<br />
+<div class='etc_info_asemby'><div class='title'>○출석의원 53인  </div>
+&nbsp;&nbsp;&nbsp;&nbsp;이종수&nbsp;&nbsp;&nbsp;맹치호&nbsp;&nbsp;&nbsp;김선태&nbsp;&nbsp;&nbsp;나영진&nbsp;&nbsp;&nbsp;박종무&nbsp;&nbsp;&nbsp;이시우&nbsp;&nbsp;&nbsp;김재봉<br />
+&nbsp;&nbsp;&nbsp;&nbsp;김종환&nbsp;&nbsp;&nbsp;이복구&nbsp;&nbsp;&nbsp;이갑준&nbsp;&nbsp;&nbsp;김현근&nbsp;&nbsp;&nbsp;최원식&nbsp;&nbsp;&nbsp;양희철&nbsp;&nbsp;&nbsp;이기봉<br />
+&nbsp;&nbsp;&nbsp;&nbsp;강기세&nbsp;&nbsp;&nbsp;김고성&nbsp;&nbsp;&nbsp;구흥서&nbsp;&nbsp;&nbsp;유재원&nbsp;&nbsp;&nbsp;조일동&nbsp;&nbsp;&nbsp;박원래&nbsp;&nbsp;&nbsp;공균<br />
+&nbsp;&nbsp;&nbsp;&nbsp;김용호(논산)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;유재갑&nbsp;&nbsp;&nbsp;이준철&nbsp;&nbsp;&nbsp;조길연&nbsp;&nbsp;&nbsp;송선규&nbsp;&nbsp;&nbsp;나신찬<br />
+&nbsp;&nbsp;&nbsp;&nbsp;이상돈&nbsp;&nbsp;&nbsp;강신국&nbsp;&nbsp;&nbsp;이대희&nbsp;&nbsp;&nbsp;정선흥&nbsp;&nbsp;&nbsp;우지명&nbsp;&nbsp;&nbsp;서중철&nbsp;&nbsp;&nbsp;김영창<br />
+&nbsp;&nbsp;&nbsp;&nbsp;전용설&nbsp;&nbsp;&nbsp;이근용&nbsp;&nbsp;&nbsp;한도원&nbsp;&nbsp;&nbsp;이동욱&nbsp;&nbsp;&nbsp;강모준&nbsp;&nbsp;&nbsp;김진경&nbsp;&nbsp;&nbsp;김기흥<br />
+&nbsp;&nbsp;&nbsp;&nbsp;김세호&nbsp;&nbsp;&nbsp;박동윤&nbsp;&nbsp;&nbsp;김성진&nbsp;&nbsp;&nbsp;이홍근&nbsp;&nbsp;&nbsp;김종성&nbsp;&nbsp;&nbsp;김좌영&nbsp;&nbsp;&nbsp;전영준<br />
+&nbsp;&nbsp;&nbsp;&nbsp;이원창&nbsp;&nbsp;&nbsp;김남호&nbsp;&nbsp;&nbsp;김문규&nbsp;&nbsp;&nbsp;장기일&nbsp;&nbsp;&nbsp;이걸재&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div></div>
+
+	]]>
+	</ViewText>
+</MTV>

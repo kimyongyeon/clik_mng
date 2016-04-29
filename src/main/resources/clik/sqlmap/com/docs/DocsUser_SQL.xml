@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="UserInfo">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="comDefaultVO" type="clikmng.nanet.go.kr.cmm.ComDefaultVO"/>
+	<typeAlias  alias="docsVO" type="clikmng.nanet.go.kr.uss.mng.service.DocsVO" />
+
+<!--
+	SRV_DIV_CD = '060001'  재직중
+	SRV_DIV_CD = '060002'  휴직중
+	STF_TY_CD = '003001'  국회의원
+-->
+
+	
+<select id="DocsManage.selectSearchEmp" parameterClass="docsVO"  resultClass="docsVO">
+	<![CDATA[
+	SELECT *
+	FROM (
+	SELECT T0.*, ROWNUM RNUM
+		FROM (
+	]]>
+	 <![CDATA[
+		/* SELECT PKG_OBFUS.DECRYPT(userid,'NAEODOCZ') userId, name, email, dept_nm as deptNm, dept_cd as deptCd */
+		SELECT userid, name, email, dept_nm as deptNm, dept_cd as deptCd
+		  FROM userinfo
+		  WHERE 1=1
+	 ]]>
+	 <isNotEmpty property="searchKeyword">
+	 	<isNotEqual property="searchKeyword" compareValue="">
+			<isEqual property="searchCondition" compareValue="userid">
+				/* AND userid LIKE '%' || PKG_OBFUS.ENCRYPT(searchKeyword,'NAEODOCZ') || '%' */
+				AND userid LIKE '%' || #searchKeyword# || '%'
+			</isEqual>
+			<isEqual property="searchCondition" compareValue="name">
+				AND name LIKE '%' || #searchKeyword# || '%'
+			</isEqual>			
+	 	</isNotEqual>
+	 </isNotEmpty>
+	 <![CDATA[
+		ORDER BY userid ASC
+	]]>
+	<![CDATA[
+		) T0
+	)		
+		WHERE RNUM BETWEEN #firstIndex# + 1 AND #firstIndex# + #recordCountPerPage#
+	]]>
+</select>
+
+<select id="DocsManage.selectSearchEmpCnt" parameterClass="docsVO"  resultClass="java.lang.Integer">
+	<![CDATA[
+		SELECT COUNT(*)
+		  FROM userinfo
+		  WHERE SRV_DIV_CD = '060001'
+	 ]]>
+	 <isNotEmpty property="searchKeyword">
+	 	<isNotEqual property="searchKeyword" compareValue="">
+			<isEqual property="searchCondition" compareValue="userid">
+				/* AND userid LIKE '%' || PKG_OBFUS.ENCRYPT(searchKeyword,'NAEODOCZ') || '%' */
+				AND userid LIKE '%' || #searchKeyword# || '%'				
+			</isEqual>
+			<isEqual property="searchCondition" compareValue="name">
+				AND name LIKE '%' || #searchKeyword# || '%'
+			</isEqual>			
+	 	</isNotEqual>
+	 </isNotEmpty>
+</select>
+
+<select id="DocsManage.confirmUserAt" parameterClass="java.util.HashMap"  resultClass="java.lang.Integer">
+	<![CDATA[
+		SELECT COUNT(*)
+		  FROM USERINFO
+		 /* WHERE USERID = PKG_OBFUS.ENCRYPT(userId,'NAEODOCZ') */
+		 WHERE USERID = upper(#userId#)
+		   /* AND PASSWD = password */
+		   AND PASSWD = PKG_KISA_SHA256.encoding(#password#)
+		   
+	]]>
+</select>
+
+<select id="DocsManage.selectPopSearchEmp" parameterClass="docsVO"  resultClass="docsVO">
+	<![CDATA[
+	SELECT *
+	FROM (
+	SELECT T0.*, ROWNUM RNUM
+		FROM (
+	]]>
+	 <![CDATA[
+		/* SELECT PKG_OBFUS.DECRYPT(userid,'NAEODOCZ') userId, name, email */
+		SELECT userid as userId, name, email
+		  FROM userinfo
+		  WHERE SRV_DIV_CD = '060001'
+	]]>
+	<isEqual property="seCode" compareValue="Y">
+	    AND STF_TY_CD = '003001'
+	</isEqual>
+	<isEqual property="seCode" compareValue="N">
+		AND STF_TY_CD != '003001'
+	</isEqual>			
+	<isNotEmpty property="name">
+		<![CDATA[	AND name LIKE '%' || #name# || '%' ]]>
+	</isNotEmpty>
+	<![CDATA[
+		ORDER BY userid ASC
+	]]>
+	<![CDATA[
+		) T0
+	)		
+		WHERE RNUM BETWEEN #firstIndex# + 1 AND #firstIndex# + #recordCountPerPage#
+	]]>
+</select>
+
+<select id="DocsManage.selectPopSearchEmpCnt" parameterClass="docsVO"  resultClass="java.lang.Integer">
+	<![CDATA[
+		SELECT COUNT(*)
+		  FROM userinfo
+		  WHERE SRV_DIV_CD = '060001'
+	 ]]>
+	<isEqual property="seCode" compareValue="Y">
+	    AND STF_TY_CD = '003001'
+	</isEqual>
+	<isEqual property="seCode" compareValue="N">
+		AND STF_TY_CD != '003001'
+	</isEqual>
+	<isNotEmpty property="name">
+		<![CDATA[	AND name LIKE '%' || #name# || '%' ]]>
+	</isNotEmpty>
+</select>
+
+</sqlMap>

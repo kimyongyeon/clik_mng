@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ElmCupManage">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="userClassVO" type="clikmng.nanet.go.kr.elm.com.UserClassVO"/>
+	<typeAlias  alias="copyrightPermVO" type="clikmng.nanet.go.kr.elm.com.CopyrightPermVO"/>	
+	<typeAlias  alias="elmCupListVO" type="clikmng.nanet.go.kr.elm.cup.service.ElmCupListVO"/>
+
+    <resultMap id="elmCupList" class="clikmng.nanet.go.kr.elm.cup.service.ElmCupListVO">
+        <result property="cpyrhtCode" 			column="cpyrhtCode" 			columnIndex="1"/>
+        <result property="chrgnAt" 				column="chrgnAt" 				columnIndex="2"/>
+        <result property="cpyrhtUsePermCode" 	column="cpyrhtUsePermCode" 		columnIndex="3"/>
+        <result property="cpyrhtSvcScopeCode" 	column="cpyrhtSvcScopeCode" 	columnIndex="4"/>
+        <result property="userGroupId" 			column="userGroupId" 			columnIndex="5"/>
+        <result property="iconFileNm" 			column="iconFileNm" 			columnIndex="6"/>
+        <result property="iconMssage" 			column="iconMssage" 			columnIndex="7"/>
+    </resultMap>
+
+	<resultMap id="iconImageFile" class="clikmng.nanet.go.kr.cmm.service.FileVO">
+        <result property="fileStreCours" column="FILE_STRE_COURS" columnIndex="1"/>
+        <result property="streFileNm" column="STRE_FILE_NM" columnIndex="2"/>
+    </resultMap>
+
+	
+	<!-- 저작권 허락 목록 : 카운트 -->
+	<select id="cupManageDAO.selectElmCupListTotCnt" parameterClass="elmCupListVO" resultClass="int">
+	<![CDATA[
+			SELECT 		COUNT(*) AS totCnt
+			FROM (
+				SELECT		CPYRHT_CODE
+						,	CHRGN_AT
+						,	CPYRHT_USE_PERM_CODE
+						,	CPYRHT_SVC_SCOPE_CODE
+						,	USER_GROUP_ID
+						,	ICON_FILE_NM
+						,	ICON_MSSAGE
+				FROM (
+					SELECT		ROWNUM AS RNUM
+							,	CPYRHT_CODE
+							,	CHRGN_AT
+							,	CPYRHT_USE_PERM_CODE
+							,	CPYRHT_SVC_SCOPE_CODE
+							,	USER_GROUP_ID
+							,	ICON_FILE_NM
+							,	ICON_MSSAGE
+					FROM 		cpermission
+					WHERE		1 = 1
+	]]>
+					<isNotEmpty property="searchChrgnAt">
+	<![CDATA[
+						AND		CHRGN_AT = #searchChrgnAt#
+	]]>
+					</isNotEmpty>
+					<isNotEmpty property="searchCpyrhtUsePermCode">
+	<![CDATA[
+						AND		CPYRHT_USE_PERM_CODE = #searchCpyrhtUsePermCode#
+	]]>
+					</isNotEmpty>
+					<isNotEmpty property="searchCpyrhtSvcScopeCode">
+	<![CDATA[
+						AND		CPYRHT_SVC_SCOPE_CODE = #searchCpyrhtSvcScopeCode#
+	]]>
+					</isNotEmpty>
+					<isNotEmpty property="searchUserGroupId">
+	<![CDATA[
+						AND		USER_GROUP_ID = #searchUserGroupId#
+	]]>
+					</isNotEmpty>
+					<isNotEmpty property="searchKeyword">					
+						<isEqual prepend="AND" property="searchCondition" compareValue="cpyrhtCode">
+							<![CDATA[	CPYRHT_CODE LIKE '%' || #searchKeyword# || '%' 		]]>
+						</isEqual>
+					</isNotEmpty>
+	<![CDATA[
+				) A
+			) B
+	]]>			
+	</select>
+
+	<!-- 저작권 허락 목록 -->
+	<select id="cupManageDAO.selectElmCupList" parameterClass="elmCupListVO" resultClass="elmCupListVO">
+	<![CDATA[
+			SELECT 		CPYRHT_CODE 				AS 	cpyrhtCode
+					,	CHRGN_AT 					AS 	chrgnAt
+					,	CPYRHT_USE_PERM_CODE 		AS	cpyrhtUsePermCode
+					,	CPYRHT_SVC_SCOPE_CODE 		AS 	cpyrhtSvcScopeCode
+					,	USER_GROUP_ID 				AS 	userGroupId
+					,	ICON_FILE_NM 				AS 	iconFileNm
+					,	ICON_MSSAGE 				AS 	iconMssage
+			FROM (
+				SELECT		CPYRHT_CODE
+						,	CHRGN_AT
+						,	CPYRHT_USE_PERM_CODE
+						,	CPYRHT_SVC_SCOPE_CODE
+						,	USER_GROUP_ID
+						,	ICON_FILE_NM
+						,	ICON_MSSAGE
+				FROM (
+					SELECT		ROWNUM AS RNUM
+							,	CPYRHT_CODE
+							,	CHRGN_AT
+							,	CPYRHT_USE_PERM_CODE
+							,	CPYRHT_SVC_SCOPE_CODE
+							,	USER_GROUP_ID
+							,	ICON_FILE_NM
+							,	ICON_MSSAGE
+					FROM 		cpermission
+					WHERE		1 = 1
+	]]>
+					<isNotEmpty property="searchChrgnAt">
+	<![CDATA[
+						AND		CHRGN_AT = #searchChrgnAt#
+	]]>
+					</isNotEmpty>
+					<isNotEmpty property="searchCpyrhtUsePermCode">
+	<![CDATA[
+						AND		CPYRHT_USE_PERM_CODE = #searchCpyrhtUsePermCode#
+	]]>
+					</isNotEmpty>
+					<isNotEmpty property="searchCpyrhtSvcScopeCode">
+	<![CDATA[
+						AND		CPYRHT_SVC_SCOPE_CODE = #searchCpyrhtSvcScopeCode#
+	]]>
+					</isNotEmpty>
+					<isNotEmpty property="searchUserGroupId">
+	<![CDATA[
+						AND		USER_GROUP_ID = #searchUserGroupId#
+	]]>
+					</isNotEmpty>
+					<isNotEmpty property="searchKeyword">					
+						<isEqual prepend="AND" property="searchCondition" compareValue="cpyrhtCode">
+							<![CDATA[	CPYRHT_CODE LIKE '%' || #searchKeyword# || '%' 		]]>
+						</isEqual>
+					</isNotEmpty>
+					
+	<![CDATA[
+				) A
+				WHERE 		RNUM > #firstIndex# AND ROWNUM <= #recordCountPerPage# 
+			) B
+	]]>
+	</select>
+
+
+	<!-- 저작권 허락 목록 -->
+	<select id="cupManageDAO.selectElmCupListAjax" parameterClass="elmCupListVO" resultClass="elmCupListVO">
+	<![CDATA[
+			SELECT		CHRGN_AT				AS	chrgnAt
+					,	CPYRHT_USE_PERM_CODE	AS	cpyrhtUsePermCode
+					,	CPYRHT_SVC_SCOPE_CODE	AS	cpyrhtSvcScopeCode
+					,	MIN(ICON_FILE_NM)		AS	iconFileNm
+					,	MIN(ICON_MSSAGE)		AS	iconMssage
+			FROM 		cpermission
+			WHERE		USER_GROUP_ID			=	#userGroupId#
+			GROUP BY	CHRGN_AT, CPYRHT_USE_PERM_CODE, CPYRHT_SVC_SCOPE_CODE
+	]]>
+	</select>
+	
+	<!-- 관리자 등록::입력  -->
+	<insert id="cupManageDAO.insertElmCupRegist" parameterClass="copyrightPermVO">
+	 <![CDATA[
+			INSERT INTO cpermission (
+						USER_GROUP_ID
+					,	USER_GROUP_ID2
+					, 	CPYRHT_CODE
+					, 	CPYRHT_USE_PERM_CODE
+					, 	CPYRHT_SVC_SCOPE_CODE
+					,	CHRGN_AT
+					, 	ICON_FILE_NM
+					, 	ICON_MSSAGE
+					, 	FRST_REGISTER_ID
+					, 	FRST_REGIST_PNTTM
+			) VALUES (
+						#userGroupId#
+					,	#userGroupId2#
+					, 	#cpyrhtCode#
+					, 	#cpyrhtUsePermCode#
+					, 	#cpyrhtSvcScopeCode#
+					,	#chrgnAt#
+					, 	#iconFileNm#
+					, 	#iconMssage#
+					, 	#frstRegisterId#
+					,	SYSDATE
+			)
+	 ]]>
+	</insert>
+
+
+
+	<!-- 관리자 상세보기 -->
+	<select id="cupManageDAO.selectElmCupDetail" parameterClass="copyrightPermVO" resultClass="copyrightPermVO">
+	<![CDATA[
+			SELECT 	USER_GROUP_ID				AS	userGroupId
+				, 	CPYRHT_CODE					AS	cpyrhtCode
+				, 	CPYRHT_USE_PERM_CODE		AS	cpyrhtUsePermCode
+				, 	CPYRHT_SVC_SCOPE_CODE		AS	cpyrhtSvcScopeCode
+				,	CHRGN_AT					AS	chrgnAt
+				, 	ICON_FILE_NM				AS	iconFileNm
+				, 	ICON_MSSAGE					AS	iconMssage
+		FROM 		cpermission 
+		WHERE		CPYRHT_CODE = #cpyrhtCode#
+		  AND		CPYRHT_USE_PERM_CODE = #cpyrhtUsePermCode#
+		  AND       USER_GROUP_ID = #userGroupId#
+	]]>
+	</select>
+	
+	<!-- 관리자 내용 수정  -->
+	<update id="cupManageDAO.updateElmCupDetail" parameterClass="copyrightPermVO">
+	 <![CDATA[
+			UPDATE cpermission
+			SET 	USER_GROUP_ID				=	#userGroupId#
+				,	CPYRHT_CODE					=	#cpyrhtCode#
+				,	CPYRHT_USE_PERM_CODE		=	#cpyrhtUsePermCode#
+				,	CPYRHT_SVC_SCOPE_CODE		=	#cpyrhtSvcScopeCode#
+				,	CHRGN_AT					=	#chrgnAt#
+				,	ICON_FILE_NM				=	#iconFileNm#
+				,	ICON_MSSAGE					=	#iconMssage#
+				,	LAST_UPDUSR_ID 				= 	#lastUpdusrId#
+				,	LAST_UPDT_PNTTM 			= 	SYSDATE
+			WHERE	CPYRHT_CODE					=	#oriCpyrhtCode#
+	 ]]>
+	</update>
+
+
+	<!-- 관리자 내용 삭제  -->
+	<delete id="cupManageDAO.deleteElmCupDetail" parameterClass="copyrightPermVO">
+	 <![CDATA[
+			DELETE FROM		cpermission
+			WHERE			CPYRHT_CODE		=	#cpyrhtCode#
+	 ]]>
+	</delete>
+	
+	<!-- 팝업창관리::파일삭제  -->
+	<select id="cupManageDAO.selectIconFile" parameterClass="copyrightPermVO" resultMap="iconImageFile">
+        <![CDATA[
+            SELECT B.FILE_STRE_COURS AS FILE_STRE_COURS,
+                   B.STRE_FILE_NM AS STRE_FILE_NM
+              FROM cpermission A,
+                   file_detail_info B
+             WHERE 1 = 1
+               AND A.CPYRHT_CODE = #cpyrhtCode#
+               AND A.ICON_FILE_NM = B.ATCH_FILE_ID
+        ]]>
+    </select>
+	
+</sqlMap>
+

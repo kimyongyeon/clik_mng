@@ -1,0 +1,62 @@
+package clikmng.nanet.go.kr.mna.ram.service;
+
+import java.util.List;
+
+/**
+ * 권한관리에 대한 Vo 클래스를 정의한다.
+ * @author 
+ * @since 
+ * @version 
+ * @see
+ *
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      수정자           수정내용
+ *  -------    --------    ---------------------------
+ *
+ * </pre>
+ */
+
+public class AuthorManageVO extends AuthorManage {
+
+	private static final long serialVersionUID = 1L;
+
+	List <AuthorManageVO> authorManageList;
+
+	/**
+	 * AuthorManage 를 리턴한다.
+	 * @return AuthorManage
+	 */
+	public AuthorManage getAuthorManage()
+    {
+    	return super.getAuthorManage();
+    }
+	/**
+	 * AuthorManage 값을 설정한다.
+	 * @param authorManage AuthorManage
+	 */	
+    public void setAuthorManage(AuthorManage authorManage)
+    {
+    	super.setAuthorManage(authorManage);
+    }
+
+	/**
+	 * authorManageList attribute 를 리턴한다.
+	 * @return List<AuthorManageVO>
+	 */
+	public List<AuthorManageVO> getAuthorManageList() {
+		return authorManageList;
+	}
+
+	/**
+	 * authorManageList attribute 값을 설정한다.
+	 * @param authorManageList List<AuthorManageVO> 
+	 */
+	public void setAuthorManageList(List<AuthorManageVO> authorManageList) {
+		this.authorManageList = authorManageList;
+	}
+
+
+
+}

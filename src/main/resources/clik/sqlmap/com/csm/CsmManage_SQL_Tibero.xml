@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="CsmManage">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="CsmManageVO" type="clikmng.nanet.go.kr.csm.service.CsmManageVO"/>
+	
+	
+	<!-- 기관유형 목록 -->
+	<select id="CsmManageDAO.selectOrgTypeList" resultClass="CsmManageVO">
+		<![CDATA[
+			SELECT 
+						SEEDID AS seedId
+						, SEEDNM AS seedNm
+			  FROM webrobot_contents
+			 GROUP BY SEEDID, SEEDNM
+			 ORDER BY SEEDID ASC;
+			]]>
+	</select>	
+	
+	 
+	<!-- 수집기관 목록 -->
+	<select id="CsmManageDAO.selectCollectionOrgList" resultClass="CsmManageVO">
+		<![CDATA[
+			SELECT 
+						SITENM AS siteNm
+						, SITEID AS siteId
+			  FROM webrobot_contents
+			 GROUP BY SITEID, SITENM
+			 ORDER BY SITENM ASC;
+			]]>
+	</select>	
+	
+	
+	<!-- 기관별 수집 내역 -->
+	<select id="CsmManageDAO.selectCsmList" parameterClass="CsmManageVO" resultClass="CsmManageVO">
+		<![CDATA[
+		SELECT *
+		  FROM (
+			SELECT ROWNUM AS RNUM,
+                 siteNm,
+                 collectionCnt
+            FROM ( SELECT SITENM,
+                         
+                          COUNT(SITENM) AS collectionCnt
+					FROM 		webrobot_contents
+					WHERE 		1 = 1
+		]]>
+		<isNotEmpty property="schDt1">
+		<![CDATA[			 AND 		SUBSTR(REGDATE, 1, 8) >= #schDt1#		]]>
+		</isNotEmpty>
+		<isNotEmpty property="schDt2">
+		<![CDATA[			 AND 		SUBSTR(REGDATE, 1, 8) <= #schDt2#		]]>
+		</isNotEmpty>		
+		<isNotEmpty property="searchCondition1">
+		<![CDATA[			 AND 		SEEDID = #searchCondition1#		]]>
+		</isNotEmpty>
+		<isNotEmpty property="searchCondition2">
+		<![CDATA[			 AND 		SITEID = #searchCondition2#		]]>
+		</isNotEmpty>
+		<![CDATA[
+			GROUP BY siteNm
+		]]>		
+		<isNotEmpty property="sortOrder">
+			<isEqual property="sortOrder" compareValue="siteNm_DESC">
+			<![CDATA[	ORDER BY 	siteNm DESC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="siteNm_ASC">
+			<![CDATA[	ORDER BY 	siteNm ASC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="collectionCnt_DESC">
+			<![CDATA[	ORDER BY 	collectionCnt DESC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="collectionCnt_ASC">
+			<![CDATA[	ORDER BY 	collectionCnt ASC		]]>
+			</isEqual>
+		</isNotEmpty>
+		<![CDATA[
+			) B) C
+			WHERE 		RNUM > #firstIndex# AND ROWNUM <= #recordCountPerPage#
+		]]>
+	</select>	
+	
+	<select id="CsmManageDAO.selectCsmListTotCnt" parameterClass="CsmManageVO" resultClass="int">
+		<![CDATA[
+			SELECT COUNT(*) AS totCnt
+            FROM ( SELECT SITENM,
+                          COUNT(SITENM) AS collectionCnt
+					FROM 		webrobot_contents
+					WHERE 		1 = 1
+		]]>
+		<isNotEmpty property="schDt1">
+		<![CDATA[			 AND 		SUBSTR(REGDATE, 1, 8) >= #schDt1#		]]>
+		</isNotEmpty>
+		<isNotEmpty property="schDt2">
+		<![CDATA[			 AND 		SUBSTR(REGDATE, 1, 8) <= #schDt2#		]]>
+		</isNotEmpty>		
+		<isNotEmpty property="searchCondition1">
+		<![CDATA[			 AND 		SEEDID = #searchCondition1#		]]>
+		</isNotEmpty>
+		<isNotEmpty property="searchCondition2">
+		<![CDATA[			 AND 		SITEID = #searchCondition2#		]]>
+		</isNotEmpty>
+		<![CDATA[
+			GROUP BY siteNm
+		]]>		
+		<![CDATA[
+			) B
+		]]>		
+	</select>	
+	<!-- 수집기관 목록 -->
+	<select id="CsmManageDAO.selectCategoryList" resultClass="CsmManageVO">
+		<![CDATA[
+			SELECT
+					DOCTYPE AS docType
+					, DOCTYPE_NAME AS doctypeName
+			  FROM	OUTDOCTYPE
+			  WHERE DOCTYPE NOT IN ('110','120','130')			  
+			 ORDER BY DOCTYPE_ORDR ASC
+			]]>
+	</select>	
+	
+	<!-- 수집 대비 서비스 내역 목록 -->
+	<select id="CsmManageDAO.selectCollectionServiceList" parameterClass="CsmManageVO" resultClass="CsmManageVO">
+		<![CDATA[
+			SELECT 
+			   		B.DOCTYPE AS docType
+			   		, B.DOCTYPE_NAME AS doctypeName
+			   		, COUNT(B.DOCTYPE) AS colCnt
+			   		, SUM(CASE WHEN A.ISVIEW = 'Y' AND (A.CUD_CODE = 'C' OR A.CUD_CODE = 'U') THEN 1 ELSE 0 END) AS svcCnt
+			FROM webrobot_contents A
+			RIGHT OUTER JOIN (SELECT * FROM OUTDOCTYPE WHERE DOCTYPE NOT IN ('110','120','130')) B ON A.DOCTYPE = B.DOCTYPE
+			 WHERE 1 = 1
+		]]>
+		
+		<isNotEmpty property="schDt1">
+		<![CDATA[			 AND 		SUBSTR(REGDATE, 1, 8) >= #schDt1#		]]>
+		</isNotEmpty>
+		<isNotEmpty property="schDt2">
+		<![CDATA[			 AND 		SUBSTR(REGDATE, 1, 8) <= #schDt2#		]]>
+		</isNotEmpty>
+		
+		 <isNotEmpty property="searchCondition">
+				 AND B.DOCTYPE = #searchCondition#
+		</isNotEmpty>
+		 <![CDATA[		   
+			 GROUP BY B.DOCTYPE, B.DOCTYPE_NAME, B.DOCTYPE_ORDR
+			 ORDER BY B.DOCTYPE_ORDR ASC
+		]]>
+	</select>
+
+</sqlMap>

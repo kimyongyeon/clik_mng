@@ -1,0 +1,45 @@
+@charset "utf-8";
+
+html, body, div, span, object, iframe, 
+h1, h2, h3, h4, h5, h6,
+p, blockquote, pre,
+a, abbr, address, big, cite, code,
+del, dfn, em, font, img, ins, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, 
+fieldset, form, label, legend, 
+table, caption, tbody, tfoot, thead, tr, th, td,
+ul, li , dl, dt, dd, p
+{margin:0; padding:0; border:0; } /* vertical-align: baseline; outline: 0; ie �� ������ ��Ŀ�� ������� ������ ���� */
+
+
+* html { height:1px; }
+
+
+/*body { font-size:75%; font-family:gulim, dotum, Arial; color:#666; }*/
+
+input, select, option, textarea, button { font-size:100%; margin:0; padding:0; }
+
+.skip { display:none; }
+
+
+caption, legend { display:none; }
+
+
+address, cite { font-style:normal; }
+
+
+.clear { display:block; float:none; clear:both; height:0; width:100%; font-size:0 !important; line-height:0 !important; overflow:hidden; margin:0 !important; padding:0 !important; }
+
+
+fieldset, img, abbr, acronym { border:0 none; margin:0; padding:0;}
+table {	border-collapse:separate; border-spacing:0;	border:0 none; }
+ins { text-decoration:none; }
+del { text-decoration:line-through; }
+blockquote:before, blockquote:after, q:before, q:after { content:""; }
+blockquote,q { quotes:"" ""; }
+
+
+ul { list-style:none; }
+img { vertical-align:top; border:none;}
+label, select, input, textarea { vertical-align:middle;}

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="cfm">
+
+	<typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+	<typeAlias alias="comDefaultVO" type="clikmng.nanet.go.kr.cmm.ComDefaultVO" />
+	<typeAlias alias="cfmSearchVO" type="clikmng.nanet.go.kr.col.cfm.service.CfmSearchVO" />
+	<typeAlias alias="cfmFileVO" type="clikmng.nanet.go.kr.col.cfm.service.CfmFileVO" />
+	<typeAlias alias="cfmCompareResultVO" type="clikmng.nanet.go.kr.col.cfm.service.CfmCompareResultVO" />
+	<typeAlias alias="cfmCompareListVO" type="clikmng.nanet.go.kr.col.cfm.service.CfmCompareListVO" />
+	
+
+
+	<!-- 임시수집파일리스트 테이블에 관리자에 의해 등록된 파일리스트 삭제 -->
+	<delete id="CfmDAO.deleteTempCollectionFileList" parameterClass="java.lang.String">
+	 <![CDATA[
+		DELETE FROM temp_collection_file_list	WHERE FRST_REGISTER_ID = #mngrID#;
+	 ]]>
+	</delete>
+
+	<!-- 수집파일비교결과 테이블에 관리자에 의해 등록된 파일리스트 삭제 -->
+	<delete id="CfmDAO.deleteCollectionFileList" parameterClass="java.lang.String">
+	 <![CDATA[
+		DELETE FROM collection_file_sync_result	WHERE FRST_REGISTER_ID = #mngrID#;
+	 ]]>
+	</delete>
+
+	<!-- TEMP 테이블에 파일리스트 저장-->
+	<insert id="CfmDAO.insertTempCollectionFileList" parameterClass="cfmFileVO">
+	<![CDATA[
+		INSERT INTO temp_collection_file_list (
+			COMPARE_ID,
+			FILE_PATH,
+			FRST_REGISTER_ID,
+			FRST_REGIST_PNTTM
+		)VALUES(
+			#compare_id#,
+			#path#,
+			#mngrID#,
+			SYSDATE				
+			)
+	]]>
+	</insert>
+
+
+	<!-- 표준연계API 파일동기화 관련 로그-->
+	<insert id="CfmDAO.insertCompareLog" parameterClass="cfmSearchVO">
+	<![CDATA[
+		INSERT INTO collection_file_sync_log (
+			COMPARE_ID,
+			COLCT_YEAR,
+			API_CODE,
+			API_NM,			
+			RASMBLY_ID,
+			RASMBLY_NM,			
+			FRST_REGISTER_ID,
+			FRST_REGIST_PNTTM
+		)VALUES(
+			#compare_id#,
+			#colct_year#,
+			#api_code#,
+			#api_nm#,			
+			#rasmbly_id#,
+			#rasmbly_nm#,			
+			#mngrID#,
+			SYSDATE
+			)
+	]]>
+	</insert>
+	
+	<!-- 표준연계API 파일동기화 관련 파일비교실행 -->
+	<insert id="CfmDAO.compareCollectionFile" parameterClass="cfmSearchVO">	
+	<![CDATA[
+		INSERT INTO collection_file_sync_result (
+			SYNC_RET_ID, COMPARE_ID, API_KEY, FILE_URL, FILE_PATH, FRST_REGIST_PNTTM, FRST_REGISTER_ID
+			,TEMP_FILE_PATH
+		)
+		SELECT
+	]]>		 
+    <isEqual prepend="" property="api_code" compareValue="RES301">
+     <![CDATA[ 		
+     	SEQ_COLLECTION_FILE_SYNC_RESULT.NEXTVAL, #compare_id#,
+  		CASE WHEN B.RASMBLY_ID IS NULL AND B.RASMBLY_NUMPR IS NULL AND B.SESN_SE_STDCD IS NULL AND B.RASMBLY_SESN IS NULL AND B.MTGNM_ID IS NULL AND B.MINTS_ODR IS NULL AND B.MINTS_SN IS NULL THEN
+  			NULL
+  		ELSE 
+  			B.RASMBLY_ID || '^^' || B.RASMBLY_NUMPR || '^^' || B.SESN_SE_STDCD || '^^' || B.RASMBLY_SESN || '^^' || B.MTGNM_ID || '^^' || B.MINTS_ODR || '^^' || B.MINTS_SN || '^^' || B.MINTS_CN
+  		END AS API_KEY
+		,B.ORGINL_FILE_URL, B.MINTS_FILE_PATH, SYSDATE, #mngrID#
+		,A.FILE_PATH
+  	]]>
+    </isEqual>       
+    <isEqual prepend="" property="api_code" compareValue="RES305">
+     <![CDATA[ 	
+     	SEQ_COLLECTION_FILE_SYNC_RESULT.NEXTVAL, #compare_id#,
+		CASE WHEN B.RASMBLY_ID IS NULL AND B.RASMBLY_NUMPR IS NULL AND B.SESN_SE_STDCD IS NULL AND B.RASMBLY_SESN IS NULL AND B.MTGNM_ID IS NULL AND B.MINTS_ODR IS NULL AND B.MINTS_SN IS NULL AND B.APNDX_ID IS NULL AND B.APNDX_FILE_NM IS NULL THEN
+			NULL
+		ELSE
+			B.RASMBLY_ID || '^^' || B.RASMBLY_NUMPR || '^^' || B.SESN_SE_STDCD || '^^' || B.RASMBLY_SESN || '^^' || B.MTGNM_ID || '^^' || B.MINTS_ODR || '^^' || B.MINTS_SN || '^^' || B.MINTS_CN
+		END AS API_KEY
+		,B.APNDX_FILE_URL, B.APNDX_FILE_PATH, SYSDATE, #mngrID#
+		,A.FILE_PATH
+     ]]>
+    </isEqual>
+    <isEqual prepend="" property="api_code" compareValue="RES403">
+     <![CDATA[ 	
+     	SEQ_COLLECTION_FILE_SYNC_RESULT.NEXTVAL, #compare_id#,
+		CASE WHEN B.RASMBLY_ID IS NULL AND B.BI_ID IS NULL AND B.BI_FILE_ID IS NULL THEN
+			NULL
+		ELSE 
+			B.BI_ID || '^^' || B.BI_CN
+		END AS API_KEY
+		,B.BI_FILE_URL, B.BI_FILE_PATH, SYSDATE, #mngrID#
+		,A.FILE_PATH	 
+     ]]>
+    </isEqual>
+    <isEqual prepend="" property="api_code" compareValue="RES203">
+     <![CDATA[  
+     	SEQ_COLLECTION_FILE_SYNC_RESULT.NEXTVAL, #compare_id#,
+		CASE WHEN B.RASMBLY_ID IS NULL AND B.ASEMBY_ID IS NULL THEN
+			NULL
+		ELSE 
+			B.ASEMBY_ID || '^^' || B.ASEMBY_CN
+		END AS API_KEY
+		,B.PHOTO_FILE_URL, B.PHOTO_FILE_PATH, SYSDATE, #mngrID#
+		,A.FILE_PATH	   
+     ]]>
+    </isEqual>
+	<![CDATA[    	 
+		FROM (SELECT * FROM TEMP_COLLECTION_FILE_LIST WHERE COMPARE_ID = #compare_id#) A 
+			FULL OUTER JOIN 
+	]]>	 	
+    <isEqual prepend="" property="api_code" compareValue="RES301">
+     <![CDATA[ 	(SELECT * FROM MINUTES WHERE RASMBLY_ID = #rasmbly_id#) B ON A.FILE_PATH = B.MINTS_FILE_PATH  ]]>
+    </isEqual>       
+    <isEqual prepend="" property="api_code" compareValue="RES305">
+     <![CDATA[ 	(SELECT * FROM MINUTES_APPENDIX WHERE RASMBLY_ID = #rasmbly_id#) B ON A.FILE_PATH = B.APNDX_FILE_PATH   ]]>
+    </isEqual>
+    <isEqual prepend="" property="api_code" compareValue="RES403">
+     <![CDATA[ 	(SELECT * FROM BILL_ATTACH WHERE RASMBLY_ID = #rasmbly_id#) B ON A.FILE_PATH = B.BI_FILE_PATH	 ]]>
+    </isEqual>
+    <isEqual prepend="" property="api_code" compareValue="RES203">
+     <![CDATA[  (SELECT * FROM LAMAN WHERE RASMBLY_ID = #rasmbly_id#) B ON A.FILE_PATH = B.PHOTO_FILE_PATH	   ]]>
+    </isEqual>			
+
+	</insert>
+	
+	<select id="CfmDAO.compareResult" parameterClass="java.lang.String" resultClass="cfmCompareResultVO">
+	<![CDATA[		
+		SELECT 
+			A.COMPARE_ID 
+			, A.COLCT_YEAR
+			, A.API_CODE
+			, A.API_NM		
+			, A.RASMBLY_ID
+			, A.RASMBLY_NM
+			
+			, B.TOTCNT
+			, B.NRMLTCNT
+			, B.RETRYCOLCNT
+			, B.DELCNT
+			
+			, C.BRTC_CODE AS brtcCode
+			, C.LOASM_CODE AS loasmCode		
+			, D.INSTT_CL_CODE AS insttClCode
+			, D.INSTT_CL_NM AS insttClCodeNm
+			, E.INSTT_CL_CODE AS fInsttClCode
+			, E.INSTT_CL_Nm AS fInsttClCodeNm
+	
+		FROM collection_file_sync_log A
+			INNER JOIN (SELECT 
+							COMPARE_ID
+							, COUNT(*) AS totCnt
+							, SUM(CASE WHEN TEMP_FILE_PATH IS NOT NULL AND API_KEY IS NOT NULL THEN 1 ELSE 0 END) AS nrmltCnt
+							, SUM(CASE WHEN TEMP_FILE_PATH IS NULL THEN 1 ELSE 0 END) AS retryColCnt
+							, SUM(CASE WHEN API_KEY IS NULL THEN 1 ELSE 0 END) AS delCnt
+						FROM collection_file_sync_result 
+						WHERE COMPARE_ID = #compare_id#
+						GROUP BY COMPARE_ID) B ON A.COMPARE_ID = B.COMPARE_ID
+						
+			LEFT OUTER JOIN organ C ON A.RASMBLY_ID = C.LOASM_CODE
+		 	LEFT OUTER JOIN organ_class D ON C.INSTT_CL_CODE = D.INSTT_CL_CODE
+			LEFT OUTER JOIN organ_class E ON D.UPPER_INSTT_CL_CODE = E.INSTT_CL_CODE		
+ 	]]>
+	</select>	
+	
+	
+	<select id="CfmDAO.selectCompareList" parameterClass="java.util.HashMap" resultClass="cfmCompareListVO">
+	<![CDATA[
+		SELECT
+	]]>				
+    <isEqual prepend="" property="procNo" compareValue="1">
+     <![CDATA[ 		
+			API_KEY, FILE_URL, FILE_PATH
+  	]]>
+    </isEqual>       
+    
+    <isEqual prepend="" property="procNo" compareValue="2">
+     <![CDATA[ 	
+			'' AS API_KEY, '' AS FILE_URL, TEMP_FILE_PATH AS FILE_PATH
+     ]]>
+    </isEqual>
+    
+    <![CDATA[ 	
+		FROM collection_file_sync_result
+		WHERE COMPARE_ID = #compare_id#
+	]]>
+	
+    <isEqual prepend="" property="procNo" compareValue="1">
+     <![CDATA[ 					 
+			AND API_KEY IS NOT NULL AND TEMP_FILE_PATH IS NULL
+	]]>	
+	</isEqual>
+	
+    <isEqual prepend="" property="procNo" compareValue="2">
+     <![CDATA[		
+			AND API_KEY IS NULL AND TEMP_FILE_PATH IS NOT NULL
+	]]>    
+	</isEqual>
+		
+	</select>
+	
+	
+	
+	<!-- 임시수집파일리스트 테이블에 관리자에 의해 등록된 파일리스트 삭제 -->
+<!-- 	<delete id="CfmDAO.deleteCompareListFile" parameterClass="java.lang.String">
+	<![CDATA[
+		DELETE FROM users
+		<dynamic prepend="WHERE id IN">
+		<iterate open="(" conjunction="," close=")">
+		#[]#
+		</iterate>
+		</dynamic>		
+	]]>
+	</delete> -->	
+</sqlMap>

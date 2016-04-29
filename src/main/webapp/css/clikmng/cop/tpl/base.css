@@ -1,0 +1,163 @@
+@font-face { font-family:'NanumGothic'; src: url('/css/clikmng/NanumGothic.woff') format('woff');}
+@font-face { font-family:'NanumGothicBold'; src: url('/css/clikmng/NanumGothicBold.woff') format('woff');}
+@font-face{
+  font-family: 'ngeot';
+  font-style: normal;
+  font-weight: normal;
+  src: url('/css/clikmng/NanumGothic.eot'); 
+  src: local('☺'), url('/css/clikmng/NanumGothic.woff') format('woff'), url('/css/clikmng/NanumGothic.ttf') format('truetype'); 
+}
+@font-face{
+  font-family: 'ngbeot';
+  font-style: normal;
+  font-weight: bold;
+  src: url('/css/clikmng/NanumGothicBold.eot'); 	
+  src: local('☺'), url('/css/clikmng/NanumGothicBold.woff') format('woff'), url('/css/clikmng/NanumGothicBold.ttf') format('truetype'); 
+}
+
+html,body{
+	margin:0;
+	padding:0;
+	font-size:14px;
+	line-height:160%;
+	color:#666;
+	font-family:'NanumGothic','나눔고딕','NanumGothicBoldWeb','NanumGothicWeb',"돋움", Dotum, arial, sans-serif;
+	/*font-family:'NanumGothic';
+	font-family:"돋움", Dotum, arial, sans-serif;*/
+	width:100%;
+	height:100%;
+	
+}
+
+input,select{vertical-align: middle;
+-webkit-appearance:none;
+-webkit-border-radius:0;
+border-radius:0;
+webkit-appearance:none;
+}
+/*accessibility*/
+#accessibility{position:absolute;  width:290px; height:30px; z-index:900000000000000000000000000000;}
+#accessibility a{ position:absolute;top:0; left:-2000px; width:290px; height:100px; color:#fff; z-index:10000000000000000; display:block; padding:5px 0 0 5px; }
+#accessibility ul li a:focus, #accessibility ul li a:active
+{position:absolute; top:0; left:0;display:block; width:290px; height:30px; font-size:14px; font-weight:bold; color:#fff; background:#666; }
+
+
+/* hide
+----------------------------------------------------------------------*/
+.hide{position:absolute; top:0; left:0; visibility:hidden; overflow:hidden; height:0; width:0; margin:0; padding:0; font:0/0 Arial;}
+
+hr{clear:both;position:absolute; width:0; height:0; font-weight:normal; font-size:0; overflow:hidden; visibility:hidden;} /* 레이아웃 구분시만 사용 */
+
+/* base
+----------------------------------------------------------------------*/
+body,div,h1,h2,h3,h4,h5,h6,p,ol,ul,li,dl,dt,dd,form,fieldset,input,table,th,td,caption,span,iframe,blockquote, address{margin:0;padding:0;}
+h1,h2,h3,h4,h5,h6,em, address, cite{font-weight:normal; font-size:100%;}
+ul,li,ol{list-style:none; margin:0;padding:0;}
+fieldset,img{border:none; vertical-align:middle;}
+
+/* table
+----------------------------------------------------------------------------*/
+table caption{visibility:hidden; overflow:hidden; width:0; height:0; margin:0; padding:0; font:0/0 Arial;}
+table, th, td{margin:0; padding:0; border:0; border-spacing:0px; border-collapse:collapse;}
+
+/* form
+----------------------------------------------------------------------------*/
+form, fieldset, legend, label {margin:0; padding:0;}
+fieldset{border:0 none;}
+fieldset legend {position:absolute; visibility:hidden; overflow:hidden; width:0; height:0; margin:0; padding:0; font:0/0 Arial;}
+label input, label img, label select, label textarea,
+fieldset label, fieldset input, fieldset img, fieldset select, fieldset textarea{vertical-align:middle;}
+
+/* input
+---------------------------------------------------------------------*/
+input,select{vertical-align: middle;}
+select{
+
+}
+
+
+input.image{border:0; vertical-align: middle;}
+input.submit{border:0; padding:0; cursor:pointer;}
+input.text{height:16px; padding: 2px 4px 1px 4px; border: #d3d3d3 1px solid;}
+input.file{height:16px; padding: 2px 4px 1px 4px; border: 1px solid #d3d3d3;}
+input.checkbox{width:15px; height:15px; margin:1px 0 0; padding:0;}
+input.radio{width:15px; height:15px; margin:1px 0 0; padding:0; border:none;}
+textarea.textarea{padding: 2px 4px 1px 4px; border:1px solid #ccc; overflow:auto;}
+/* 공통
+----------------------------------------------------------------------------*/
+.bnone{ background:none;}
+.disnone{display: none;}
+.disblock{display: block;}
+.indent{text-indent:-1000px; font-size:0px; height:0px;}
+
+.mt5{margin-top:5px;}
+.mt10{margin-top:10px;}
+.mt20 {margin-top:20px;}
+.mt30 {margin-top:30px;}
+.mt40 {margin-top:40px;}
+.mt50 {margin-top:50px;}
+.mt60 {margin-top:60px;}
+.mt70 {margin-top:70px;}
+.mt80 {margin-top:80px;}
+.mt90 {margin-top:90px;}
+
+.mb5{margin-bottom:5px;}
+.mb10{margin-bottom:10px;}
+.mb20{margin-bottom:20px;}
+.mb30{margin-bottom:30px;}
+.mb40{margin-bottom:40px;}
+.mb50{margin-bottom:50px;}
+.mb60{margin-bottom:60px;}
+.mb70{margin-bottom:70px;}
+.mb80{margin-bottom:80px;}
+
+.ml5{ margin-left:5px;}
+.ml10{ margin-left:10px;}
+.ml20{ margin-left:20px;}
+
+.mr5{ margin-right:5px;}
+.mr10{ margin-right:10px;}
+.mr20{ margin-right:20px;}
+.mr30{ margin-right:30px;}
+.mr40{ margin-right:40px;}
+.mr50{ margin-right:50px;}
+
+.pt5{padding-top:5px;}
+.pt10{padding-top:10px;}
+.pt20{padding-top:20px;}
+
+.pb5{padding-bottom:5px;}
+.pb10{padding-bottom:10px;}
+.pb20{padding-bottom:20px;}
+
+.pl5{padding-left:5px;}
+.pl10{padding-left:10px;}
+.pl20{padding-left:20px;}
+
+.pr5{padding-right:5px;}
+.pr10{padding-right:10px;}
+.pr20{padding-right:20px;}
+
+
+.fl{ float:left;}
+.fr{ float:right;}
+.clear{ clear:both;}
+.tl{ text-align:left;}
+.tr{ text-align:right;}
+.tc{ text-align:center;}
+.vt{ vertical-align:top;}
+.vm{ vertical-align:middle;}
+.vb{ vertical-align:bottom;}
+
+/* 링크 설정
+----------------------------------------------------------------------------*/
+a{ color:#666;text-decoration:none; font-size:14px;}
+a:hover{color: #000; text-decoration:none;}
+
+
+
+/* 건너뛰기 링크
+----------------------------------------------------------------------------*/
+a.accLink {border:2px solid #D3E85A; color:#000000; display:block; position:absolute; text-align:center; top:-10000px; left:0px; width:200px; padding:5px; background:#fff; font-weight:bold;}
+a.accLink:hover, a.accLink:focus, a.accLink:active{padding:10px; position:absolute; top:1px; left: 0px; z-index:1; width:200px;}
+

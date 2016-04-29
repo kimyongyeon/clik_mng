@@ -1,0 +1,861 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="MdmManage">
+	<typeAlias  alias="mdmSearchVO" 		type="clikmng.nanet.go.kr.mdm.model.MdmSearchVO"/>
+	<typeAlias  alias="mdmRegionNewsVO" 	type="clikmng.nanet.go.kr.mdm.model.MdmRegionNewsVO"/>
+	<typeAlias  alias="mdmIsViewVO" 	    type="clikmng.nanet.go.kr.mdm.model.MdmIsViewVO"/>
+	<typeAlias  alias="mdmTnpFileVO" 	    type="clikmng.nanet.go.kr.mdm.model.MdmTnpFileVO"/>
+	<typeAlias  alias="mdmTnpFileDetailVO"  type="clikmng.nanet.go.kr.mdm.model.MdmTnpFileDetailVO"/>
+	
+    <select id="MdmRegionNewsDAO.selectMdmOutBbsSeq" resultClass="int">
+        <![CDATA[
+			SELECT 
+				SEQ_OUTBBS.NEXTVAL AS SEQ 
+			FROM 
+				DUAL
+		]]>
+    </select>
+	
+    <select id="MdmRegionNewsDAO.selectMdmOutBbsFileSeq" resultClass="int">
+        <![CDATA[
+			SELECT 
+				SEQ_OUTBBSFILE.NEXTVAL AS SEQ 
+			FROM 
+				DUAL
+		]]>
+    </select>
+
+    <select id="MdmRegionNewsDAO.selectMdmOutNewsFileSn" parameterClass="string" resultClass="int">
+        <![CDATA[
+			SELECT 
+				NVL(MAX(FILE_SN), 0) + 1 
+			FROM 
+				file_detail_info
+			WHERE
+				TRIM(ATCH_FILE_ID) = '$ATCH_FILE_ID$'
+		]]>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmRegionNewsDAO.selectMdmRegionNewsMaxRegDate" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT      
+				REPLACE(SUBSTR(MAX(REGDATE), 0, 10), '.', '-') AS  REGDATE
+			FROM      
+				webrobot_news   
+			WHERE     
+				REGDATE <= #TODAY# || ' 99:99:99'
+		]]>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmRegionNewsDAO.selectMdmRegionNewsDfltListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				webrobot_news 
+			WHERE
+				REGDATE >= REPLACE(#schDt1#, '-', '.') || ' 00:00:00'
+				AND REGDATE <= REPLACE(#schDt2#, '-', '.') || ' 99:99:99'
+		 ]]>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmRegionNewsDAO.selectMdmRegionNewsDfltList" parameterClass="mdmSearchVO" resultClass="mdmRegionNewsVO">
+        <![CDATA[
+			SELECT 	
+				M.*
+  			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+					SELECT
+						B.NEWS_ID, B.SEED_ID, B.SEED_NM, B.REGION, B.TITLE, B.WRITER
+						,B.REGDATE, B.ARTICLE_ID, B.CUD, B.ISVIEW, B.INDT, B.REGION_NM
+						,( 
+							SELECT 
+								COUNT(*) 
+							FROM 
+								webrobot_news D 
+							WHERE
+								REPLACE(REPLACE(REPLACE(D.REGDATE,'.',''),':',''),' ','') >= REPLACE(#schDt1#, '-', '.') || ' 00:00:00'
+								AND REPLACE(REPLACE(REPLACE(D.REGDATE,'.',''),':',''),' ','') <= REPLACE(#schDt2#, '-', '.') || ' 99:99:99'
+								AND D.ARTICLE_ID = B.ARTICLE_ID 
+								AND D.CUD != 'D' 
+						) DUPCNT
+					FROM
+						webrobot_news  B
+					WHERE
+						REPLACE(REPLACE(REPLACE(B.REGDATE,'.',''),':',''),' ','') >= REPLACE(#schDt1#, '-', '.') || ' 00:00:00'
+						AND REPLACE(REPLACE(REPLACE(B.REGDATE,'.',''),':',''),' ','') <= REPLACE(#schDt2#, '-', '.') || ' 99:99:99'
+					ORDER BY
+						B.REGDATE DESC
+				) A 
+			) M
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+		]]>
+    </select>
+
+    <!-- 지역현안소식 카운트 정보를 조회한다 -->
+    <select id="MdmRegionNewsDAO.selectMdmRegionNewsListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+	<![CDATA[
+		SELECT 
+			COUNT(*) AS CNT 
+		FROM 
+			webrobot_news B
+		WHERE
+			1=1
+	]]>
+	    <!-- 검색어  -->	
+		<isNotEmpty prepend="AND" property="schKw">
+			<isEqual property="schKey" compareValue="schTitle">
+				<![CDATA[ B.TITLE like '%' || #schKw# || '%' ]]>
+			</isEqual>
+			<isEqual property="schKey" compareValue="cnId">
+				<![CDATA[ B.NEWS_ID IN ( $schKw$ ) ]]>
+			</isEqual>
+			<isEqual property="schKey" compareValue="schContent">
+				<![CDATA[ B.CONTENT LIKE '%' || #schKw# || '%' ]]>
+			</isEqual>				  
+		</isNotEmpty>
+		
+		<isNotEmpty property="schDtConditionOperators">
+			AND (
+				<!-- 수집일자 -->
+				<isNotEmpty property="schDt1">
+					<![CDATA[ ( B.INDT >= TO_CHAR(TO_DATE(REPLACE(#schDt1#, '-', '')),'YYYY/MM/DD') AND ]]>
+				</isNotEmpty>
+				<isEmpty property="schDt1">
+				    <isNotEmpty property="schDt2">
+					( 1=1 AND
+					</isNotEmpty>
+				</isEmpty>
+				    
+				<isNotEmpty property="schDt2">
+					<![CDATA[ B.INDT <= TO_CHAR(TO_DATE(REPLACE(#schDt2#, '-', '')),'YYYY/MM/DD') ) ]]>
+				</isNotEmpty>
+				<isEmpty property="schDt2">
+				    <isNotEmpty property="schDt1">
+					1=1 )
+					</isNotEmpty>
+				</isEmpty> 
+				
+				<isEqual property="schDtConditionOperators" compareValue="Y">
+				    OR
+				</isEqual>
+				
+				<!-- 등록일자 -->
+				<isNotEmpty property="schDt3">
+					<![CDATA[ ( REGDATE >= TO_CHAR(TO_DATE(REPLACE(#schDt3#, '-', '')),'YYYY.MM.DD') || ' 00:00:00' AND ]]>
+				</isNotEmpty>
+				<isEmpty property="schDt3">
+				    <isNotEmpty property="schDt4">
+					( 1=1 AND
+					</isNotEmpty>
+				</isEmpty>
+				
+				<isNotEmpty property="schDt4">
+					<![CDATA[ REGDATE <= TO_CHAR(TO_DATE(REPLACE(#schDt4#, '-', '')),'YYYY.MM.DD') || ' 23:59:59' ) ]]>
+				</isNotEmpty>
+				<isEmpty property="schDt4">
+				    <isNotEmpty property="schDt3">
+					1=1 )
+					</isNotEmpty>
+				</isEmpty>
+			)
+		</isNotEmpty>
+		
+		<!-- 게시 -->
+		<isNotEmpty prepend="AND" property="schIsView">
+			<isEqual property="schIsView" compareValue="N">
+			    B.ISVIEW = 'N'
+			</isEqual>
+			<isEqual property="schIsView" compareValue="Y">
+			    B.ISVIEW != 'N'
+			</isEqual>				
+		</isNotEmpty>
+		
+		<!-- 삭제 -->
+		<isNotEmpty prepend="AND" property="schDel">				  
+			<isEqual property="schDel" compareValue="D">
+			    B.CUD = 'D'
+			</isEqual>
+			<isEqual property="schDel" compareValue="Y">
+			    B.CUD != 'D'
+			</isEqual>
+		</isNotEmpty>
+		
+		<!-- 중복 -->
+	    <isNotEmpty prepend="AND" property="schDuplication">
+		<![CDATA[
+		B.ARTICLE_ID IN (
+			SELECT 
+				ARTICLE_ID
+			FROM 
+				webrobot_news
+			WHERE
+				1=1
+				]]>
+				<isNotEmpty property="schDtConditionOperators">
+					AND (
+						<!-- 수집일자 -->
+						<isNotEmpty property="schDt1">
+							<![CDATA[ ( INDT >= TO_CHAR(TO_DATE(REPLACE(#schDt1#, '-', '')),'YYYY/MM/DD') AND ]]>
+						</isNotEmpty>
+						<isEmpty property="schDt1">
+						    <isNotEmpty property="schDt2">
+							( 1=1 AND
+							</isNotEmpty>
+						</isEmpty>
+						    
+						<isNotEmpty property="schDt2">
+							<![CDATA[ INDT <= TO_CHAR(TO_DATE(REPLACE(#schDt2#, '-', '')),'YYYY/MM/DD') ) ]]>
+						</isNotEmpty>
+						<isEmpty property="schDt2">
+						    <isNotEmpty property="schDt1">
+							1=1 )
+							</isNotEmpty>
+						</isEmpty> 
+						
+						<isEqual property="schDtConditionOperators" compareValue="Y">
+						    OR
+						</isEqual>
+						
+						<!-- 등록일자 -->
+						<isNotEmpty property="schDt3">
+							<![CDATA[ ( REGDATE >= TO_CHAR(TO_DATE(REPLACE(#schDt3#, '-', '')),'YYYY.MM.DD') || ' 00:00:00' AND ]]>
+						</isNotEmpty>
+						<isEmpty property="schDt3">
+						    <isNotEmpty property="schDt4">
+							( 1=1 AND
+							</isNotEmpty>
+						</isEmpty>
+						
+						<isNotEmpty property="schDt4">
+							<![CDATA[ REGDATE <= TO_CHAR(TO_DATE(REPLACE(#schDt4#, '-', '')),'YYYY.MM.DD') || ' 23:59:59' ) ]]>
+						</isNotEmpty>
+						<isEmpty property="schDt4">
+						    <isNotEmpty property="schDt3">
+							1=1 )
+							</isNotEmpty>
+						</isEmpty>
+					)
+				</isNotEmpty>
+				<![CDATA[
+				AND CUD != 'D'
+			GROUP BY
+				ARTICLE_ID 
+		]]>
+			<isEqual property="schDuplication" compareValue="Y">
+				<![CDATA[ HAVING COUNT(ARTICLE_ID) > 1 ]]>
+			</isEqual>
+			<isEqual property="schDuplication" compareValue="N">
+				<![CDATA[ HAVING COUNT(ARTICLE_ID) < 2 ]]>
+			</isEqual>
+		)				
+	    </isNotEmpty>
+		
+		<!-- 지역 -->   
+		<isNotEmpty prepend="AND" property="schRks025">				  
+		   	REGION = #schRks025#
+		</isNotEmpty>
+		<!-- ?? -->
+		<isNotEmpty prepend="AND" property="schRks026">				  
+		    SEED_ID = #schRks026#
+		</isNotEmpty>
+    </select>
+ 
+    <!-- 지역현안소식 목록을 조회한다 -->
+    <select id="MdmRegionNewsDAO.selectMdmRegionNewsList" parameterClass="mdmSearchVO" resultClass="mdmRegionNewsVO">
+        <![CDATA[
+			SELECT 	
+				M.*
+  			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+					SELECT 	
+					B.* 
+					FROM
+					( 
+					SELECT
+						B.NEWS_ID, B.SEED_ID, B.SEED_NM, B.REGION, B.TITLE, B.WRITER
+						,B.REGDATE, B.ARTICLE_ID, B.CUD, B.ISVIEW, B.INDT, B.REGION_NM
+						,( 
+							SELECT 
+								COUNT(*) 
+							FROM 
+								webrobot_news D 
+							WHERE
+								1=1
+								]]>
+								<isNotEmpty property="schDtConditionOperators">
+									AND (
+										<!-- 수집일자 -->
+										<isNotEmpty property="schDt1">
+											<![CDATA[ ( B.INDT >= TO_CHAR(TO_DATE(REPLACE(#schDt1#, '-', '')),'YYYY/MM/DD') AND ]]>
+										</isNotEmpty>
+										<isEmpty property="schDt1">
+										    <isNotEmpty property="schDt2">
+											( 1=1 AND
+											</isNotEmpty>
+										</isEmpty>
+										    
+										<isNotEmpty property="schDt2">
+											<![CDATA[ B.INDT <= TO_CHAR(TO_DATE(REPLACE(#schDt2#, '-', '')),'YYYY/MM/DD') ) ]]>
+										</isNotEmpty>
+										<isEmpty property="schDt2">
+										    <isNotEmpty property="schDt1">
+											1=1 )
+											</isNotEmpty>
+										</isEmpty> 
+										
+										<isEqual property="schDtConditionOperators" compareValue="Y">
+										    OR
+										</isEqual>
+										
+										<!-- 등록일자 -->
+										<isNotEmpty property="schDt3">
+											<![CDATA[ ( REGDATE >= TO_CHAR(TO_DATE(REPLACE(#schDt3#, '-', '')),'YYYY.MM.DD') || ' 00:00:00' AND ]]>
+										</isNotEmpty>
+										<isEmpty property="schDt3">
+										    <isNotEmpty property="schDt4">
+											( 1=1 AND
+											</isNotEmpty>
+										</isEmpty>
+										
+										<isNotEmpty property="schDt4">
+											<![CDATA[ REGDATE <= TO_CHAR(TO_DATE(REPLACE(#schDt4#, '-', '')),'YYYY.MM.DD') || ' 23:59:59' ) ]]>
+										</isNotEmpty>
+										<isEmpty property="schDt4">
+										    <isNotEmpty property="schDt3">
+											1=1 )
+											</isNotEmpty>
+										</isEmpty>
+									)
+								</isNotEmpty>
+								<![CDATA[
+								AND D.ARTICLE_ID = B.ARTICLE_ID 
+								AND D.CUD != 'D' 
+						) DUPCNT
+					FROM
+						webrobot_news  B
+					WHERE
+						1=1
+						]]>
+						<!-- 검색어  -->	
+						<isNotEmpty prepend="AND" property="schKw">
+							<isEqual property="schKey" compareValue="schTitle">
+								<![CDATA[ B.TITLE like '%' || #schKw# || '%' ]]>
+							</isEqual>
+							<isEqual property="schKey" compareValue="cnId">
+								<![CDATA[ B.NEWS_ID IN ( $schKw$ ) ]]>
+							</isEqual>
+							<isEqual property="schKey" compareValue="schContent">
+								<![CDATA[ B.CONTENT LIKE '%' || #schKw# || '%' ]]>
+							</isEqual>				  
+						</isNotEmpty>
+						
+						<isNotEmpty property="schDtConditionOperators">
+						AND (
+							<!-- 수집일자 -->
+							<isNotEmpty property="schDt1">
+								<![CDATA[ ( B.INDT >= TO_CHAR(TO_DATE(REPLACE(#schDt1#, '-', '')),'YYYY/MM/DD') AND ]]>
+							</isNotEmpty>
+							<isEmpty property="schDt1">
+							    <isNotEmpty property="schDt2">
+								( 1=1 AND
+								</isNotEmpty>
+							</isEmpty>
+							    
+							<isNotEmpty property="schDt2">
+								<![CDATA[ B.INDT <= TO_CHAR(TO_DATE(REPLACE(#schDt2#, '-', '')),'YYYY/MM/DD') ) ]]>
+							</isNotEmpty>
+							<isEmpty property="schDt2">
+							    <isNotEmpty property="schDt1">
+								1=1 )
+								</isNotEmpty>
+							</isEmpty> 
+							
+							<isEqual property="schDtConditionOperators" compareValue="Y">
+							    OR
+							</isEqual>
+							
+							<!-- 등록일자 -->
+							<isNotEmpty property="schDt3">
+								<![CDATA[ ( REGDATE >= TO_CHAR(TO_DATE(REPLACE(#schDt3#, '-', '')),'YYYY.MM.DD') || ' 00:00:00' AND ]]>
+							</isNotEmpty>
+							<isEmpty property="schDt3">
+							    <isNotEmpty property="schDt4">
+								( 1=1 AND
+								</isNotEmpty>
+							</isEmpty>
+							
+							<isNotEmpty property="schDt4">
+								<![CDATA[ REGDATE <= TO_CHAR(TO_DATE(REPLACE(#schDt4#, '-', '')),'YYYY.MM.DD') || ' 23:59:59' ) ]]>
+							</isNotEmpty>
+							<isEmpty property="schDt4">
+							    <isNotEmpty property="schDt3">
+								1=1 )
+								</isNotEmpty>
+							</isEmpty>
+						)
+					</isNotEmpty>
+						
+						<!-- 게시 -->
+						<isNotEmpty prepend="AND" property="schIsView">
+							<isEqual property="schIsView" compareValue="N">
+							    B.ISVIEW = 'N'
+							</isEqual>
+							<isEqual property="schIsView" compareValue="Y">
+							    B.ISVIEW != 'N'
+							</isEqual>				
+						</isNotEmpty>
+						
+						<!-- 삭제 -->
+						<isNotEmpty prepend="AND" property="schDel">				  
+							<isEqual property="schDel" compareValue="D">
+							    B.CUD = 'D'
+							</isEqual>
+							<isEqual property="schDel" compareValue="Y">
+							    B.CUD != 'D'
+							</isEqual>
+						</isNotEmpty>
+						
+						<!-- 중복 -->
+					    <isNotEmpty prepend="AND" property="schDuplication">
+						<![CDATA[
+						B.ARTICLE_ID IN (
+							SELECT 
+								ARTICLE_ID
+							FROM 
+								webrobot_news
+							WHERE
+								1=1
+								]]>
+								<isNotEmpty property="schDtConditionOperators">
+									AND (
+										<!-- 수집일자 -->
+										<isNotEmpty property="schDt1">
+											<![CDATA[ ( INDT >= TO_CHAR(TO_DATE(REPLACE(#schDt1#, '-', '')),'YYYY/MM/DD') AND ]]>
+										</isNotEmpty>
+										<isEmpty property="schDt1">
+										    <isNotEmpty property="schDt2">
+											( 1=1 AND
+											</isNotEmpty>
+										</isEmpty>
+										    
+										<isNotEmpty property="schDt2">
+											<![CDATA[ INDT <= TO_CHAR(TO_DATE(REPLACE(#schDt2#, '-', '')),'YYYY/MM/DD') ) ]]>
+										</isNotEmpty>
+										<isEmpty property="schDt2">
+										    <isNotEmpty property="schDt1">
+											1=1 )
+											</isNotEmpty>
+										</isEmpty> 
+										
+										<isEqual property="schDtConditionOperators" compareValue="Y">
+										    OR
+										</isEqual>
+										
+										<!-- 등록일자 -->
+										<isNotEmpty property="schDt3">
+											<![CDATA[ ( REGDATE >= TO_CHAR(TO_DATE(REPLACE(#schDt3#, '-', '')),'YYYY.MM.DD') || ' 00:00:00' AND ]]>
+<!-- 											<![CDATA[ ( REPLACE(REPLACE(REPLACE(REGDATE,'.',''),':',''),' ','') >= REPLACE(#schDt3#, '-', '') || '000000' AND ]]> -->
+										</isNotEmpty>
+										<isEmpty property="schDt3">
+										    <isNotEmpty property="schDt4">
+											( 1=1 AND
+											</isNotEmpty>
+										</isEmpty>
+										
+										<isNotEmpty property="schDt4">
+											<![CDATA[ REGDATE <= TO_CHAR(TO_DATE(REPLACE(#schDt4#, '-', '')),'YYYY.MM.DD') || ' 23:59:59' ) ]]>
+<!-- 											<![CDATA[ REPLACE(REPLACE(REPLACE(REGDATE,'.',''),':',''),' ','') <= REPLACE(#schDt4#, '-', '') || '999999' )]]> -->
+										</isNotEmpty>
+										<isEmpty property="schDt4">
+										    <isNotEmpty property="schDt3">
+											1=1 )
+											</isNotEmpty>
+										</isEmpty>
+									)
+								</isNotEmpty>
+								<![CDATA[
+								AND CUD != 'D'
+							GROUP BY
+								ARTICLE_ID 
+						]]>
+							<isEqual property="schDuplication" compareValue="Y">
+								<![CDATA[ HAVING COUNT(ARTICLE_ID) > 1 ]]>
+							</isEqual>
+							<isEqual property="schDuplication" compareValue="N">
+								<![CDATA[ HAVING COUNT(ARTICLE_ID) < 2 ]]>
+							</isEqual>
+						)				
+					    </isNotEmpty>
+						
+						<!-- 지역 -->   
+						<isNotEmpty prepend="AND" property="schRks025">				  
+						   	REGION = #schRks025#
+						</isNotEmpty>
+						<!-- ?? -->
+						<isNotEmpty prepend="AND" property="schRks026">				  
+						    SEED_ID = #schRks026#
+						</isNotEmpty>						
+				) B 
+					ORDER BY
+					<isEmpty property="sort">
+						B.REGDATE DESC, B.REGION ASC
+					</isEmpty>
+						
+					<isNotEmpty property="sort">
+					    B.$sort$
+					</isNotEmpty>
+				) A 
+			) M
+        <![CDATA[
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+		]]>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmRegionNewsDAO.selectMdmRegionNewsDplctListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				webrobot_news B
+			WHERE
+				REPLACE(REPLACE(REPLACE(B.REGDATE,'.',''),':',''),' ','') >= REPLACE(#schDt1#, '-', '.') || ' 00:00:00'
+				AND REPLACE(REPLACE(REPLACE(B.REGDATE,'.',''),':',''),' ','') <= REPLACE(#schDt2#, '-', '.') || ' 99:99:99'
+				AND B.ARTICLE_ID IN (
+					SELECT 
+						ARTICLE_ID
+					FROM 
+						webrobot_news
+					WHERE
+						REPLACE(REPLACE(REPLACE(REGDATE,'.',''),':',''),' ','') >= REPLACE(#schDt1#, '-', '.') || ' 00:00:00'
+						AND REPLACE(REPLACE(REPLACE(REGDATE,'.',''),':',''),' ','') <= REPLACE(#schDt2#, '-', '.') || ' 99:99:99'
+						AND CUD != 'D'
+					GROUP BY
+						ARTICLE_ID 
+					]]>
+					<isEqual property="schDuplication" compareValue="Y">
+						<![CDATA[ HAVING COUNT(ARTICLE_ID) > 1 ]]>
+					</isEqual>
+					<isEqual property="schDuplication" compareValue="N">
+						<![CDATA[ HAVING COUNT(ARTICLE_ID) < 2 ]]>
+					</isEqual>
+				)
+				<isNotEmpty prepend="AND" property="schRks025">				  
+				   	B.REGION = #schRks025#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schRks026">				  
+				    B.SEED_ID = #schRks026#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schKw">				  
+				     <![CDATA[ B.TITLE like '%' || #schKw# || '%' ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schContent">
+					<![CDATA[ B.CONTENT LIKE '%' || #schContent# || '%' ]]>
+				</isNotEmpty>
+    </select>
+ <!-- 사용안함 -->
+    <select id="MdmRegionNewsDAO.selectMdmRegionNewsDplctList" parameterClass="mdmSearchVO" resultClass="mdmRegionNewsVO">
+        <![CDATA[
+			SELECT 	
+				M.*
+  			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+					SELECT
+						B.NEWS_ID, B.SEED_ID, B.SEED_NM, B.REGION, B.TITLE, B.WRITER
+						,B.REGDATE, B.ARTICLE_ID, B.CUD, B.ISVIEW, B.INDT, B.REGION_NM
+						,( 
+							SELECT 
+								COUNT(*) 
+							FROM 
+								webrobot_news D 
+							WHERE
+								REPLACE(REPLACE(REPLACE(D.REGDATE,'.',''),':',''),' ','') >= REPLACE(#schDt1#, '-', '.') || ' 00:00:00'
+								AND REPLACE(REPLACE(REPLACE(D.REGDATE,'.',''),':',''),' ','') <= REPLACE(#schDt2#, '-', '.') || ' 99:99:99'
+								AND D.ARTICLE_ID = B.ARTICLE_ID 
+								AND D.CUD != 'D' 
+						) DUPCNT
+					FROM
+						webrobot_news  B
+					WHERE
+						REPLACE(REPLACE(REPLACE(B.REGDATE,'.',''),':',''),' ','') >= REPLACE(#schDt1#, '-', '.') || ' 00:00:00'
+						AND REPLACE(REPLACE(REPLACE(B.REGDATE,'.',''),':',''),' ','') <= REPLACE(#schDt2#, '-', '.') || ' 99:99:99'
+						AND B.ARTICLE_ID IN (
+							SELECT 
+								ARTICLE_ID
+							FROM 
+								webrobot_news 
+							WHERE
+								REPLACE(REPLACE(REPLACE(REGDATE,'.',''),':',''),' ','') >= REPLACE(#schDt1#, '-', '.') || ' 00:00:00'
+								AND REPLACE(REPLACE(REPLACE(REGDATE,'.',''),':',''),' ','') <= REPLACE(#schDt2#, '-', '.') || ' 99:99:99'
+								AND CUD != 'D'
+							GROUP BY
+								ARTICLE_ID 
+							]]>
+							<isEqual property="schDuplication" compareValue="Y">
+								<![CDATA[ HAVING COUNT(ARTICLE_ID) > 1 ]]>
+							</isEqual>
+							<isEqual property="schDuplication" compareValue="N">
+								<![CDATA[ HAVING COUNT(ARTICLE_ID) < 2 ]]>
+							</isEqual>
+						)
+						<isNotEmpty prepend="AND" property="schRks025">				  
+						    B.REGION = #schRks025#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schRks026">				  
+						     B.SEED_ID = #schRks026#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schKw">				  
+						     <![CDATA[ B.TITLE like '%' || #schKw# || '%' ]]> 
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schContent">
+							 <![CDATA[ B.CONTENT LIKE '%' || #schContent# || '%' ]]> 
+						</isNotEmpty>
+			        <![CDATA[
+					ORDER BY
+						B.REGDATE DESC
+				) A 
+			) M
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+		]]>
+    </select>
+
+    <select id="MdmRegionNewsDAO.selectMdmRegionNewsView" parameterClass="string" resultClass="mdmRegionNewsVO">
+        <![CDATA[
+			SELECT 
+				TRIM(NEWS_ID) AS NEWS_ID
+				,REGDATE
+				,UPDT
+				,DELDT
+				,REGION
+				,WRITER
+				,TITLE
+				,CONTENT
+				,CUD
+				,AUTO
+				,ATCH_FILE_ID
+				,SEED_ID
+				,SEED_NM
+				,ARTICLE_ID
+				,ISVIEW
+				,REPLACE(INDT, '/', '-') AS INDT
+				,REGION_NM
+			FROM 
+				webrobot_news 
+			WHERE 
+				TRIM(NEWS_ID) = '$NEWS_ID$'
+		]]>
+    </select>
+    
+    <select id="MdmRegionNewsDAO.selectMdmRegionNewsFileList" parameterClass="string" resultClass="mdmTnpFileDetailVO">
+        <![CDATA[
+			SELECT 
+				ATCH_FILE_ID
+				,FILE_SN
+				,FILE_STRE_COURS
+				,STRE_FILE_NM
+				,ORIGNL_FILE_NM
+				,FILE_EXTSN
+				,FILE_CN
+				,FILE_SIZE
+			FROM 
+				file_detail_info
+			WHERE 
+				TRIM(ATCH_FILE_ID) = '$ATCH_FILE_ID$'
+		]]>
+    </select>
+    
+    <select id="MdmRegionNewsDAO.selectMdmRegionNewsFileExist" parameterClass="string" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				file_attribute
+			WHERE 
+				TRIM(ATCH_FILE_ID) = '$ATCH_FILE_ID$'
+		]]>
+    </select>
+    
+    <insert id="MdmRegionNewsDAO.insertMdmRegionNews" parameterClass="mdmRegionNewsVO">
+        <![CDATA[
+			INSERT 
+				INTO 
+			webrobot_news (
+				NEWS_ID
+				,REGDATE
+				,UPDT
+				,DELDT
+				,REGION
+				,WRITER
+				,TITLE
+				,CONTENT
+				,CUD
+				,AUTO
+				,ATCH_FILE_ID
+				,SEED_ID
+				,SEED_NM
+				,ARTICLE_ID
+				,ISVIEW
+				,INDT
+				,REGION_NM
+			) VALUES (
+				#NEWS_ID#
+				,#REGDATE#
+				,#UPDT#
+				,#DELDT#
+				,#REGION#
+				,#WRITER#
+				,#TITLE#
+				,#CONTENT:CLOB#
+				,'D'
+				,#AUTO#
+				,#ATCH_FILE_ID#
+				,#SEED_ID#
+				,#SEED_NM#
+				,#ARTICLE_ID#
+				,#ISVIEW#
+				,#INDT#
+				,#REGION_NM#
+			)
+		]]>
+    </insert>
+
+    <insert id="MdmRegionNewsDAO.insertMdmRegionNewsFile" parameterClass="mdmTnpFileVO">
+        <![CDATA[
+			INSERT 
+				INTO 
+			file_attribute (
+				ATCH_FILE_ID
+				,CREAT_DT
+				,USE_AT
+			) VALUES (
+				#ATCH_FILE_ID#
+				,#CREAT_DT#
+				,#USE_AT#
+			)
+		]]>
+    </insert>
+
+    <insert id="MdmRegionNewsDAO.insertMdmRegionNewsFileDetail" parameterClass="mdmTnpFileDetailVO">
+        <![CDATA[
+			INSERT 
+				INTO 
+			file_detail_info (
+				ATCH_FILE_ID
+				,FILE_SN
+				,FILE_STRE_COURS
+				,STRE_FILE_NM
+				,ORIGNL_FILE_NM
+				,FILE_EXTSN
+				,FILE_CN
+				,FILE_SIZE
+			) VALUES (
+				#ATCH_FILE_ID#
+				,#FILE_SN#
+				,#FILE_STRE_COURS#
+				,#STRE_FILE_NM#
+				,#ORIGNL_FILE_NM#
+				,#FILE_EXTSN#
+				,#FILE_CN:CLOB#
+				,#FILE_SIZE#
+			)
+		]]>
+    </insert>
+    
+    <update id="MdmRegionNewsDAO.updateMdmRegionNewsIsView" parameterClass="mdmIsViewVO">
+        <![CDATA[
+			UPDATE 
+				webrobot_news
+			SET
+				ISVIEW = #isview#
+				,UPDT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			WHERE 
+				NEWS_ID = #uid#
+		]]>
+    </update>
+
+    <update id="MdmRegionNewsDAO.deleteMdmRegionNewsChk" parameterClass="mdmIsViewVO">
+        <![CDATA[
+			UPDATE 
+				webrobot_news
+			SET
+				CUD 	= #isview#
+				,DELDT 	= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				,LAST_UPDUSR_ID = #LAST_UPDUSR_ID#
+			WHERE 
+				NEWS_ID = #uid#
+		]]>
+    </update>
+
+    <update id="MdmRegionNewsDAO.updateMdmRegionNews" parameterClass="mdmRegionNewsVO">
+        <![CDATA[
+			UPDATE 
+				webrobot_news 
+			SET
+				UPDT 			= #UPDT#
+				,LAST_UPDUSR_ID = #LAST_UPDUSR_ID#
+				,REGION 		= #REGION#
+				,WRITER 		= #WRITER#
+				,TITLE 			= #TITLE#
+				,CONTENT 		= #CONTENT:CLOB#
+				,CUD 			= 'U'
+				,ATCH_FILE_ID 	= #ATCH_FILE_ID#
+				,SEED_ID 		= #SEED_ID#
+				,SEED_NM 		= #SEED_NM#
+				,ARTICLE_ID 	= #ARTICLE_ID#
+				,INDT 			= #INDT#
+				,REGION_NM 		= #REGION_NM#
+			WHERE 
+				NEWS_ID 		= #NEWS_ID#
+		]]>
+    </update>
+
+    <update id="MdmRegionNewsDAO.deleteMdmRegionNews" parameterClass="mdmRegionNewsVO">
+	 	<![CDATA[
+	 		UPDATE 
+				webrobot_news
+			SET
+				CUD 			= 'D'
+				,LAST_UPDUSR_ID = #LAST_UPDUSR_ID#
+				,DELDT 			= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			WHERE 
+				NEWS_ID 		= '$NEWS_ID$'
+		]]> 
+	</update>  
+    
+    <update id="MdmRegionNewsDAO.deleteMdmRegionNewsFile" parameterClass="mdmTnpFileDetailVO">
+	 	<![CDATA[
+	 		/*
+	 		UPDATE 
+				file_attribute
+			SET
+				USE_AT = 'N'
+			WHERE 
+				TRIM(ATCH_FILE_ID) = '$ATCH_FILE_ID$'
+			*/
+			
+			DELETE FROM FILE_DETAIL_INFO
+			WHERE TRIM(ATCH_FILE_ID) = '$ATCH_FILE_ID$'
+			AND TRIM(FILE_SN) = '$FILE_SN$'
+		]]> 
+	</update>  
+
+</sqlMap>

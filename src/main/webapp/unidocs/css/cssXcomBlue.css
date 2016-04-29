@@ -1,0 +1,152 @@
+@charset "utf-8";
+
+img{ border: none;}
+* {margin:0; padding:0;}
+#wrap { width:100%; }
+.header { position:relative; width:100%; height:53px; background:url(/unidocs/img/patternBlue/topbar_bg.gif) repeat-x;vertical-align:top;}
+#container {width:100%; clear:both;}
+.snb {width:217px; float:left; left:5px; margin-right:-227px; }
+#content {margin-left:232px; position:relative; right:5px;}
+#footer {width:100%;}
+.clear {display:block; float:none; clear:both; height:0; width:100%; font-size:0 !important; line-height:0 !important; overflow:hidden; margin:0 !important; padding:0 !important;}
+
+/*#header .title { float:left; font:15px Dotum , Arial; color:#444; font-weight:bold; padding:12px 0 0 10px; letter-spacing:-0.05em; }*/
+.header h1 { position:absolute; left:10px; top:12px; font:bold 15px Dotum , Arial; color:#444; letter-spacing:-0.05em; }
+.header .title { position:absolute; left:10px; top:12px; font:bold 15px Dotum , Arial; color:#444; letter-spacing:-0.05em; }
+
+.header .council { position:absolute; top:8px; right:10px; }
+
+/* �����κ� */
+#speaker { position:absolute; left:0; top:53px; width:217px; z-index:22; }
+#agenda { position:absolute; left:0; top:53px; width:217px; z-index:21; visibility: hidden; }
+#supplement { position:absolute; left:0; top:519px; width:217px; z-index:24;}
+#bill { position:absolute; left:0; top:519px; width:217px; z-index:23; visibility: hidden; }
+
+.bar { height:29px; background:url(/unidocs/img/viewer/patternBlue/menubar_bg.gif) no-repeat;}
+.bar ul { margin: 0; top:5px; left:10px; position:relative; }
+.bar li { list-style:none; display:inline;}
+
+
+.listbox1 { border-left:1px solid #b3b3b3; border-right:1px solid #b3b3b3;  background:#efefef; padding:6px 3px 0 9px;}
+
+#speaker_list { overflow:auto; font:11px Dotum, Airal; color:#666; line-height:160%; height:280px;}
+#speaker_list ul { margin:0; padding:0;}
+#speaker_list ul li { clear:both; list-style:none; }
+#speaker_list ul li span { display:block; float:left;}
+#speaker_list ul li .checkb {vertical-align:middle;}
+#speaker_list ul li .sname { padding-left:3px; padding-top:2px;}
+
+
+#agenda_list { overflow:auto; font:11px  Dotum; color:#666; line-height:160%; height:auto; } 
+#agenda_list ul { margin:0; padding:0;}
+#agenda_list li { list-style:none; line-height:20px;}
+#agenda_list li input {vertical-align:middle;}
+#agenda_list a { font:11px  Dotum, Arial; color:#666; text-decoration:none;}
+#agenda_list a:hover { font:11px  Dotum, Arial; color:#16508f; text-decoration:underline; }
+
+
+.btn { height:49px; background:url(/unidocs/img/patternBlue/leftbox_bg.gif) repeat-y; }
+.btn ul { padding: 9px 0 0 12px;}
+.btn li { list-style:none; display:inline;}
+
+.bar2 { height:29px; background:url(/unidocs/img/patternBlue/menubar_bg2.gif) no-repeat;}
+.bar2 ul { margin: 0; top:5px; left:10px; position:relative; }
+.bar2 li { list-style:none; display:inline;}
+
+
+/*.listbox2 { border-left:1px solid #b3b3b3; border-right:1px solid #b3b3b3; background:#efefef; padding:6px 3px 0 9px;}*/
+.listbox2 { border-left:1px solid #b3b3b3; border-right:1px solid #b3b3b3; border-bottom:1px solid #b3b3b3; background:#efefef; padding:6px 3px 9px 9px;}
+#supplement_list { overflow:auto; height:203px;}
+#supplement_list ul {margin-top:5px;}
+#supplement_list a { font:11px Dotum, Airal; color:#666; text-decoration:none; line-height:160%;}
+#supplement_list a:hover { font:11px Dotum, Airal; color:#000; text-decoration:none; line-height:160%;} 
+#bill_list { overflow:auto; height:203px;}
+#bill_list a { font:11px Dotum, Airal; color:#666; text-decoration:none; line-height:160%;}
+#bill_list a:hover { font:11px Dotum, Airal; color:#7f9db9; text-decoration:none; line-height:160%;} 
+.pdficon{vertical-align:middle;padding-right:2px;}
+
+/* �����κ� */
+#functionBar { position:relative; margin:0; padding:0; height:28px; width:100%; background:url(/unidocs/img/patternBlue/functionBar_middle.gif) repeat-x; z-index:1;}
+#functionBar img { vertical-align:middle;}
+
+.functionBar_left { float:left; z-index:2;  width:10px; height:28px; background:url(/unidocs/img/patternBlue/functionBar_left.gif) no-repeat; }
+.functionBar_center { float:left; height:28px;}
+.functionBar_right { float:right; z-index:3; width:280px; height:28px; background:url(/unidocs/img/patternBlue/functionBar_right.gif) no-repeat right top; } 
+
+/*.functionBar_right select { font:12px  Arial; color:#666; border:1px solid #333; height:20px; }*/
+.font_select select { font:12px Dotum, Arial; color:#666; border:1px solid #333; height:20px; }
+.functionBar_right ul { margin:0; padding:0; }
+.functionBar_right li { list-style:none; display:inline; margin:0; padding:0; }
+
+.functionBar_right .font-select { float:left; margin-top:4px;}
+.functionBar_right .font-move { float:left; margin-left:5px; margin-top:4px;}
+.functionBar_right .function_btn { float:left; margin-left:9px; margin-top:4px;}
+
+.functionBar_right .font_select { position:relative; top:4px;}
+.functionBar_right .btn_apply { margin-left:-2px; /*position:relative; top:3px;*/}
+.functionBar_right .btn_plus { margin-left:4px; /*position:relative; top:3px;*/}
+.functionBar_right .btn_minus { margin-left:-3px; /*position:relative; top:3px;*/}
+.functionBar_right .btn_normal { margin-left:-3px; /*position:relative; top:3px;*/}
+.functionBar_right .btn_print { margin-left:4px; /*position:relative; top:3px;*/}
+.functionBar_right .btn_top { margin-left:-3px; /*position:relative; top:3px;*/}
+.functionBar_right .btn_close { margin-left:4px; /*position:relative; top:3px;*/}
+
+.functionBar_search { float:left; width: 250px; height:28px;}
+.functionBar_search .search_input { position:absolute; top:4px; border:1px solid #7f9db9; background:#fff; font:12px Dotum, Arial; color:#333;  height:18px; width:147px; }
+.functionBar_search .search_btn { position:absolute; top:4px; left:165px; width:38px; }
+
+/*#minutes {border-left:1px solid #c8c8c8; border-right:1px solid #c8c8c8; margin:0; padding: 8px 3px 0 3px;  }*/
+#minutesbox { border-left:1px solid #c8c8c8; border-right:1px solid #c8c8c8; border-bottom:1px solid #c8c8c8; margin:0; padding: 8px 3px 8px 3px;  }
+
+#minutes_header table{position:relative;right:11px;width:100%;border-spacing:0;border-style:none;padding:0;}
+#minutes_header table td{border-spacing:0;border-style:none;padding:0;}
+#contents {overflow-x:hidden; overflow-y:scroll; padding:10px; line-height:150%; height:546px;}
+
+#minutes_bottom { line-height:0%; font:0% dotum; position:relative; height:8px; background:url(/unidocs/img/patternBlue/contentbox_bottom.gif) repeat-x; z-index:10;}
+.minutesbox_left { float:left; z-index:11; width:10px; height:8px; background:url(/unidocs/img/patternBlue/contentbox_bottomLeft.gif) no-repeat;}
+.minutesbox_center { float:left; height:8px; }
+.minutesbox_right { float:right; z-index:12; width:10px; height:8px; background:url(/unidocs/img/patternBlue/contentbox_bottomRight.gif) no-repeat;}
+
+/* �ϴܿ��� */
+#footer {font-size:1px;line-height:1%; margin:0; padding:0; height:0; background:red;}
+
+a:link, a:active, a:visited {text-decoration: none;}
+
+
+
+
+/* 신규추가 */
+.minutes_title {}
+.minutes_subject { font:bold 200% dotum; text-align:center !important; display:block; color:#000; }
+.office { text-align:right;}
+
+.fixation_group_title,
+.matter_group_title { font-weight:bold; padding-left:1em; }
+
+.matter_group_items a:link 
+.matter_group_items a:visited { text-decoration:none; color:#00f; }
+.matter_group_items a:active,
+.matter_group_items a:focus,
+.matter_group_items a:hover { text-decoration:underline; color:#00f; }
+
+.start_time { text-align:right !important; display:block; }
+
+.speaking_content a:link,
+.speaking_content a:visited { text-decoration:none; color:#00f; }
+.speaking_content a:active,
+.speaking_content a:focus,
+.speaking_content a:hover { text-decoration:underline; color:#00f; }
+
+.speaker2 { font-weight:bold; }
+
+.etc_info_asemby .title { font-weight:bold; }
+.etc_info_asemby ul { width:400px; }
+.etc_info_asemby li { float:left; width:100px; text-align:center; display:inline-block; }
+
+.etc_info { clear:both; margin-top:10px; }
+.etc_info .title { font-weight:bold; }
+
+.etc_info li { display:block; padding-left:25px; }
+.etc_info li span { width:301px !important; display:inline-block; }
+
+.etc_info li.indent { padding-left:10px; } 

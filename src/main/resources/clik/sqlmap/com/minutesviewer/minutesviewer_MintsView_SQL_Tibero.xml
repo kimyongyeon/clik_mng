@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="MdmMinutesView">
+	
+	<typeAlias alias="mdmTnsrAsmblyMintsViewMainVO" type="clikmng.nanet.go.kr.minutesviewer.model.MdmTnsrAsmblyMintsViewMainVO"/>
+	<typeAlias alias="mdmTnsrAsmblyMintsViewSpkrVO" type="clikmng.nanet.go.kr.minutesviewer.model.MdmTnsrAsmblyMintsViewSpkrVO"/>
+	<typeAlias alias="mdmTnsrAsmblyMintsViewApndxVO" type="clikmng.nanet.go.kr.minutesviewer.model.MdmTnsrAsmblyMintsViewApndxVO"/>
+	<typeAlias alias="mdmTnsrAsmblyMintsViewBillVO" type="clikmng.nanet.go.kr.minutesviewer.model.MdmTnsrAsmblyMintsViewBillVO"/>
+	
+	<select id="MdmTnsrAsmblyMintsViewDAO.selectMintsViewMainInfo" parameterClass="mdmTnsrAsmblyMintsViewMainVO" resultClass="mdmTnsrAsmblyMintsViewMainVO">
+	<![CDATA[
+		select 
+			RASMBLY_ID,
+			(select RASMBLY_NM from colgover where RASMBLY_ID = A.RASMBLY_ID) RASMBLY_NM,
+			RASMBLY_NUMPR,
+			RASMBLY_SESN,
+			MINTS_ODR,
+			MTGNM_ID,	
+			(select MTGNM from scommit where RASMBLY_ID = A.RASMBLY_ID and RASMBLY_NUMPR = A.RASMBLY_NUMPR and MTGNM_ID = A.MTGNM_ID) MTGNM_NM,
+			ORGINL_FILE_NM,
+			ORGINL_FILE_URL,
+			MINTS_HTML as MINTS_VIEW,
+			MINTS_CN	
+		from
+			minutes A
+		where 
+			MINTS_CN = #MINTS_CN#
+	]]>
+	</select>
+		
+	<select id="MdmTnsrAsmbyMintsViewDAO.selectMintsViewSpeakerInfo" parameterClass="mdmTnsrAsmblyMintsViewMainVO" resultClass="mdmTnsrAsmblyMintsViewSpkrVO">
+	<![CDATA[
+		select DISTINCT
+			RASMBLY_ID,
+			RASMBLY_NUMPR,
+			ASEMBY_ID,
+			(select ASEMBY_NM from laman where RASMBLY_ID = S.RASMBLY_ID and ASEMBY_ID = S.ASEMBY_ID) ASEMBY_NM,
+			MINTS_CN 
+		from 
+			minutes_statement S
+		WHERE 
+			ASEMBY_ID IS NOT NULL
+			and MINTS_CN = #MINTS_CN#
+	]]>
+	</select>
+	
+	<select id="MdmTnsrAsmblyMintsViewDAO.selectMintsViewAppendixInfo" parameterClass="mdmTnsrAsmblyMintsViewMainVO" resultClass="mdmTnsrAsmblyMintsViewApndxVO">
+	<![CDATA[
+		select 
+			RASMBLY_ID,
+			RASMBLY_NUMPR,
+			MTGNM_ID,
+			RASMBLY_SESN,
+			MINTS_ODR,
+			APNDX_ID,
+			APNDX_FILE_NM,
+			APNDX_FILE_HASH,
+			APNDX_FILE_PATH,
+			APNDX_FILE_URL,
+			MINTS_CN
+		from 
+			minutes_appendix
+		WHERE 
+			MINTS_CN = #MINTS_CN#
+		Order by
+			APNDX_ID asc
+	]]>
+	</select>
+	
+	<select id="MdmTnsrAsmblyMintsViewDAO.selectMintsViewBillInfo" parameterClass="mdmTnsrAsmblyMintsViewMainVO" resultClass="mdmTnsrAsmblyMintsViewBillVO">
+	<![CDATA[
+		select
+			RASMBLY_ID,
+			RASMBLY_NUMPR,
+			MTGNM_ID,
+			RASMBLY_SESN,
+			MINTS_ODR,
+			MTR_ID,
+			MTR_SN,
+			MTR_SJ,
+			MINTS_CN
+		from
+			item
+		WHERE 
+			MINTS_CN = #MINTS_CN#
+		order by
+			RASMBLY_ID asc,
+			RASMBLY_NUMPR asc,
+			MTGNM_ID asc,
+			RASMBLY_SESN asc,
+			MINTS_ODR asc,
+			MTR_SN asc
+	]]>
+	</select>
+</sqlMap>

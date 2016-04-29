@@ -1,0 +1,82 @@
+@CHARSET "UTF-8";
+
+/* 기본스타일 */
+*{margin:0; padding:0; font-family:"NanumGothic",Sans-serif;}
+body{float:left; width:100%; margin:0; padding:0; font-size:75%; letter-spacing:-1px; line-height:145%;}
+fieldset{border:0;}
+img{border:0;max-width:100%;vertical-align:middle;}
+input, dl,ul,ol,li{margin:0; padding:0; list-style:none;}
+a {text-decoration:none; color:#555;}
+caption, legend,hr,.skip{position:absolute; top:0; left:-1000px; width:0; height:0; font-size:0; line-height:0;}
+
+/* 헤더 */
+#header {position:relative; overflow:hidden; width:100%;}
+#header h1{height:47px; margin:0; text-align:center; line-height:47px; color:#fff; font-weight:bold; font-size:127%; font-family:"NanumGothicBold"; background:url('/images/clikmng/mdm/minutes/bg_header.gif') repeat-x; border-bottom:4px solid #eb711c;}
+#header .menu_view {display:none;position:absolute; top:13px; left:9px; height:34px;}
+#header .menu_view img{max-height:70%;}
+
+#controlbox{display:none;}
+
+#titlearea ul {overflow:hidden; width:100%; background-color:#f9f9f9;}
+#titlearea ul li{float:left; padding:0 0 0 15px; font-size:100%; line-height:35px; height:35px; font-weight:bold; font-family:"NanumGothicBold"; background:url('/images/clikmng/mdm/minutes/bg_arrow.gif') no-repeat center left;}
+#titlearea ul li.first{background-image:none; padding:0 0 0 5px;}
+
+#middleDiv{overflow:hidden; width:100%; background:#eee;}
+#viewarea{overflow:hidden; width:96%; margin:3px auto 45px; padding:0 1%; text-align:justify; border:1px solid #a0a0a0; background:#fff;}
+
+#footer{position:fixed; bottom:0; left:0; clear:both; overflow:hidden; width:100%; background:#a0a0a0}
+#footer #foot{overflow:hidden; width:100%; padding:8px 0 10px 0;}
+#footer #foot .logo{float:left; width:33%; text-align:center;}
+#footer #foot .logo img{max-width:75%;}
+#footer #foot .copyright{float:left; padding:2px 0 0 0; width:67%; font-size:95%; line-height:100%; font-family:"NanumGothicBold"; font-weight:bold;}
+
+#schshow{overflow:hidden; width:100%; background-color:#e4d7ce;}
+#schshow h3{display:none;}
+#schshow form{overflow:hidden; width:98%; margin:5px auto; border:1px solid #000; background:#fff;}
+#schshow form *{float:left;}
+#schshow form fieldset{width:100%;}
+#schshow label{padding:0 7px 0 7px; line-height:29px; font-weight:bold; font-family:"NanumGothicBold"; background:url(/images/clikmng/mdm/minutes/bg_bar.gif) no-repeat 100% 50%;}
+#schshow #keyword{height:27px; line-height:27px; width:72%; border:1px solid #fff;}
+#schshow .btnsch{float:right;}
+
+
+#menuarea .n13_menu{position:absolute; left:-201px; top:51px;}
+#menuarea #menushow{width:201px; background-color:#e4d7ce;}
+#menuarea #menushow h3{width:186px; padding:0 0 0 14px; line-height:35px; color:#fff; font-size:122%; background:#e38116 url(/images/clikmng/mdm/minutes/bg_menu.gif) no-repeat 95% 50%; font-family:"NanumGothicBold";}
+#menuarea #menushow li.agenda{line-height:0;}
+#menuarea #menushow li.appendix a,
+#menuarea #menushow li.agenda a{display:block; padding:0 8px 0 8px; line-height:36px; height:36px; border-bottom:1px solid#beb6b3; font-weight:bold; font-size:105%; font-family:"NanumGothicBold";overflow:hidden;text-overflow:ellipsis;white-space: nowrap;}
+#menuarea #menushow li.leftAssem{float:left; line-height:36px; height:36px;  cursor:pointer; color:#00f; text-align:center; padding:0 5px 0 5px; font-size:105%; font-family:"NanumGothicBold"; font-weight:bold;}
+#menuarea #menushow li.none{line-height:150%; text-align:center; padding:20px 0; font-size:105%; font-family:"NanumGothicBold";}
+#menuarea #menushow .ui-state-hover{background-color:#f26644;}
+#menuarea #menushow .ui-accordion-header-active{background:#d84d2c url(/images/clikmng/mdm/minutes/bg_menu_on.gif) no-repeat 95% 50%;}
+
+#contentarea #viewarea #viewer #none_conference_text{width:100%;margin:30px 0 0 0;line-height:5em;font-size:26pt;text-align:center;}
+#contentarea #viewarea #viewer #minutes{width:100%; margin:20px 0 0 0;}
+#contentarea #viewarea #viewer #minutes .highlight{background-color:#F6FF00;}
+#contentarea #viewarea #viewer #minutes .minutes_title{}
+#contentarea #viewarea #viewer #minutes .minutes_subject{line-height:150%; font-size:180%;text-align:center; font-family:"NanumGothicBold"; letter-spacing:-1px;}
+#contentarea #viewarea #viewer #minutes .meeting_datetime{border-bottom:1px solid #afafaf;padding:0 0 7px 0;}
+#contentarea #viewarea #viewer #minutes .fixation_group_title{margin:0 0 3px 0; font-size:120%; font-weight:bold; font-family:"NanumGothicBold"; }
+#contentarea #viewarea #viewer #minutes .matter_group_title{margin:0 0 3px 0; font-size:120%;font-weight:bold; font-family:"NanumGothicBold"; }
+#contentarea #viewarea #viewer #minutes .matter_group_items{color:#00f;text-decoreation:underline;cursor:pointer;}
+
+#contentarea #viewarea #viewer #minutes .office {text-align:right;border-bottom:1px solid #aaa;}
+#contentarea #viewarea #viewer #minutes .office li{display:block;}
+#contentarea #viewarea #viewer #minutes .intro_content{padding:5px 0 10px 0; border-top:1px solid #aaa;} 
+#contentarea #viewarea #viewer #minutes .start_time{;text-align:right;}
+#contentarea #viewarea #viewer #minutes .end_time{float:right;}
+
+#contentarea #viewarea #viewer #minutes .matter_content{padding:10px 0 10px 0;border-top:1px solid #aaa;}
+#contentarea #viewarea #viewer #minutes .etc_content{padding:10px 0 10px 0;border-top:1px solid #aaa;}
+
+#contentarea #viewarea #viewer #minutes .matter_subject{font-weight:bold; font-family:"NanumGothicBold";}
+#contentarea #viewarea #viewer #minutes .speaking_content{}
+#contentarea #viewarea #viewer #minutes .speaking_content .speaker1{font-weight:bold; font-family:"NanumGothicBold";}
+#contentarea #viewarea #viewer #minutes .speaking_content .speaker2{font-weight:bold; font-family:"NanumGothicBold";}
+#contentarea #viewarea #viewer #minutes .speaking_content .speaker_name{color:#00f;cursor:pointer;}
+
+#contentarea #viewarea #viewer #minutes .etc_info_asemby{border-top:1px solid #aaa;padding:2px 0 0 0;}
+#contentarea #viewarea #viewer #minutes .etc_info_asemby .title{font-weight:bold; font-family:"NanumGothicBold"; }
+#contentarea #viewarea #viewer #minutes .etc_info{border-top:1px solid #aaa;padding:2px 0 0 0; }
+#contentarea #viewarea #viewer #minutes .etc_info .title{font-weight:bold; font-family:"NanumGothicBold";}

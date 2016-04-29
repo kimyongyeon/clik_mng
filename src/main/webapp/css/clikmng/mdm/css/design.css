@@ -1,0 +1,35 @@
+@charset "utf-8";
+
+/* body */
+html, body { width:100%; height:100%; }
+
+#ghwrap { width:100%; height:100%; }
+
+#ghtop { position:relative; width:100%; height:49px; background:#3b3b3b; border-bottom:1px solid #5a5a5a; }
+#ghleft { float:left; width:320px; height:100%; background:#3b3b3b; overflow:auto; }
+	#ghleftarea { padding:20px 15px; }
+#ghright { margin-left:320px; }
+	#ghrightarea { padding:30px 20px !important; }
+
+/* 타이틀 */
+#ghtop h1 { position:absolute; top:18px; left:15px; font:140% Daum_Regular; color:#fff; }
+
+
+
+/* left */
+#ghleftarea li { display:block; margin-bottom:15px; }
+#ghleftarea li p.stitle { color:#fff; font:90% Daum_Regular; margin-bottom:5px; padding:6px 0 6px 10px; border-bottom:1px solid #5a5a5a; background:#2d2d2d url(/css/clikmng/mdm/images/stite_bg.gif) no-repeat left bottom; border-top:1px solid #000; }
+
+#ghleftarea li ul { padding-left:15px; }
+#ghleftarea li li { margin-bottom:5px; color:#999; line-height:150%; font:90% NanumGothic; }
+
+#ghleftarea p { padding-left:15px; color:#999; font:90%/1.5 NanumGothic; }
+
+#ghleftarea .box { height:130px; overflow:auto; padding-right:5px; }
+
+a{color:#fff; text-decoration:none;}
+a:link,
+a:visited{color:#fff; text-decoration:none;}
+a:active,
+a:focus,
+a:hover{color:#blue; text-decoration:underline;}

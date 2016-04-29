@@ -1,0 +1,1401 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="MdmManage">
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="MdmManageSearchVO" type="clikmng.nanet.go.kr.mdm.service.MdmManageDefaultVO"/>	
+
+	<typeAlias  alias="mdmTnsrAsmblyMintsVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyMintsVO"/>
+
+	<typeAlias  alias="mdmMinutesVO" type="clikmng.nanet.go.kr.mdm.model.MdmMinutesVO"/>
+	<typeAlias  alias="mdmBillVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyBiVO"/>
+	<typeAlias  alias="mdmBillFileVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyBiFileVO"/>
+	<typeAlias  alias="mdmDetailCodeVO" type="clikmng.nanet.go.kr.mdm.model.MdmDetailCodeVO"/>
+	<typeAlias  alias="mdmTnsrAsmblyMtgnmVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyMtgNmVO"/>
+	<typeAlias  alias="mdmPolicyInfoVO" type="clikmng.nanet.go.kr.mdm.model.MdmPolicyInfoVO"/>
+	<typeAlias  alias="mdmPolicyInfoFileVO" type="clikmng.nanet.go.kr.mdm.model.MdmPolicyInfoFileVO"/>
+	<typeAlias  alias="mdmTnsrAsmblyAsembyVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyAsembyVO"/>
+	<typeAlias  alias="mdmTnsrAsmblyAsembyActVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyAsembyActVO"/>
+	<typeAlias  alias="mdmTnpInsttCodeEstbsVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnpInsttCodeEstbsVO"/>
+	<typeAlias  alias="mdmTnmPprtyVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnmPprtyVO"/>
+	<typeAlias  alias="mdmSearchVO" type="clikmng.nanet.go.kr.mdm.model.MdmSearchVO"/>
+	<typeAlias  alias="mdmNewsVO" type="clikmng.nanet.go.kr.mdm.model.MdmNewsVO"/>
+	<typeAlias  alias="mdmTnsrAsembyOfCpsStdCdVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsembyOfCpsStdCdVO"/>
+	<typeAlias  alias="mdmTnsrAsmblyApndxVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyApndxVO"/>
+	<typeAlias  alias="mdmTnpInsttclVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnpInsttclVO"/>
+	<typeAlias  alias="mdmRegionNewsVO" type="clikmng.nanet.go.kr.mdm.model.MdmRegionNewsVO"/>
+	
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmAppendixListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 	
+				COUNT(*) AS CNT
+			FROM
+			( 
+				SELECT
+					B.RASMBLY_ID, B.RASMBLY_NUMPR, B.RASMBLY_SESN, B.MTGNM_ID, B.ODR_NM, B.MTG_DE, B.MINTS_ODR, B.FRST_REGIST_DT, X.APNDX_FILE_NM, X.APNDX_FILE_URL
+				
+				FROM 
+					minutes B
+					,(
+						SELECT APNDX_ID, RASMBLY_ID, RASMBLY_NUMPR, RASMBLY_SESN, MTGNM_ID, MINTS_ODR, APNDX_FILE_NM, APNDX_FILE_URL FROM minutes_appendix 
+					) X
+				WHERE
+					B.CUD_CODE != 'D'
+					AND B.RASMBLY_ID = X.RASMBLY_ID
+					AND B.RASMBLY_NUMPR = X.RASMBLY_NUMPR
+					AND B.RASMBLY_SESN = X.RASMBLY_SESN
+					AND B.MTGNM_ID = X.MTGNM_ID
+					AND B.MINTS_ODR = X.MINTS_ODR
+			        ]]>
+					<isNotEmpty prepend="AND" property="schRks022">				  
+					    B.CNTC_INPUT_SE_CODE = #schRks022#
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+					    B.RASMBLY_ID = #schLoAsmCode#
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schRasmblyNumpr">				  
+					   B.RASMBLY_NUMPR = #schRasmblyNumpr#
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schDt1">				  
+						<![CDATA[ B.MTG_DE >= #schDt1# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schDt2">				  
+					   <![CDATA[ B.MTG_DE <= #schDt2# ]]>
+					</isNotEmpty>
+					<isNotEmpty property="schMtgNmList">				  
+						<iterate prepend="AND" property="schMtgNmList" open="(" close=")" conjunction="OR">
+							B.MTGNM_ID = #schMtgNmList[]#
+						</iterate>	
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schApp">				  
+					    <![CDATA[ X.APNDX_FILE_NM LIKE '%' || #schApp# || '%' ]]>
+					</isNotEmpty>
+			) DUAL			
+    </select>
+
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmAppendixList" parameterClass="mdmSearchVO" resultClass="mdmTnsrAsmblyApndxVO">
+        <![CDATA[
+			SELECT 	
+				M.*  
+			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+					SELECT
+						B.RASMBLY_ID, B.RASMBLY_NUMPR, B.RASMBLY_SESN, B.MTGNM_ID, B.ODR_NM, B.MTG_DE, B.MINTS_ODR, B.FRST_REGIST_DT, X.APNDX_FILE_NM, X.APNDX_FILE_URL
+						,(
+							SELECT 
+								CODE_NM 
+							FROM 
+								common_detail_code 
+							WHERE 
+								CODE_ID = 'RKS022'
+								AND CODE = B.CNTC_INPUT_SE_CODE
+								AND ROWNUM = 1
+						) CNTC_INPUT_SE_CODE						
+					FROM 
+						minutes B
+						,(
+							SELECT APNDX_ID, RASMBLY_ID, RASMBLY_NUMPR, RASMBLY_SESN, MTGNM_ID, MINTS_ODR, APNDX_FILE_NM, APNDX_FILE_URL FROM minutes_appendix 
+						) X
+					WHERE
+						B.CUD_CODE != 'D'
+						AND B.RASMBLY_ID = X.RASMBLY_ID
+						AND B.RASMBLY_NUMPR = X.RASMBLY_NUMPR
+						AND B.RASMBLY_SESN = X.RASMBLY_SESN
+						AND B.MTGNM_ID = X.MTGNM_ID
+						AND B.MINTS_ODR = X.MINTS_ODR
+			        	]]>
+						<isNotEmpty prepend="AND" property="schRks022">				  
+						    B.CNTC_INPUT_SE_CODE = #schRks022#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+						   B.RASMBLY_ID = #schLoAsmCode#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schRasmblyNumpr">				  
+						    B.RASMBLY_NUMPR = #schRasmblyNumpr#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt1">				  
+							<![CDATA[ B.MTG_DE >= #schDt1# ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt2">				  
+						    <![CDATA[ B.MTG_DE <= #schDt2# ]]>
+						</isNotEmpty>
+						<isNotEmpty property="schMtgNmList">				  
+							<iterate prepend="AND" property="schMtgNmList" open="(" close=")" conjunction="OR">
+								B.MTGNM_ID = #schMtgNmList[]#
+							</iterate>	
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schApp">				  
+					    	<![CDATA[ X.APNDX_FILE_NM LIKE '%' || #schApp# || '%' ]]>
+						</isNotEmpty>
+			        <![CDATA[
+					ORDER BY
+						B.RASMBLY_ID ASC, B.RASMBLY_NUMPR DESC, B.RASMBLY_SESN DESC, B.MTGNM_ID ASC, B.MINTS_ODR ASC
+				) A
+			) M
+			WHERE
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				minutes 
+			WHERE 
+				CUD_CODE != 'D'
+        	]]>
+			<isNotEmpty prepend="AND" property="schRks022">				  
+			    CNTC_INPUT_SE_CODE = #schRks022#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+			    RASMBLY_ID = #schLoAsmCode#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schRasmblyNumpr">				  
+			    RASMBLY_NUMPR = #schRasmblyNumpr#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schDt1">				  
+				 <![CDATA[ MTG_DE >= REPLACE(#schDt1#, '-', '') ]]>
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schDt2">				  
+				<![CDATA[ MTG_DE <= REPLACE(#schDt2#, '-', '') ]]>
+			</isNotEmpty>
+			<isNotEmpty property="schMtgNmList">				  
+				<iterate prepend="AND" property="schMtgNmList" open="(" close=")" conjunction="OR">
+					TGNM_ID = #schMtgNmList[]#
+				</iterate>	
+			</isNotEmpty>
+    </select>
+
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesList" parameterClass="mdmSearchVO" resultClass="mdmTnsrAsmblyMintsVO">
+        <![CDATA[
+			SELECT 	
+				M.RASMBLY_ID, M.RASMBLY_NUMPR, M.RASMBLY_SESN, M.MTGNM_ID, M.ODR_NM, M.MTG_DE, M.MINTS_ODR, M.FRST_REGIST_DT 
+				,(
+					SELECT 
+						CODE_NM 
+					FROM 
+						common_detail_code 
+					WHERE 
+						CODE_ID = 'RKS002'
+						AND CODE = SUBSTRING(M.RASMBLY_ID, 0, 3)
+						AND ROWNUM = 1
+				) RASMBLY_NM
+				,( 
+					SELECT 
+						MTGNM 
+					FROM 
+						scommit  
+					WHERE 
+						RASMBLY_ID = M.RASMBLY_ID 
+						AND RASMBLY_NUMPR = M.RASMBLY_NUMPR 
+						AND MTGNM_ID = M.MTGNM_ID 
+						AND ROWNUM = 1  
+				) AS MTGNM 
+				,(
+					SELECT 
+						CODE_NM 
+					FROM 
+						common_detail_code 
+					WHERE 
+						CODE_ID = 'RKS022'
+						AND CODE = M.CNTC_INPUT_SE_CODE
+						AND ROWNUM = 1
+				) CNTC_INPUT_SE_CODE
+				,(
+					SELECT 
+						COUNT(*) AS FILECNT
+					FROM 
+						minutes_appendix 
+					WHERE 
+						RASMBLY_ID = M.RASMBLY_ID 
+						AND RASMBLY_SESN = M.RASMBLY_SESN
+						AND MTGNM_ID = M.MTGNM_ID
+						AND MINTS_ODR = M.MINTS_ODR
+				) FILECNT
+				,(
+					SELECT 
+						SUBSTR(APNDX_FILE_NM, -3) AS EXT
+					FROM 
+						minutes_appendix 
+					WHERE 
+						RASMBLY_ID = M.RASMBLY_ID 
+						AND RASMBLY_SESN = M.RASMBLY_SESN
+						AND MTGNM_ID = M.MTGNM_ID
+						AND MINTS_ODR = M.MINTS_ODR
+						AND ROWNUM = 1
+				) FILEEXT
+			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+					SELECT
+						B.RASMBLY_ID, B.RASMBLY_NUMPR, B.RASMBLY_SESN, B.MTGNM_ID, B.ODR_NM, B.MTG_DE, B.MINTS_ODR, B.FRST_REGIST_DT, B.CNTC_INPUT_SE_CODE
+					FROM
+						minutes B
+					WHERE
+						B.CUD_CODE != 'D'
+			        	]]>
+						<isNotEmpty prepend="AND" property="schRks022">				  
+						    B.CNTC_INPUT_SE_CODE = #schRks022#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+						    B.RASMBLY_ID = #schLoAsmCode#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schRasmblyNumpr">				  
+						    B.RASMBLY_NUMPR = #schRasmblyNumpr#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt1">				  
+							 <![CDATA[ B.MTG_DE >= REPLACE(#schDt1#, '-', '') ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt2">				  
+				 			<![CDATA[ B.MTG_DE <= REPLACE(#schDt2#, '-', '') ]]>
+						</isNotEmpty>
+						<isNotEmpty property="schMtgNmList">				  
+							<iterate prepend="AND" property="schMtgNmList" open="(" close=")" conjunction="OR">
+								B.MTGNM_ID = #schMtgNmList[]#
+							</iterate>	
+						</isNotEmpty>
+						<![CDATA[
+					ORDER BY 
+						B.MTG_DE DESC, B.MTGNM_ID ASC 
+				) A 
+			) M
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesHtml" parameterClass="mdmTnsrAsmblyMintsVO" resultClass="string">
+        <![CDATA[
+			SELECT 
+				MINTS_HTML 
+			FROM 
+				minutes 
+			WHERE 
+				RASMBLY_ID = #RASMBLY_ID#
+				AND RASMBLY_SESN = #RASMBLY_SESN#
+				AND MTGNM_ID = #MTGNM_ID#
+				AND MTG_DE = #MTG_DE#
+				AND MINTS_ODR = #MINTS_ODR#
+				AND ROWNUM = 1
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyBiDAO.selectMdmBillListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				bill 
+			WHERE 
+				CUD_CODE != 'D'
+        	]]>
+			<isNotEmpty prepend="AND" property="schRks022">				  
+			    CNTC_INPUT_SE_CODE = #schRks022#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+			    RASMBLY_ID = #schLoAsmCode#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schRasmblyNumpr">				  
+			    RASMBLY_NUMPR = #schRasmblyNumpr#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schBiKndStdCd">				  
+			    BI_KND_STDCD = #schBiKndStdCd#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schLastResultClStdCd">				  
+			    LAST_RESULT_CL_STDCD = #schLastResultClStdCd#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schBiSj">				  
+			    <![CDATA[ BI_SJ like '%' || #schBiSj# || '%' ]]>
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schPropsr">				  
+			    <![CDATA[ PROPSR like '%' || #schPropsr# || '%' ]]>
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schDt1">				  
+				 <![CDATA[ ITNC_DE >= REPLACE(#schDt1#, '-', '') ]]>
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schDt2">				  
+				 <![CDATA[ ITNC_DE <= REPLACE(#schDt2#, '-', '') ]]>
+			</isNotEmpty>
+			<isNotEmpty property="schJrsdCmitIdList">				  
+				<iterate prepend="AND" property="schJrsdCmitIdList" open="(" close=")" conjunction="OR">
+					JRSD_CMIT_ID = #schJrsdCmitIdList[]#
+				</iterate>	
+			</isNotEmpty>
+    </select>
+
+   <select id="MdmTnsrAsmblyBiDAO.selectMdmBillList" parameterClass="mdmSearchVO" resultClass="mdmBillVO">
+        <![CDATA[
+			SELECT 	
+				M.BI_ID, M.RASMBLY_ID, M.RASMBLY_NUMPR, M.BI_NO, M.BI_SJ, M.PROPSR, M.ITNC_DE, M.JRSD_CMIT_ID, M.FRST_REGIST_DT  
+				,(
+					SELECT 
+						CODE_NM 
+					FROM 
+						common_detail_code 
+					WHERE 
+						CODE_ID = 'RKS002'
+						AND CODE = SUBSTRING(M.RASMBLY_ID, 0, 3)
+						AND ROWNUM = 1
+				) RASMBLY_NM
+				,( 
+					SELECT 
+						MTGNM 
+					FROM 
+						scommit  
+					WHERE 
+						RASMBLY_ID = M.RASMBLY_ID 
+						AND RASMBLY_NUMPR = M.RASMBLY_NUMPR 
+						AND MTGNM_ID = M.JRSD_CMIT_ID 
+						AND ROWNUM = 1  
+				) AS MTGNM 
+				,(
+					SELECT 
+						CODE_NM 
+					FROM 
+						common_detail_code 
+					WHERE 
+						CODE_ID = 'RKS022'
+						AND CODE = M.CNTC_INPUT_SE_CODE
+						AND ROWNUM = 1
+				) CNTC_INPUT_SE_CODE
+				,(
+					SELECT 
+						COUNT(*) AS FILECNT
+					FROM 
+						bill_attach 
+					WHERE 
+						RASMBLY_ID = M.RASMBLY_ID 
+						AND BI_ID = M.BI_ID 
+				) FILECNT
+				,(
+					SELECT 
+						SUBSTR(BI_FILE_NM, -3) AS EXT
+					FROM 
+						bill_attach 
+					WHERE 
+						RASMBLY_ID = M.RASMBLY_ID 
+						AND BI_ID = M.BI_ID
+						AND ROWNUM = 1
+				) FILEEXT
+			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+					SELECT
+						B.BI_ID, B.RASMBLY_ID, B.RASMBLY_NUMPR, B.BI_NO, B.BI_SJ, B.PROPSR, B.ITNC_DE, B.JRSD_CMIT_ID, B.FRST_REGIST_DT, B.CNTC_INPUT_SE_CODE
+					FROM
+						bill B
+					WHERE
+						B.CUD_CODE != 'D'
+			        	]]>
+						<isNotEmpty prepend="AND" property="schRks022">				  
+						    B.CNTC_INPUT_SE_CODE = #schRks022#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+						    B.RASMBLY_ID = #schLoAsmCode#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schRasmblyNumpr">				  
+						    B.RASMBLY_NUMPR = #schRasmblyNumpr#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schBiKndStdCd">				  
+						    B.BI_KND_STDCD = #schBiKndStdCd#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schLastResultClStdCd">				  
+						    B.LAST_RESULT_CL_STDCD = #schLastResultClStdCd#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schBiSj">				  
+						    <![CDATA[ B.BI_SJ like '%' || #schBiSj# || '%' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schPropsr">				  
+						    <![CDATA[ PROPSR like '%' || #schPropsr# || '%' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt1">				  
+							 <![CDATA[ ITNC_DE >= REPLACE(#schDt1#, '-', '') ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt2">				  
+				 			<![CDATA[ ITNC_DE <= REPLACE(#schDt2#, '-', '') ]]>
+						</isNotEmpty>
+						<isNotEmpty property="schJrsdCmitIdList">				  
+							<iterate prepend="AND" property="schJrsdCmitIdList" open="(" close=")" conjunction="OR">
+								B.JRSD_CMIT_ID = #schJrsdCmitIdList[]#
+							</iterate>	
+						</isNotEmpty>
+						<![CDATA[
+					ORDER BY 
+						B.ITNC_DE DESC, B.RASMBLY_ID ASC
+				) A 
+			) M
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+		]]>
+    </select>
+
+  	<select id="MdmTnsrAsmblyBiDAO.selectMdmBillView" parameterClass="mdmSearchVO" resultClass="mdmBillVO">
+        <![CDATA[
+			SELECT 
+				B.* 
+				,( 
+					SELECT 
+						CODE_NM 
+					FROM 
+						common_detail_code C 
+					WHERE 
+						C.CODE_ID = 'RIS018' 
+						AND B.BI_KND_STDCD = C.CODE 
+						AND ROWNUM = 1 
+				) AS CODENM 
+				,( 
+					SELECT 
+						MTGNM 
+					FROM 
+						scommit D 
+					WHERE 
+						D.RASMBLY_ID = B.RASMBLY_ID 
+						AND D.RASMBLY_NUMPR = B.RASMBLY_NUMPR 
+						AND D.MTGNM_ID = B.JRSD_CMIT_ID 
+						AND ROWNUM = 1 
+				) AS MTGNM 
+			FROM 
+				bill B 
+			WHERE 
+				RASMBLY_ID = #rasmblyId# 
+				AND BI_ID = #biId#
+        ]]>
+    </select>
+
+   <select id="MdmTnsrAsmblyBiDAO.selectMdmBillFileList" parameterClass="mdmSearchVO" resultClass="mdmBillFileVO">
+        <![CDATA[
+			SELECT 
+				 BI_FILE_ID 
+				,BI_FILE_NM 
+			FROM 
+				bill_attach 
+			WHERE 
+				RASMBLY_ID = #rasmblyId# 
+				AND BI_ID = #biId# 
+			ORDER BY 
+				BI_FILE_ID ASC
+        ]]>
+    </select>
+
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				webrobot_contents 
+			WHERE 
+				CUD_CODE != '3'
+				AND DOCTYPE != '140'
+	        	]]>
+				<isNotEmpty prepend="AND" property="schDt1">				  
+					 <![CDATA[ REGDATE >= REPLACE(#schDt1#, '-', '') ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDt2">				  
+		 			<![CDATA[ REGDATE <= REPLACE(#schDt2#, '-', '') ]]>
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="schInsttClCode1">				  
+				    <![CDATA[ 
+				    	SITEID IN (SELECT SITEID FROM webrobot_site WHERE ORG_1 = #schInsttClCode1# OR ORG_2 = #schInsttClCode2# OR ORG_3 = #schInsttClCode3#)
+				    ]]>
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="schDocType">				  
+				    DOCTYPE = #schDocType#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schTitle">				  
+				    <![CDATA[ TITLE LIKE '%' || #schTitle# || '%' ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schContent">
+					<![CDATA[ CONTENT LIKE '%' || #schContent# || '%' ]]>
+				</isNotEmpty>
+    </select>
+
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoList" parameterClass="mdmSearchVO" resultClass="mdmPolicyInfoVO">
+        <![CDATA[
+			SELECT 	
+				TRIM(M.EXTID) AS EXTID, M.TITLE, M.CDATE, M.REGDATE
+				,(
+					SELECT
+						DOCTYPE_NAME
+					FROM
+						OUTDOCTYPE
+					WHERE
+						DOCTYPE = M.DOCTYPE
+						AND ROWNUM = 1
+				) AS SITENM
+				,(
+					SELECT
+						SITENM
+					FROM
+						webrobot_site
+					WHERE
+						SITEID = M.SITEID
+						AND ROWNUM = 1
+				) AS SEEDNM
+				,(
+					SELECT 
+						COUNT(*) AS FILECNT
+					FROM 
+						webrobot_attach 
+					WHERE 
+						EXTID = M.EXTID
+				) FILECNT
+				,(
+					SELECT 
+						SUBSTR(DOWNPATH, -3) AS EXT
+					FROM 
+						webrobot_attach 
+					WHERE 
+						EXTID = M.EXTID
+						AND ROWNUM = 1
+				) FILEEXT
+  			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+					SELECT
+						B.EXTID, B.SITEID, B.DOCTYPE, B.TITLE, B.CDATE, B.REGDATE
+					FROM
+						webrobot_contents  B
+					WHERE
+						B.CUD_CODE != '3'
+						AND DOCTYPE != '140'
+			        	]]>
+						<isNotEmpty prepend="AND" property="schDt1">				  
+							 <![CDATA[ B.REGDATE >= REPLACE(#schDt1#, '-', '') ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt2">				  
+				 			<![CDATA[ B.REGDATE <= REPLACE(#schDt2#, '-', '') ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schInsttClCode1">				  
+						    <![CDATA[ 
+						    	B.SITEID IN (SELECT SITEID FROM webrobot_site WHERE ORG_1 = #schInsttClCode1# OR ORG_2 = #schInsttClCode2# OR ORG_3 = #schInsttClCode3#)
+						    ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDocType">				  
+						   	<![CDATA[ B.DOCTYPE like '%' || #schDocType# || '%' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schKw">				  
+						    <![CDATA[ B.TITLE like '%' || #schKw# || '%' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schContent">
+							<![CDATA[ B.CONTENT LIKE '%' || #schContent# || '%' ]]>
+						</isNotEmpty>
+						<![CDATA[
+					ORDER BY
+						B.CDATE DESC, B.REGION ASC
+				) A 
+			) M
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+		]]>
+    </select>
+
+   <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoView" parameterClass="string" resultClass="mdmPolicyInfoVO">
+        <![CDATA[
+			SELECT 
+				*
+			FROM 
+				webrobot_contents 
+			WHERE 
+				EXTID = '$EXTID$'
+		]]>
+    </select>
+    
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoFileList" parameterClass="string" resultClass="mdmPolicyInfoFileVO">
+        <![CDATA[
+			SELECT 
+				*
+			FROM 
+				webrobot_attach
+			WHERE 
+				EXTID = '$EXTID$'
+		]]>
+    </select>
+ 
+    <select id="MdmEduManualDAO.selectMdmEduManualListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				webrobot_contents 
+			WHERE 
+				CUD_CODE != '3'
+				AND DOCTYPE = '140'
+	        	]]>
+				<isNotEmpty prepend="AND" property="schDt1">				  
+					 <![CDATA[ REGDATE >= REPLACE(#schDt1#, '-', '') ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDt2">				  
+					<![CDATA[ REGDATE <= REPLACE(#schDt2#, '-', '') ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schInsttClCode1">				  
+				    <![CDATA[ 
+				    	SITEID IN (SELECT SITEID FROM webrobot_site WHERE ORG_1 = #schInsttClCode1# OR ORG_2 = #schInsttClCode2# OR ORG_3 = #schInsttClCode3#)
+				    ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schTitle">				  
+				    <![CDATA[ TITLE LIKE '%' || #schTitle# || '%' ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schContent">
+					<![CDATA[ CONTENT LIKE '%' || #schContent# || '%' ]]>
+				</isNotEmpty>
+    </select>
+
+   <select id="MdmEduManualDAO.selectMdmEduManualList" parameterClass="mdmSearchVO" resultClass="mdmPolicyInfoVO">
+        <![CDATA[
+			SELECT 	
+				TRIM(M.EXTID) AS EXTID, M.TITLE, M.CDATE, M.REGDATE
+				,(
+					SELECT
+						DOCTYPE_NAME
+					FROM
+						OUTDOCTYPE
+					WHERE
+						DOCTYPE = M.DOCTYPE
+						AND ROWNUM = 1
+				) AS SITENM
+				,(
+					SELECT
+						SITENM
+					FROM
+						webrobot_site
+					WHERE
+						SITEID = M.SITEID
+						AND ROWNUM = 1
+				) AS SEEDNM
+				,(
+					SELECT 
+						COUNT(*) AS FILECNT
+					FROM 
+						webrobot_attach 
+					WHERE 
+						EXTID = M.EXTID
+				) FILECNT
+				,(
+					SELECT 
+						SUBSTR(DOWNPATH, -3) AS EXT
+					FROM 
+						webrobot_attach 
+					WHERE 
+						EXTID = M.EXTID
+						AND ROWNUM = 1
+				) FILEEXT
+  			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+					SELECT
+						B.EXTID, B.SITEID, B.DOCTYPE, B.TITLE, B.CDATE, B.REGDATE
+					FROM
+						webrobot_contents  B
+					WHERE
+						B.CUD_CODE != '3'
+						AND B.DOCTYPE = '140'
+			        	]]>
+						<isNotEmpty prepend="AND" property="schDt1">				  
+							 <![CDATA[ B.REGDATE >= REPLACE(#schDt1#, '-', '') ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt2">				  
+				 			<![CDATA[ B.REGDATE <= REPLACE(#schDt2#, '-', '') ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schInsttClCode1">				  
+						    <![CDATA[ 
+						    	B.SITEID IN (SELECT SITEID FROM webrobot_site WHERE ORG_1 = #schInsttClCode1# OR ORG_2 = #schInsttClCode2# OR ORG_3 = #schInsttClCode3#)
+						    ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schKw">				  
+						    <![CDATA[ B.TITLE like '%' || #schKw# || '%' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schContent">
+							<![CDATA[ B.CONTENT LIKE '%' || #schContent# || '%' ]]>
+						</isNotEmpty>
+						<![CDATA[
+					ORDER BY
+						B.REGDATE DESC, B.REGION ASC
+				) A 
+			) M
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+		]]>
+    </select>
+
+   <select id="MdmEduManualDAO.selectMdmEduManualView" parameterClass="string" resultClass="mdmPolicyInfoVO">
+        <![CDATA[
+			SELECT 
+				*
+			FROM 
+				webrobot_contents 
+			WHERE 
+				EXTID = '$EXTID$'
+		]]>
+    </select>
+
+   <select id="MdmEduManualDAO.selectMdmEduManualFileList" parameterClass="string" resultClass="mdmPolicyInfoVO">
+        <![CDATA[
+			SELECT 
+				*
+			FROM 
+				webrobot_attach
+			WHERE 
+				EXTID = '$EXTID$'
+		]]>
+    </select>
+
+    <select id="MdmRegionNewsDAO.selectMdmRegionNewsListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				webrobot_news
+			WHERE 
+				CUD_CODE != '3'
+	        	]]>
+				<isNotEmpty prepend="AND" property="schRks025">				  
+				   	REGION = #schRks025#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schRks026">				  
+				    SEED_ID = #schRks026#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDt1">				  
+					 <![CDATA[ REPLACE(SUBSTRING(REGDATE, 0, 10), '-', '') >= REPLACE(#schDt1#, '-', '') ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDt2">				  
+					<![CDATA[ REPLACE(SUBSTRING(REGDATE, 0, 10), '-', '') <= REPLACE(#schDt2#, '-', '') ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schKw">				  
+				     <![CDATA[ TITLE like '%' || #schKw# || '%' ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schContent">
+					<![CDATA[ CONTENT LIKE '%' || #schContent# || '%' ]]>
+				</isNotEmpty>
+    </select>
+ 
+    <select id="MdmRegionNewsDAO.selectMdmRegionNewsList" parameterClass="mdmSearchVO" resultClass="mdmRegionNewsVO">
+        <![CDATA[
+			SELECT 	
+				TRIM(M.NEWS_ID), M.SEED_NM, M.TITLE, M.WRITER, M.ARTICLE_ID, M.REGDATE
+				,(
+					SELECT 
+						CODE_NM 
+					FROM 
+						common_detail_code 
+					WHERE 
+						CODE_ID = 'RKS025'
+						AND CODE = M.REGION
+						AND ROWNUM = 1
+				) REGION
+  			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+					SELECT
+						B.NEWS_ID, B.SEED_ID, B.SEED_NM, B.REGION, B.TITLE, B.WRITER, B.REGDATE, B.ARTICLE_ID
+					FROM
+						webrobot_news  B
+					WHERE
+						B.CUD_CODE != '3'
+						]]>
+						<isNotEmpty prepend="AND" property="schRks025">				  
+						    B.REGION = #schRks025#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schRks026">				  
+						     B.SEED_ID = #schRks026#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt1">				  
+							 <![CDATA[ REPLACE(SUBSTRING(B.REGDATE, 0, 10), '-', '') >= REPLACE(#schDt1#, '-', '') ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt2">				  
+							<![CDATA[ REPLACE(SUBSTRING(B.REGDATE, 0, 10), '-', '') <= REPLACE(#schDt2#, '-', '') ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schKw">				  
+						     <![CDATA[ B.TITLE like '%' || #schKw# || '%' ]]> 
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schContent">
+							 <![CDATA[ B.CONTENT LIKE '%' || #schContent# || '%' ]]> 
+						</isNotEmpty>
+			        <![CDATA[
+					ORDER BY
+						B.REGDATE DESC, B.REGION ASC
+				) A 
+			) M
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+		]]>
+    </select>
+    
+    <select id="MdmRegionNewsDAO.selectMdmRegionNewsView" parameterClass="string" resultClass="mdmRegionNewsVO">
+        <![CDATA[
+			SELECT 
+				*
+			FROM 
+				OUTNEWS 
+			WHERE 
+				ARTICLE_ID = '$ARTICLE_ID$'
+		]]>
+     </select>
+ 
+     <select id="MdmTnsrAsmblyAsembyDAO.selectMdmTnsrAsmblyAsembyActListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 	
+				COUNT(*) AS CNT 
+			FROM 
+				laman_activity T, laman M
+			WHERE
+				T.ASEMBY_ID = M.ASEMBY_ID
+			]]>
+			<isNotEmpty prepend="AND" property="schDt1">				  
+				 <![CDATA[ REPLACE(M.FRST_REGIST_DT, '/', '') >= REPLACE(#schDt1#, '-', '') ]]>
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schDt2">				  
+				 <![CDATA[ REPLACE(M.FRST_REGIST_DT, '/', '') <= REPLACE(#schDt2#, '-', '') ]]>
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schRks022">				  
+			    T.CNTC_INPUT_SE_CODE = #schRks022#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+			   T.RASMBLY_ID = #schLoAsmCode#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schRasmblyNumpr">				  
+			   T.RASMBLY_NUMPR = #schRasmblyNumpr#
+			</isNotEmpty>					
+			<isNotEmpty prepend="AND" property="schPprtyCode">				  
+			    T.PPRTY_CODE = #schPprtyCode#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="schAsembyNm">				  
+			    <![CDATA[ M.ASEMBY_NM like '%' || #schAsembyNm# || '%' ]]>
+			</isNotEmpty>
+			<isNotEmpty property="schEstList">				  
+				<iterate prepend="AND" property="schEstList" open="(" close=")" conjunction="OR">
+					T.EST_ID = #schEstList[]#
+				</iterate>	
+			</isNotEmpty>
+    </select>
+ 
+    <select id="MdmTnsrAsmblyAsembyDAO.selectMdmTnsrAsmblyAsembyActList" parameterClass="mdmSearchVO" resultClass="mdmTnsrAsmblyAsembyActVO">
+        <![CDATA[
+			SELECT 	
+				M.*  
+			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+					SELECT
+						T.RASMBLY_ID, T.ASEMBY_ID, T.RASMBLY_NUMPR, M.ASEMBY_NM, T.FRST_REGIST_DT
+						,(
+							SELECT 
+								CODE_NM 
+							FROM 
+								common_detail_code 
+							WHERE 
+								CODE_ID = 'RKS022'
+								AND CODE = T.CNTC_INPUT_SE_CODE
+								AND ROWNUM = 1
+						) CNTC_INPUT_SE_CODE
+						,( 
+							SELECT 
+								C.RASMBLY_ASEMBY_ID 
+							FROM
+								laman C 
+							WHERE
+								C.ASEMBY_ID = T.ASEMBY_ID 
+								]]>
+								<isNotEmpty property="schLoAsmCode">				  
+								     AND C.RASMBLY_ID = #schLoAsmCode# 
+								</isNotEmpty>
+						        <![CDATA[
+								AND ROWNUM = 1 
+						) RASMBLY_ASEMBY_ID 
+						,(
+							SELECT 
+								CODE_NM 
+							FROM 
+								common_detail_code 
+							WHERE 
+								CODE_ID = 'RKS002'
+								AND CODE = SUBSTRING(T.RASMBLY_ID, 0, 3)
+								AND ROWNUM = 1
+						) RASMBLY_NM
+						,(	
+							SELECT 
+								E.EST_NM
+							FROM 
+								colgover_edistrict E 
+							WHERE
+								E.RASMBLY_NUMPR = T.RASMBLY_NUMPR 
+								]]>
+								<isNotEmpty property="schLoAsmCode">				  
+								     AND E.RASMBLY_ID = #schLoAsmCode# 
+								</isNotEmpty>
+						        <![CDATA[								
+								AND E.EST_ID = T.EST_ID 
+								AND ROWNUM = 1 
+						) EST_NM 
+						,( 
+							SELECT 
+								PPRTY_NM 
+							FROM 
+								colgover_party P 
+							WHERE 
+								P.PPRTY_CODE = T.PPRTY_CODE 
+								AND ROWNUM = 1 
+						) PPRTY_NM 
+					FROM
+						laman_activity T, laman M
+					WHERE
+						T.ASEMBY_ID = M.ASEMBY_ID
+					]]>
+					<isNotEmpty prepend="AND" property="schDt1">				  
+						 <![CDATA[ REPLACE(M.FRST_REGIST_DT, '/', '') >= REPLACE(#schDt1#, '-', '') ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schDt2">				  
+						 <![CDATA[ REPLACE(M.FRST_REGIST_DT, '/', '') <= REPLACE(#schDt2#, '-', '') ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schRks022">				  
+					     T.CNTC_INPUT_SE_CODE = #schRks022# 
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+					     T.RASMBLY_ID = #schLoAsmCode#
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schRasmblyNumpr">				  
+					    T.RASMBLY_NUMPR = #schRasmblyNumpr# 
+					</isNotEmpty>					
+					<isNotEmpty prepend="AND" property="schPprtyCode">				  
+					     T.PPRTY_CODE = #schPprtyCode# 
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schEstCode">				  
+					     T.EST_ID = #schEstCode# 
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schAsembyNm">				  
+					     <![CDATA[ M.ASEMBY_NM like '%' || #schAsembyNm# || '%' ]]>
+					</isNotEmpty>
+					<isNotEmpty property="schEstList">				  
+						<iterate prepend="AND" property="schEstList" open="(" close=")" conjunction="OR">
+							 T.EST_ID = #schEstList[]# 
+						</iterate>	
+					</isNotEmpty>
+					<![CDATA[
+					ORDER BY 
+						M.FRST_REGIST_DT DESC, T.RASMBLY_NUMPR DESC, M.ASEMBY_NM ASC 
+				) A 
+			) M
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyAsembyDAO.selectMdmTnsrAsmblyAsembyView" parameterClass="mdmSearchVO" resultClass="mdmTnsrAsmblyAsembyVO">
+        <![CDATA[
+			SELECT 
+				A.RASMBLY_NUMPR
+				,A.EST_ID
+				,(	
+					SELECT 
+						E.EST_NM 
+					FROM 
+						colgover_edistrict E 
+					WHERE 
+						E.RASMBLY_ID = #rasmblyId#
+						AND E.RASMBLY_NUMPR = #rasmblyNumpr# 
+						AND E.EST_ID = A.EST_ID 
+						AND ROWNUM = 1 
+				) EST_NM 
+				,A.PPRTY_CODE	
+				,( 
+					SELECT 
+						PPRTY_NM 
+					FROM 
+						colgover_party P 
+					WHERE 
+						P.PPRTY_CODE = A.PPRTY_CODE 
+						AND ROWNUM = 1 
+				) PPRTY_NM				
+				,A.CAREER_MATTER
+				,A.ACDMCR_MATTER
+				,M.*
+			FROM 
+				laman_activity A, laman M
+			WHERE
+				A.RASMBLY_ID = #rasmblyId#
+				AND A.ASEMBY_ID = #asembyId#
+				AND A.RASMBLY_NUMPR = #rasmblyNumpr#
+				AND M.RASMBLY_ID = A.RASMBLY_ID(+)
+				AND M.ASEMBY_ID  = A.ASEMBY_ID(+)
+				AND ROWNUM = 1
+	        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCode" parameterClass="string"  resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE_ID, CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = #CODE_ID# 
+        ]]>
+    </select>
+    
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnmPprty" resultClass="mdmTnmPprtyVO">
+        <![CDATA[
+			SELECT 
+			 PPRTY_CODE, PPRTY_NM
+			FROM 
+				colgover_party
+			WHERE
+				DELETE_AT = 'N'
+			ORDER BY
+				PPRTY_CODE ASC
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnpInsttCodeEstbs" parameterClass="mdmSearchVO" resultClass="mdmTnpInsttCodeEstbsVO">
+        <![CDATA[
+			SELECT 
+				LOASM_CODE, LOASM_TY_CODE, LOASM_NM, BRTC_CODE
+			FROM 
+				organ 
+			WHERE 
+				INSTT_TY_CODE = 'C'
+				AND BRTC_CODE = #schBrtcCode#
+				]]>
+				<isNotEmpty property="schLoAsmTyCode">				  
+				    AND LOASM_TY_CODE = #schLoAsmTyCode#
+				</isNotEmpty>
+				<![CDATA[								
+			ORDER BY
+				LOASM_CODE ASC
+        ]]>
+    </select>
+    
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnpInsttCodeEstbsList" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				EST_ID
+			FROM 
+				colgover_edistrict 
+			WHERE 
+				EST_NM LIKE '%' || #estNm# || '%'
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRIS018" resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE_ID, CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RIS018' 
+        ]]>
+    </select>
+    
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRIS020" resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE_ID, CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RIS020' 
+        ]]>
+    </select>
+    
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRKS002" resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RKS002'
+			ORDER BY
+				CODE ASC
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRKS021" parameterClass="mdmTnsrasmblyMintsVO" resultClass="string">
+        <![CDATA[
+			SELECT 
+				CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RKS021' 
+				AND CODE = #CODE_ID#
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRKS021All" resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE_ID, CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RKS021' 
+			ORDER BY
+				CODE ASC
+        ]]>
+    </select>
+    
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRKS022" resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE_ID, CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RKS022' 
+			ORDER BY
+				CODE ASC
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRKS025" resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE_ID, CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RKS025' 
+			ORDER BY
+				CODE ASC
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRKS026" resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE_ID, CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RKS026' 
+			ORDER BY
+				CODE ASC
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmSchCode" parameterClass="mdmSearchVO"  resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = #schLoAsmCode#
+			ORDER BY
+				CODE ASC
+        ]]>
+    </select>
+
+   <select id="MdmTnsrAsmblyCodeDAO.selectMdmAsembyCode" parameterClass="mdmSearchVO"  resultClass="string">
+        <![CDATA[
+			SELECT 
+				ASEMBY_ID 
+			FROM 
+				laman 
+			WHERE 
+				ASEMBY_NM LIKE '%' || #schKw# || '%'
+				 ]]>	
+				<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+				    RASMBLY_ID = #schLoAsmCode#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schRasmblyNumpr">				  
+				    RASMBLY_NUMPR = #schRasmblyNumpr#
+				</isNotEmpty>					
+    </select>
+
+    <select id="MdmTnsrAsmblyAsembyDAO.selectMdmAsembyOfCpsStdCd" parameterClass="mdmSearchVO"  resultClass="mdmTnsrAsembyOfCpsStdCdVO">
+        <![CDATA[
+			SELECT 
+				S.HT_SE_STDCD, S.ASEMBY_OFCPS_STDCD, S.MTGNM_ID, S.ASEMBY_ID, S.RASMBLY_ID, S.RASMBLY_NUMPR
+				,( 
+					SELECT 
+						MTGNM 
+					FROM 
+						scommit D 
+					WHERE 
+						D.RASMBLY_ID = S.RASMBLY_ID 
+						AND D.RASMBLY_NUMPR = S.RASMBLY_NUMPR 
+						AND D.MTGNM_ID = S.MTGNM_ID 
+						AND ROWNUM = 1 
+				) AS MTGNM_NM
+				,(
+					SELECT 
+						CODE_NM 
+					FROM 
+						common_detail_code 
+					WHERE 
+						CODE_ID = 'RIS012'
+						AND CODE = S.HT_SE_STDCD
+						AND ROWNUM = 1
+				) HT_SE_STDNM
+				,(
+					SELECT 
+						CODE_NM 
+					FROM 
+						common_detail_code 
+					WHERE 
+						CODE_ID = 'RIS011'
+						AND CODE = S.ASEMBY_OFCPS_STDCD
+						AND ROWNUM = 1
+				) ASEMBY_OFCPS_STDNM
+			FROM 
+				position S
+			WHERE 
+				S.RASMBLY_ID = #rasmblyId#
+				AND S.ASEMBY_ID = #asembyId#
+				AND S.RASMBLY_NUMPR = #rasmblyNumpr#
+			ORDER BY
+				S.HT_SE_STDCD ASC
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnsrAsmblyEstCode" parameterClass="mdmSearchVO" resultClass="string">
+        <![CDATA[
+			SELECT 
+				EST_ID 
+			FROM 
+				colgover_edistrict
+			WHERE
+				EST_NM LIKE '%' || #schKw# || '%' 
+			    ]]>
+				<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+					RASMBLY_ID = #rasmblyId# 
+				</isNotEmpty>
+		      	<![CDATA[
+				AND ROWNUM = 1 
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnsrAsmblyEstCodeList" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				EST_ID 
+			FROM 
+				colgover_edistrict
+			WHERE
+				EST_NM LIKE '%' || #estNm# || '%' 
+			GROUP BY
+				EST_ID
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnsrAsmblyJrsdCmitIdList" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				MTGNM_ID 
+			FROM 
+				scommit
+			WHERE
+				MTGNM LIKE '%' || #cmitNm# || '%' 
+			GROUP BY
+				MTGNM_ID
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnpInsttcl1" resultClass="mdmTnpInsttclVO">
+        <![CDATA[
+			SELECT
+				INSTT_CL_CODE, INSTT_CL_NM, UPPER_INSTT_CL_CODE
+			FROM 
+				organ_class 
+			WHERE 
+				INSTT_LEVEL = '0'
+			ORDER BY
+				INSTT_ORDR ASC
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnpInsttcl2" parameterClass="string"  resultClass="mdmTnpInsttclVO">
+        <![CDATA[
+			SELECT
+				INSTT_CL_CODE, INSTT_CL_NM, UPPER_INSTT_CL_CODE
+			FROM 
+				organ_class 
+			WHERE 
+				INSTT_LEVEL = '1'
+				AND UPPER_INSTT_CL_CODE = #schInsttClCode2#
+			ORDER BY
+				INSTT_ORDR ASC
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnpInsttcl3" parameterClass="string"  resultClass="mdmTnpInsttclVO">
+        <![CDATA[
+			SELECT
+				INSTT_CL_CODE, INSTT_CL_NM, UPPER_INSTT_CL_CODE
+			FROM 
+				organ_class 
+			WHERE 
+				INSTT_LEVEL = '2'
+				AND UPPER_INSTT_CL_CODE = #schInsttClCode3#
+			ORDER BY
+				INSTT_ORDR ASC
+        ]]>
+    </select>
+    
+	<insert id="MdmNewsDAO.insertMdmNews" parameterClass="mdmNewsVO">
+	 <![CDATA[
+		INSERT INTO webrobot_news (
+			NEWS_ID
+		,	REGDATE
+		,	REGION
+		,	WRITER
+		,	TITLE
+		,	CONTENT
+		,	CUD
+		,	AUTO
+		,	ATCH_FILE_ID
+		,	SEED_ID
+		,	SEED_NM
+		,	ARTICLE_ID
+		) VALUES (
+			#newsId#
+		,	#regdate#
+		,	#region#
+		,	#writer#
+		,	#title#
+		,	#content:CLOB#
+		,	#cud#
+		,	#auto#
+		,	#atchFileId#
+		,	#seedId#
+		,	#seedNm#
+		,	#articleId#
+		)
+	 ]]>
+	</insert>    
+
+</sqlMap>

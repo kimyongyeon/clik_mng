@@ -1,0 +1,556 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="MimManage">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="mimSearchVO" type="clikmng.nanet.go.kr.mim.service.MimManageVO"/>	
+	
+	
+	<!-- 그룹설정 - 그룹 조회 -->
+	<select id="MimManageDAO.selectGroupList" parameterClass="mimSearchVO" resultClass="mimSearchVO">
+<![CDATA[
+		SELECT * FROM ( SELECT rownum rn, TB.* FROM (
+				SELECT EMAIL_GROUP_ID AS emailGroupId
+						, GROUP_NM AS groupNm
+						, DC AS dc
+						, TO_CHAR(TO_DATE(FRST_REGIST_PNTTM, 'YYYY-MM-DD'), 'YYYY-MM-DD') AS frstRegistPnttm
+				  FROM mail_group
+				 WHERE 1 = 1
+			]]>
+			
+		<isNotEmpty property="searchKeyword">
+			<isNotEqual property="searchKeyword" compareValue="">
+				<isEqual prepend="AND" property="searchCondition" compareValue="selGroupNm">
+					<![CDATA[	GROUP_NM LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+				<isEqual prepend="AND" property="searchCondition" compareValue="selDc">
+					<![CDATA[	DC LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+				<isEqual prepend="AND" property="searchCondition" compareValue="0">
+					<![CDATA[
+					( DC LIKE '%' || #searchKeyword# || '%' or 	GROUP_NM LIKE '%' || #searchKeyword# || '%' )
+					]]>
+				</isEqual>
+			</isNotEqual>
+		</isNotEmpty>
+
+		<![CDATA[
+			ORDER BY FRST_REGIST_PNTTM DESC
+			) TB ) WHERE rn BETWEEN #firstIndex# + 1 AND #firstIndex# + #recordCountPerPage#
+		]]>
+</select>
+
+	<!-- 그룹설정 - 그룹 목록 갯수 -->
+	<select id="MimManageDAO.selectGroupListCnt" parameterClass="mimSearchVO"	resultClass="java.lang.Integer">
+<![CDATA[
+				SELECT COUNT(EMAIL_GROUP_ID) AS CNT
+				  FROM mail_group
+				 WHERE 1 = 1
+			]]>
+		<isNotEmpty property="searchKeyword">
+			<isNotEqual property="searchKeyword" compareValue="">
+				<isEqual prepend="AND" property="searchCondition" compareValue="selGroupNm">
+					<![CDATA[	GROUP_NM LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+				<isEqual prepend="AND" property="searchCondition" compareValue="selDc">
+					<![CDATA[	DC LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+				<isEqual prepend="AND" property="searchCondition" compareValue="0">
+					<![CDATA[
+					( DC LIKE '%' || #searchKeyword# || '%' or 	GROUP_NM LIKE '%' || #searchKeyword# || '%' )
+					]]>
+				</isEqual>				
+			</isNotEqual>
+		</isNotEmpty>
+</select>	
+	
+
+	<!-- 팝업 - 지방의원 조회 -->
+	<select id="MimManageDAO.selectPopSearchRasmblyListInfo" parameterClass="mimSearchVO" resultClass ="mimSearchVO">
+		<![CDATA[
+		SELECT * FROM ( SELECT rownum rn, TB.* FROM (
+			SELECT ASEMBY_NM AS asembyNm, EMAIL AS email
+			  FROM laman
+			WHERE	1 = 1
+		]]>
+		<isNotEmpty property="searchKeyword">
+			<![CDATA[	AND ASEMBY_NM LIKE '%' || #searchKeyword# || '%' ]]>
+		</isNotEmpty>
+		<![CDATA[
+			ORDER BY ASEMBY_ID DESC
+			) TB ) WHERE rn BETWEEN #firstIndex# + 1 AND #firstIndex# + #recordCountPerPage#
+		]]>
+	</select>
+
+	<!-- 팝업 - 지방의원 조회 갯수 -->
+	
+	<select id="MimManageDAO.selectPopSearchRasmblyListCnt" parameterClass="mimSearchVO"	resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT COUNT(*) CNT
+			  FROM laman
+			WHERE	1 = 1
+		]]>
+		<isNotEmpty property="searchKeyword">
+			<![CDATA[	AND ASEMBY_NM LIKE '%' || #searchKeyword# || '%' ]]>
+		</isNotEmpty>
+	</select>
+
+	<!-- 팝업 - 지방의회 및 지자체 담당자 조회 -->
+	<select id="MimManageDAO.selectPopSearchRasmblyChargerListInfo" parameterClass="mimSearchVO" resultClass ="mimSearchVO">
+		<![CDATA[
+		SELECT * FROM ( SELECT rownum rn, TB.* FROM (
+				SELECT CHARGER_NM AS chargerNm, CHARGER_EMAIL AS chargerEmail
+				  FROM colgover_user
+				  WHERE 1 = 1
+		]]>
+		<isNotEmpty property="asembySeCode">				  
+	    	    AND CHARGER_SE_CODE = #asembySeCode#
+		</isNotEmpty>
+		<isNotEmpty property="searchKeyword">
+			<![CDATA[	AND CHARGER_NM LIKE '%' || #searchKeyword# || '%' ]]>
+		</isNotEmpty>
+		<![CDATA[				  
+			) TB ) WHERE rn BETWEEN #firstIndex# + 1 AND #firstIndex# + #recordCountPerPage#
+		]]>
+	</select>
+
+	<!-- 팝업 - 지방의회 및 지자체 담당자 조회 갯수 -->
+	<select id="MimManageDAO.selectPopSearchRasmblyChargerListInfoCnt" parameterClass="mimSearchVO"	resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT COUNT(*) CNT
+			  FROM colgover_user
+			  WHERE 1	=	1
+		]]>
+		<isNotEmpty property="asembySeCode">				  
+	    	 AND CHARGER_SE_CODE = #asembySeCode#
+		</isNotEmpty>
+		<isNotEmpty property="searchKeyword">
+			<![CDATA[	AND CHARGER_NM LIKE '%' || #searchKeyword# || '%' ]]>
+		</isNotEmpty>
+	</select>
+
+
+	<!-- 메일링 - 그룹등록 -->
+	<insert id="MimManageDAO.insertGroupInfo" parameterClass="mimSearchVO">
+	<![CDATA[
+			INSERT INTO mail_group (
+							EMAIL_GROUP_ID
+							, GROUP_NM
+							, DC
+							, FRST_REGISTER_ID
+							, FRST_REGIST_PNTTM
+	 						, LAST_UPDUSR_ID
+	 						, LAST_UPDT_PNTTM							
+						) VALUES (
+							#emailGroupId#
+							, #groupNm#
+							, #dc#
+							/* , PKG_OBFUS.ENCRYPT(frstRegisterId,'NAEODOCZ') */
+							, #frstRegisterId#
+							, SYSDATE
+							/* , PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ') */
+							, #lastUpdusrId#
+							, SYSDATE
+						) 
+	]]>
+	</insert>
+
+
+	<!-- 메일링 - 그룹 구성원등록 -->
+	<insert id="MimManageDAO.insertGroupDtlsInfo" parameterClass="mimSearchVO">
+	<![CDATA[
+			INSERT INTO mail_group_user(
+							EMAIL_GROUP_DTLS_NO
+							, EMAIL_GROUP_ID
+							, RCVER_NM
+							, RCVER_EMAIL
+							, FRST_REGISTER_ID
+							, FRST_REGIST_PNTTM
+	 						, LAST_UPDUSR_ID
+	 						, LAST_UPDT_PNTTM	
+						) VALUES (
+							#emailGroupDtlsNo#
+							, #emailGroupId#
+							, #rcverNm#
+							, #rcverEmail#
+							/* , PKG_OBFUS.ENCRYPT(frstRegisterId,'NAEODOCZ') */
+							, #frstRegisterId#
+							, SYSDATE
+							/* , PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ') */
+							, #lastUpdusrId#
+							, SYSDATE							
+						)
+	]]>
+	</insert>
+
+	<!-- 그룹상세보기 -->
+	<select id="MimManageDAO.selectGroupDetailInfo" parameterClass="mimSearchVO" resultClass="mimSearchVO">
+		<![CDATA[
+				SELECT EMAIL_GROUP_ID AS emailGroupId 
+						, GROUP_NM AS groupNm
+						, DC AS dc
+				  FROM mail_group
+				WHERE EMAIL_GROUP_ID = #emailGroupId#
+				ORDER BY FRST_REGIST_PNTTM DESC				
+			]]>
+	</select>
+	
+	<!-- 그룹상세보기 -->
+	<select id="MimManageDAO.selectGroupDetailDtlsInfo" parameterClass="mimSearchVO" resultClass="mimSearchVO">
+		<![CDATA[
+				SELECT EMAIL_GROUP_DTLS_NO AS emailGroupDtlsNo
+						, RCVER_NM AS rcverNm
+						, RCVER_EMAIL AS rcverEmail
+						, '"' || RCVER_NM || '(' || RCVER_EMAIL || ')"' AS groupDtlsInfo
+				  FROM mail_group A
+				    LEFT	OUTER JOIN mail_group_user B
+				      ON	A.EMAIL_GROUP_ID = B.EMAIL_GROUP_ID
+			    WHERE	A.EMAIL_GROUP_ID = #emailGroupId#			
+			]]>
+	</select>	
+
+	<!-- 메일링 - 그룹수정 -->
+	<update id="MimManageDAO.updateGroupInfo" parameterClass="mimSearchVO">
+	<![CDATA[
+			UPDATE mail_group 
+			      SET GROUP_NM = #groupNm#
+			 			 , DC = #dc#
+			 			 /* , LAST_UPDUSR_ID = PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ') */
+			 			 , LAST_UPDUSR_ID = #lastUpdusrId#
+	 					 , LAST_UPDT_PNTTM = SYSDATE
+			 WHERE EMAIL_GROUP_ID = #emailGroupId#
+	]]>
+	</update>
+	
+	<!-- 메일링 - 그룹 구성원 삭제 -->
+	<delete id="MimManageDAO.deleteGroupDtlsInfo" parameterClass="mimSearchVO">
+	<![CDATA[
+			DELETE FROM mail_group_user
+			WHERE EMAIL_GROUP_ID = #emailGroupId#
+	]]>
+	</delete>
+	
+		<!-- 메일링 - 그룹 삭제 -->
+	<delete id="MimManageDAO.deleteGroupInfo" parameterClass="mimSearchVO">
+	<![CDATA[
+			DELETE FROM mail_group
+			WHERE EMAIL_GROUP_ID = #emailGroupId#
+	]]>
+	</delete>
+
+
+<!-- ################## 메일 발송 시작 ################### -->
+
+	<!-- 메일발송 - 팝업 그룹 조회 -->
+	<select id="MimManageDAO.selectPopSearchGroupListInfo" parameterClass="mimSearchVO" resultClass="mimSearchVO">
+		<![CDATA[
+		SELECT * FROM ( SELECT rownum rn, TB.* FROM (
+				SELECT EMAIL_GROUP_ID AS emailGroupId
+						, GROUP_NM AS groupNm
+				  FROM mail_group
+				 WHERE 1 = 1
+			]]>
+			
+		<isNotEmpty property="searchKeyword">
+			<![CDATA[	AND GROUP_NM LIKE '%' || #searchKeyword# || '%' ]]>
+		</isNotEmpty>
+		<![CDATA[
+			ORDER BY FRST_REGIST_PNTTM DESC
+			) TB ) WHERE rn BETWEEN #firstIndex# + 1 AND #firstIndex# + #recordCountPerPage#
+		]]>
+	</select>
+
+	<!-- 메일발송 - 팝업 그룹 조회 갯수 -->
+	<select id="MimManageDAO.selectPopSearchGroupListInfoCnt" parameterClass="mimSearchVO"	resultClass="java.lang.Integer">
+		<![CDATA[
+				SELECT COUNT(EMAIL_GROUP_ID) AS CNT
+				  FROM mail_group
+				 WHERE 1 = 1
+			]]>
+		<isNotEmpty property="searchKeyword">
+			<![CDATA[	AND GROUP_NM LIKE '%' || #searchKeyword# || '%' ]]>
+		</isNotEmpty>
+	</select>
+	
+	<!-- 메일링 -메일 정보 저장 -->
+	<insert id="MimManageDAO.insertSendMailInfo" parameterClass="mimSearchVO">
+	<![CDATA[
+			INSERT INTO mail_send (
+							EMAIL_SNDNG_ID
+							, SEND_NM
+							, SJ
+							, EMAIL_CN
+							, ATCH_FILE_ID
+							, DSPTCH_DT
+							, SEND_SUCCES_AT
+							, SEND_REJECT_CNT
+							, FRST_REGISTER_ID
+							, FRST_REGIST_PNTTM
+	 						, LAST_UPDUSR_ID
+	 						, LAST_UPDT_PNTTM							
+						) VALUES (
+							#emailSndngId#
+							, #sendNm#
+							, #sj#
+							, #emailCn:CLOB#
+							, #atchFileId#
+							, SYSDATE
+							, 'N'
+							, 0
+							/* , PKG_OBFUS.ENCRYPT(frstRegisterId,'NAEODOCZ') */
+							, #frstRegisterId#
+							, SYSDATE
+							/* , PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ') */
+							, #lastUpdusrId#							
+							, SYSDATE
+						) 
+	]]>
+	</insert>
+
+
+	<!-- 메일링 -메일 상세정보 저장 -->
+	<insert id="MimManageDAO.insertSendMailDetailInfo" parameterClass="mimSearchVO">
+	<![CDATA[
+			INSERT INTO mail_send_result(
+							SN
+							, EMAIL_SNDNG_ID
+							, RCVER_EMAIL
+							, RCVER_NM
+						) VALUES (
+							#sn#
+							, #emailSndngId#
+							, #rcverEmail#
+							, #rcverNm#
+						)
+	]]>
+	</insert>		
+	
+	<!-- 메일 수신거부 -->
+	<select id="MimManageDAO.selectRejectRcvr" parameterClass="mimSearchVO" resultClass="mimSearchVO">
+		<![CDATA[
+			SELECT EST.RCVER_NM AS rcverNm
+						, EST.RCVER_EMAIL AS rcverEmail
+			  FROM mail_send_result EST
+			WHERE EMAIL_SNDNG_ID = #emailSndngId#
+			    AND NOT EXISTS ( SELECT *
+							  FROM mail_refusal ERT
+							 WHERE EST.RCVER_EMAIL =  ERT.REJECT_RCVER_EMAIL )
+			]]>
+	</select>	
+	
+	
+	<!-- 메일링 - 메일발송 상태 및 메일 수신거부 명수 수정-->
+	<update id="MimManageDAO.updateSendMailStatus" parameterClass="mimSearchVO">
+	<![CDATA[
+			UPDATE mail_send 
+			      SET SEND_SUCCES_AT = 'Y'
+			      		 , SEND_REJECT_CNT = #sendRejectCnt#
+			 			 /* , LAST_UPDUSR_ID = PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ') */
+			 			 , LAST_UPDUSR_ID = #lastUpdusrId#
+	 					 , LAST_UPDT_PNTTM = SYSDATE
+			 WHERE EMAIL_SNDNG_ID = #emailSndngId#
+	]]>
+	</update>
+	
+	
+	
+	<!-- 그룹상세보기 -->
+	<select id="MimManageDAO.selectSearchGroupAjax" parameterClass="mimSearchVO" resultClass="mimSearchVO">
+		<![CDATA[
+				SELECT EMAIL_GROUP_DTLS_NO AS emailGroupDtlsNo
+						, RCVER_NM AS rcverNm
+						, RCVER_EMAIL AS rcverEmail
+						, '"' || RCVER_NM || '(' || RCVER_EMAIL || ')"' AS groupDtlsInfo
+				  FROM mail_group A
+				    LEFT	OUTER JOIN mail_group_user B
+				      ON	A.EMAIL_GROUP_ID = B.EMAIL_GROUP_ID
+			    WHERE	A.EMAIL_GROUP_ID = #emailGroupId#			
+			]]>
+	</select>		
+	
+	
+	<!-- 메일양식조회 -->
+	<select id="MimManageDAO.selectFormList" resultClass="mimSearchVO">
+		<![CDATA[
+				SELECT	EMAIL_FORM_ID AS emailFormId
+							, EMAIL_FORM_NM AS emailFormNm
+							, EMAIL_FORM_HTML AS emailFormHtml
+				  FROM mail_form
+				ORDER BY FRST_REGIST_PNTTM DESC
+			]]>
+	</select>			
+	
+	<!-- 메일양식조회 -->
+	<select id="MimManageDAO.selectChangeFormAjax" parameterClass="mimSearchVO" resultClass="java.lang.String">
+		<![CDATA[
+			SELECT	EMAIL_FORM_HTML
+			  FROM mail_form
+			WHERE EMAIL_FORM_ID = #emailFormId# 
+		]]>
+	</select>			
+
+<!-- ################## 메일 발송 끝 ################### -->
+
+<!-- ################## 메일 발송 내역 시작 ################### -->
+	<!-- 메일 발송내역 목록 -->
+	<select id="MimManageDAO.selectSendMailListInfo" parameterClass="mimSearchVO" resultClass="mimSearchVO">
+		<![CDATA[
+		SELECT * FROM ( SELECT rownum rn, TB.* FROM (
+			SELECT A.EMAIL_SNDNG_ID AS emailSndngId
+					, SJ AS sj
+					, EMAIL_CN AS emailCn
+					, TO_CHAR(FRST_REGIST_PNTTM, 'YYYY/MM/DD HH24:MI') AS frstRegistPnttm
+					, (
+						SELECT COUNT(EMAIL_SNDNG_ID)
+						  FROM mail_send_result
+						 WHERE EMAIL_SNDNG_ID = A.EMAIL_SNDNG_ID
+						) AS sendCnt
+					, SEND_REJECT_CNT AS sendRejectCnt
+			  FROM mail_send A
+			WHERE 1 = 1
+		]]>
+		<isNotEmpty property="searchKeyword">
+			<isNotEqual property="searchKeyword" compareValue="">
+				<isEqual prepend="AND" property="searchCondition" compareValue="selSj">
+					<![CDATA[	SJ LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+				<isEqual prepend="AND" property="searchCondition" compareValue="selCn">
+					<![CDATA[	EMAIL_CN LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+			</isNotEqual>
+		</isNotEmpty>
+			
+		<isNotEmpty prepend="AND" property="schDt1">
+				<![CDATA[	TO_CHAR(FRST_REGIST_PNTTM, 'YYYYMMDD') BETWEEN REPLACE(#schDt1#, '-', '') AND REPLACE(#schDt2#, '-', '') ]]>
+		</isNotEmpty>				
+		<![CDATA[
+			ORDER BY FRST_REGIST_PNTTM DESC
+			) TB ) WHERE rn BETWEEN #firstIndex# + 1 AND #firstIndex# + #recordCountPerPage#
+		]]>
+
+		
+	</select>			
+
+	<!-- 메일 발송내역 목록 갯수 -->
+	<select id="MimManageDAO.selectSendMailListCnt" parameterClass="mimSearchVO"	resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT COUNT(EMAIL_SNDNG_ID) AS CNT
+			  FROM mail_send
+			WHERE 1 = 1
+			]]>
+		<isNotEmpty property="searchKeyword">
+			<isNotEqual property="searchKeyword" compareValue="">
+				<isEqual prepend="AND" property="searchCondition" compareValue="selSj">
+					<![CDATA[	SJ LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+				<isEqual prepend="AND" property="searchCondition" compareValue="selCn">
+					<![CDATA[	EMAIL_CN LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+			</isNotEqual>
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="schDt1">
+				<![CDATA[	TO_CHAR(FRST_REGIST_PNTTM, 'YYYYMMDD') BETWEEN REPLACE(#schDt1#, '-', '') AND REPLACE(#schDt2#, '-', '') ]]>
+		</isNotEmpty>			
+	</select>	
+
+<!-- ################## 메일 발송 내역 끝 ################### -->
+
+<!-- ################## 메일 수신거부 내역 시작 ################### -->
+
+	<!-- 메일 수신거부 목록 -->
+	<select id="MimManageDAO.selectRejectEmailList" parameterClass="mimSearchVO" resultClass="mimSearchVO">
+		<![CDATA[
+		SELECT * FROM ( SELECT rownum rn, TB.* FROM (
+			SELECT REJECT_ID AS rejectId
+						, REJECT_RCVER_NM AS rejectRcverNm
+						, REJECT_RCVER_EMAIL AS rejectRcverEmail
+						, REJECT_RCVER_JOB AS rejectRcverJob
+						, TO_CHAR(REJECT_RECPTN_PNTTM, 'YYYY/MM/DD HH24:MI') AS rejectRecptnPnttm
+			  FROM mail_refusal
+			 WHERE 1 = 1  
+		]]>
+		<isNotEmpty property="searchKeyword">
+			<isNotEqual property="searchKeyword" compareValue="">
+				<isEqual prepend="AND" property="searchCondition" compareValue="selNm">
+					<![CDATA[	REJECT_RCVER_NM LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+				<isEqual prepend="AND" property="searchCondition" compareValue="selEmail">
+					<![CDATA[	REJECT_RCVER_EMAIL LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+				<isEqual prepend="AND" property="searchCondition" compareValue="selJob">
+					<![CDATA[	REJECT_RCVER_JOB LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+				<isEqual prepend="AND" property="searchCondition" compareValue="0">
+					<![CDATA[	
+						( REJECT_RCVER_JOB LIKE '%' || #searchKeyword# || '%' or REJECT_RCVER_EMAIL LIKE '%' || #searchKeyword# || '%' or REJECT_RCVER_NM LIKE '%' || #searchKeyword# || '%' )
+					]]>
+				</isEqual>
+			</isNotEqual>
+		</isNotEmpty>
+			
+		<![CDATA[
+			ORDER BY REJECT_RECPTN_PNTTM DESC
+			) TB ) WHERE rn BETWEEN #firstIndex# + 1 AND #firstIndex# + #recordCountPerPage#
+		]]>
+	</select>			
+
+	<!-- 메일 수신거부 목록 갯수 -->
+	<select id="MimManageDAO.selectRejectEmailListCnt" parameterClass="mimSearchVO"	resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT COUNT(REJECT_ID) AS CNT
+			  FROM mail_refusal
+			 WHERE 1 = 1
+		]]>
+		<isNotEmpty property="searchKeyword">
+			<isNotEqual property="searchKeyword" compareValue="">
+				<isEqual prepend="AND" property="searchCondition" compareValue="selNm">
+					<![CDATA[	REJECT_RCVER_NM LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+				<isEqual prepend="AND" property="searchCondition" compareValue="selEmail">
+					<![CDATA[	REJECT_RCVER_EMAIL LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+				<isEqual prepend="AND" property="searchCondition" compareValue="selJob">
+					<![CDATA[	REJECT_RCVER_JOB LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+				<isEqual prepend="AND" property="searchCondition" compareValue="0">
+					<![CDATA[	
+						( REJECT_RCVER_JOB LIKE '%' || #searchKeyword# || '%' or REJECT_RCVER_EMAIL LIKE '%' || #searchKeyword# || '%' or REJECT_RCVER_NM LIKE '%' || #searchKeyword# || '%' )
+					]]>
+				</isEqual>
+			</isNotEqual>
+		</isNotEmpty>
+	</select>
+	
+	<!-- 메일 수신거부 중복 확인 0:없음, 1:중복 -->
+	<select id="MimManageDAO.selectConfirmEmail" parameterClass="java.lang.String"	resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT COUNT(REJECT_RCVER_EMAIL) AS CNT
+			  FROM mail_refusal
+			 WHERE REJECT_RCVER_EMAIL = #rejectEmail#
+			]]>
+	</select>		
+	
+	
+	<!-- 메일링 - 수신거부 이메일 등록 -->
+	<insert id="MimManageDAO.insertRejectEmailInfo" parameterClass="java.util.HashMap">
+	<![CDATA[
+			INSERT INTO mail_refusal (
+							REJECT_ID
+							, REJECT_RCVER_NM
+							, REJECT_RCVER_EMAIL
+							, REJECT_RCVER_JOB
+							, REJECT_RECPTN_PNTTM
+						) VALUES (
+							#rejectId#
+							, #rejectNm#
+							, #rejectEmail#
+							, #rejectJob#
+							, SYSDATE
+						) 
+	]]>
+	</insert>
+	
+<!-- ################## 메일 수신거부 내역 끝 ################### -->
+
+</sqlMap>

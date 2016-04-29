@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SiteManage">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="SiteManageVO" type="clikmng.nanet.go.kr.sit.rls.service.SiteManageVO"/>
+	<typeAlias  alias="SiteManageSearchVO" type="clikmng.nanet.go.kr.sit.rls.service.SiteManageVO"/>	
+	
+
+	<resultMap id="SiteManage" class="clikmng.nanet.go.kr.sit.rls.service.SiteManageVO">
+		<result property="siteId" 	column="SITE_ID" 	columnIndex="1"/>
+		<result property="siteUrl" 	column="SITE_URL" 	columnIndex="2"/>
+		<result property="siteNm" 	column="SITE_NM" 	columnIndex="3"/>
+		<result property="siteDc" 	column="SITE_DC" 	columnIndex="4"/>
+		<result property="siteThemaClCode" 	column="SITE_THEMA_CL_CODE" 	columnIndex="5"/>
+		<result property="siteThemaClNm" 	column="SITE_THEMA_CL_NM" 		columnIndex="6"/>				
+		<result property="actvtyAt" 		column="ACTVTY_AT" 				columnIndex="7"/>
+		<result property="actvtyAtNm" 		column="ACTVTY_AT_NM" 			columnIndex="8"/>		
+		<!-- 
+		<result property="useAt" 			column="USE_AT" 				columnIndex="9"/>
+		<result property="useAtNm" 			column="USE_AT_NM" 				columnIndex="10"/>	
+		<result property="emplyrNm" 		column="USER_NM" 	columnIndex="11"/>
+		 -->					
+		<result property="frstRegisterPnttm" 	column="FRST_REGIST_PNTTM" 	columnIndex="11"/>
+		<result property="frstRegisterId" 		column="FRST_REGISTER_ID" 		columnIndex="12"/>
+		<result property="lastUpdusrPnttm" 		column="LAST_UPDT_PNTTM" 		columnIndex="13"/>
+		<result property="lastUpdusrId" 		column="LAST_UPDUSR_ID" 		columnIndex="14"/>	
+		<result property="siteThemaClDetailCode" 	column="SITE_THEMA_CL_DETAIL_CODE" 	columnIndex="15"/>
+		<result property="siteThemaClDetailNm" 	column="SITE_THEMA_CL_DETAIL_NM" 	columnIndex="16"/>
+	</resultMap>
+	
+	<select id="SiteManageDAO.selectSiteDetail" parameterClass="SiteManageVO" resultMap="SiteManage">
+		<![CDATA[				
+			SELECT 	SITE_URL
+					, SITE_ID
+					, SITE_NM
+					, SITE_DC
+					, SITE_THEMA_CL_CODE
+					, (SELECT CODE_ID_NM FROM common_code WHERE CL_CODE = 'RSC' AND CODE_ID = SITE_THEMA_CL_CODE) AS SITE_THEMA_CL_NM
+					, NVL(ACTVTY_AT,'Y') AS ACTVTY_AT
+					, DECODE(ACTVTY_AT,'Y','게시','N','미게시','미게시') ACTVTY_AT_NM
+					, TO_CHAR(FRST_REGIST_PNTTM,'YYYY-MM-DD') FRST_REGIST_PNTTM
+					, FRST_REGISTER_ID
+					, TO_CHAR(LAST_UPDT_PNTTM,'YYYY-MM-DD')   LAST_UPDT_PNTTM
+					, LAST_UPDUSR_ID
+					, SITE_THEMA_CL_DETAIL_CODE
+					, (SELECT CODE_NM FROM common_detail_code WHERE CODE_ID = SITE_THEMA_CL_CODE AND CODE = SITE_THEMA_CL_DETAIL_CODE) AS SITE_THEMA_CL_DETAIL_NM
+			FROM 	site_list
+			WHERE	SITE_ID= #siteId#
+				
+		]]>
+	</select>
+	
+	<select id="SiteManageDAO.selectSiteList" parameterClass="SiteManageSearchVO" resultClass="egovMap">
+<![CDATA[
+				SELECT 	SITE_URL
+						, SITE_ID
+						, SITE_NM
+						, SITE_DC
+						, SITE_THEMA_CL_CODE
+						, (SELECT CODE_ID_NM FROM common_code WHERE CL_CODE = 'RSC' AND CODE_ID = SITE_THEMA_CL_CODE) AS SITE_THEMA_CL_NM
+						, ACTVTY_AT
+						, DECODE(ACTVTY_AT,'Y','게시','N','미게시','미게시') ACTVTY_AT_NM
+						, TO_CHAR(FRST_REGIST_PNTTM,'YYYY-MM-DD') FRST_REGIST_PNTTM
+						, FRST_REGISTER_ID
+						, TO_CHAR(LAST_UPDT_PNTTM,'YYYY-MM-DD')   LAST_UPDT_PNTTM
+						, LAST_UPDUSR_ID
+						, SITE_THEMA_CL_DETAIL_CODE
+						, (SELECT CODE_NM FROM common_detail_code WHERE CODE_ID = SITE_THEMA_CL_CODE AND CODE = SITE_THEMA_CL_DETAIL_CODE) AS SITE_THEMA_CL_DETAIL_NM
+						, SE_ORDR
+				FROM 	site_list
+			  WHERE	USE_AT = 'Y'
+		]]>					
+			<isEmpty prepend="AND" property="searchCondition1">
+				<![CDATA[ SITE_THEMA_CL_CODE = 'CT01' ]]>
+			</isEmpty>
+			<isNotEmpty prepend="AND" property="searchCondition1">
+				<![CDATA[ SITE_THEMA_CL_CODE = #searchCondition1# ]]>
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="searchCondition2">
+				<![CDATA[ SITE_THEMA_CL_DETAIL_CODE = #searchCondition2# ]]>
+			</isNotEmpty>			
+			<isNotEmpty property="searchCondition3">
+				<isEqual prepend="AND" property="searchCondition3" compareValue="siteNm">
+					<![CDATA[(SITE_NM   LIKE '%' || #searchKeyword# || '%')]]>
+				</isEqual>
+				<isEqual prepend="AND" property="searchCondition3" compareValue="siteUrl">
+					<![CDATA[(SITE_URL  LIKE '%' || #searchKeyword# || '%')]]>
+				</isEqual>
+				<isEqual prepend="AND" property="searchCondition3" compareValue="0">
+					<![CDATA[
+					(SITE_URL  LIKE '%' || #searchKeyword# || '%' or SITE_NM   LIKE '%' || #searchKeyword# || '%')
+					]]>
+				</isEqual>
+			</isNotEmpty>
+		<![CDATA[				
+			ORDER BY SE_ORDR ASC  	 								   
+		]]>
+</select>
+<!-- 	
+	<select id="SiteManageDAO.selectSiteListTotCnt" parameterClass="SiteManageSearchVO" resultClass="int">
+		<![CDATA[
+			SELECT 	COUNT(*) totcnt
+			  FROM 	site_list
+			WHERE  1=1
+		]]>			
+			<isEmpty prepend="AND" property="searchCondition1">
+				<![CDATA[ SITE_THEMA_CL_CODE = 'CT01' ]]>
+			</isEmpty>
+			<isNotEmpty prepend="AND" property="searchCondition1">
+				<![CDATA[ SITE_THEMA_CL_CODE = #searchCondition1# ]]>
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="searchCondition2">
+				<![CDATA[ SITE_THEMA_CL_DETAIL_CODE = #searchCondition2# ]]>
+			</isNotEmpty>			
+			<isNotEmpty property="searchCondition3">
+				<isEqual prepend="AND" property="searchCondition3" compareValue="siteNm">
+					<![CDATA[SITE_NM   LIKE '%' || #searchKeyword# || '%']]>
+				</isEqual>
+				<isEqual prepend="AND" property="searchCondition3" compareValue="siteUrl">
+					<![CDATA[SITE_URL  LIKE '%' || #searchKeyword# || '%']]>
+				</isEqual>
+			</isNotEmpty>
+	</select>
+ -->	
+	<insert id="SiteManageDAO.insertSiteInfo">	
+		<![CDATA[		
+			INSERT INTO site_list
+				  (SITE_ID
+				  , SITE_URL 
+ 				  , SITE_NM 
+				  , SITE_THEMA_CL_CODE
+				  , SITE_THEMA_CL_DETAIL_CODE
+				  , ACTVTY_AT
+				  , USE_AT
+				  , FRST_REGIST_PNTTM 
+				  , FRST_REGISTER_ID 
+				  , LAST_UPDT_PNTTM 
+				  , LAST_UPDUSR_ID
+				  , SE_ORDR) 
+			VALUES ( #siteId#
+				  , #siteUrl#
+				  , #siteNm#
+				  , #siteThemaClCode#
+				  , #siteThemaClDetailCode#
+				  , #actvtyAt# 
+				  , 'Y'
+				  , sysdate
+				  /* , PKG_OBFUS.ENCRYPT(frstRegisterId,'NAEODOCZ') */
+				  , #frstRegisterId#
+				  , sysdate
+				  /* , PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ') */
+				  , #lastUpdusrId#
+				  , (
+					 SELECT NVL2(MAX(SE_ORDR),  MAX(SE_ORDR + 1), 0) AS SE_ORDR
+					   FROM site_list
+					  WHERE SITE_THEMA_CL_CODE = #siteThemaClCode#				  
+				  	) 
+				  )
+		]]>
+	</insert>
+	
+	<update id="SiteManageDAO.updateSiteInfo" parameterClass="SiteManageVO">
+		<![CDATA[
+			UPDATE	 site_list	 SET
+				    SITE_ID=#siteId#
+				  , SITE_URL=#siteUrl# 
+ 				  , SITE_NM=#siteNm#
+				  , SITE_DC=#siteDc#
+				  , SITE_THEMA_CL_CODE=#siteThemaClCode# 
+				  , SITE_THEMA_CL_DETAIL_CODE=#siteThemaClDetailCode#
+				  , ACTVTY_AT=#actvtyAt#
+				  , LAST_UPDT_PNTTM=sysdate
+				  /* , LAST_UPDUSR_ID=PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ') */
+				  , LAST_UPDUSR_ID=#lastUpdusrId#
+ 			WHERE  SITE_ID=#siteId#
+		]]>
+	</update>
+	
+	<delete id="SiteManageDAO.deleteSiteInfo">
+		<![CDATA[
+			DELETE FROM site_list 
+			WHERE  SITE_ID=#siteId#
+		]]>
+	</delete>
+	
+	<!-- 카테고리코드 조회 쿼리 -->
+	<select id="SiteManageDAO.selectClCode" parameterClass="SiteManageSearchVO" resultClass="SiteManageVO">
+		<![CDATA[
+			SELECT CODE_ID AS codeId
+					, CODE_ID_NM as codeIdNm
+			  FROM common_code
+			 WHERE CL_CODE = 'RSC'
+			   AND USE_AT = 'Y'
+			 ORDER BY CODE_ID ASC			 
+		]]>
+	</select>	
+	
+	<!-- 상세코드 조회 쿼리 -->
+	<select id="SiteManageDAO.selectClDetailCode" parameterClass="SiteManageVO" resultClass="SiteManageVO">
+		<![CDATA[
+			SELECT CODE_ID as codeId
+					, CODE as code
+					, CODE_NM as codeNm
+					, CODE_ORDR as codeOrdr
+			  FROM common_detail_code
+			 WHERE CODE_ID = #codeId# 
+			   AND USE_AT = 'Y'
+			 ORDER BY CODE ASC			   
+		]]>
+	</select>		
+
+	<update id="SiteManageDAO.updateSiteOrdrEdit" parameterClass="SiteManageVO">
+		<![CDATA[
+			UPDATE		site_list 
+				  SET		SE_ORDR	= #seOrdr#         
+			 WHERE		SITE_ID=#siteId# 			
+		]]>
+	</update>
+
+
+</sqlMap>

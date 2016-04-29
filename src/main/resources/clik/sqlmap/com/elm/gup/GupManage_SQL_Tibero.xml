@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ElmGupManage">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="userClassVO" type="clikmng.nanet.go.kr.elm.com.UserClassVO"/>	
+	<typeAlias  alias="userClassDtaseVO" type="clikmng.nanet.go.kr.elm.com.UserClassDtaseVO"/>
+	<typeAlias  alias="readGrantRequestVO" type="clikmng.nanet.go.kr.elm.com.ReadGrantRequestVO"/>
+	<typeAlias  alias="elmGupDetailVO" type="clikmng.nanet.go.kr.elm.gup.service.ElmGupDetailVO"/>
+	
+
+    <resultMap id="elmGupList" class="clikmng.nanet.go.kr.elm.gup.service.ElmGupListVO">
+        <result property="userGroupId" 		column="userGroupId" 			columnIndex="1"/>
+        <result property="userGroupNm" 		column="userGroupNm" 			columnIndex="2"/>
+        <result property="dtaSeCode" 		column="dtaSeCode" 				columnIndex="3"/>
+        <result property="readngSeCode" 	column="readngSeCode" 			columnIndex="4"/>
+    </resultMap>
+
+
+	<!-- 그룹별 권한 지정 리스트 -->
+	<select id="gupManageDAO.selectElmGupList" resultMap="elmGupList">
+		<![CDATA[
+				SELECT 		A.USER_GROUP_ID		AS  userGroupId
+					,		A.USER_GROUP_NM		AS  userGroupNm
+					,		B.DTA_SE_CODE		AS  dtaSeCode
+					,		C.READNG_SE_CODE	AS  readngSeCode
+				FROM 
+				(
+					SELECT 		USER_GROUP_ID
+							, 			USER_GROUP_NM 
+					FROM 			user_class
+				) A
+				INNER JOIN 
+				(
+					SELECT 		USER_GROUP_ID
+							, 			PRPOS_CODE
+							, 			AGGR_CONCAT(DTA_SE_CODE, ',') AS "DTA_SE_CODE"
+					FROM 			user_class_datatype
+					WHERE		PRPOS_CODE = '100'					
+					GROUP BY 	USER_GROUP_ID, PRPOS_CODE
+				) B
+				ON A.USER_GROUP_ID = B.USER_GROUP_ID
+				INNER JOIN
+				(
+					SELECT 		USER_GROUP_ID
+							, 			AGGR_CONCAT(READNG_SE_CODE, ',') AS "READNG_SE_CODE"
+					FROM 			lappli_authority		C
+					GROUP BY 	USER_GROUP_ID
+				) C
+				ON A.USER_GROUP_ID = C.USER_GROUP_ID	
+			]]>
+	</select>
+
+	<!-- 유저 클래스 아이템-->
+	<select id="gupManageDAO.selectUserClass" resultClass="userClassVO">
+		<![CDATA[
+					SELECT 		USER_GROUP_ID AS userGroupId
+						, 		USER_GROUP_NM  AS userGroupNm
+					FROM		user_class
+					ORDER BY	USER_GROUP_ID
+			]]>
+	</select>
+
+
+	<!-- 자료 이용 권한 , 서비스 제한 입력 -->
+	<select id="gupManageDAO.selectUserClassDtase" parameterClass="elmGupDetailVO" resultClass="userClassDtaseVO">
+	<![CDATA[
+			SELECT		USER_GROUP_ID			AS	userGroupId
+				,		PRPOS_CODE				AS	prposCode
+				,		PROCESS_MSSAGE			AS	processMssage
+				,		DTA_SE_CODE				AS	dtaSeCode
+			FROM 		user_class_datatype 
+			WHERE		USER_GROUP_ID	=	#userGroupId#
+				AND		PRPOS_CODE		=	#prposCode#
+	]]>
+	</select>
+	
+
+	<!--  자료 이용 권한 , 서비스 제한 입력 -->
+	<insert id="gupManageDAO.insertUserClassDtase" parameterClass="userClassDtaseVO">
+	<![CDATA[
+			INSERT INTO user_class_datatype
+			(
+					USER_GROUP_ID
+				, 	PRPOS_CODE
+				, 	PROCESS_MSSAGE
+				, 	DTA_SE_CODE
+				, 	FRST_REGISTER_ID
+				, 	FRST_REGIST_PNTTM
+			) VALUES (
+					#userGroupId#
+				, 	#prposCode#
+				, 	#processMssage#
+				, 	#dtaSeCode#
+				, 	#frstRegisterId#
+				, 	SYSDATE
+			);
+	]]>
+	</insert>
+
+	<delete id="gupManageDAO.deleteUserClassDtase" parameterClass="elmGupDetailVO">
+	 <![CDATA[
+		DELETE FROM user_class_datatype
+		 WHERE USER_GROUP_ID = #userGroupId#
+	 ]]>
+	</delete> 
+
+
+	<!-- 자료 이용 권한 , 서비스 제한 입력 -->
+	<select id="gupManageDAO.selectReadGrantRequest" parameterClass="elmGupDetailVO" resultClass="readGrantRequestVO">
+	<![CDATA[
+			SELECT		USER_GROUP_ID			AS	userGroupId
+				,		READNG_SE_CODE			AS	readngSeCode
+			FROM 		lappli_authority 
+			WHERE		USER_GROUP_ID	=	#userGroupId#
+	]]>
+	</select>
+	<!--  열람 신청 권한 입력 -->
+	<insert id="gupManageDAO.insertReadGrantRequest" parameterClass="readGrantRequestVO">
+	<![CDATA[
+			INSERT INTO lappli_authority
+			(
+					USER_GROUP_ID
+				,	READNG_SE_CODE
+				,	FRST_REGISTER_ID
+				,	FRST_REGIST_PNTTM
+			) VALUES (
+					#userGroupId#
+				,	#readngSeCode#
+				,	#frstRegisterId#
+				,	SYSDATE
+			);
+	]]>
+	</insert>
+
+
+
+	<delete id="gupManageDAO.deleteReadGrantRequest" parameterClass="elmGupDetailVO">
+	 <![CDATA[
+		DELETE FROM lappli_authority
+		 WHERE USER_GROUP_ID = #userGroupId#
+	 ]]>
+	</delete> 
+
+
+
+</sqlMap>
+

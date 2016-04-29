@@ -1,0 +1,30 @@
+@import url("base.css");
+@import url("board.css"); 
+/* Border */
+div#border {
+	width: 730px; margin:0 auto; border-collapse: collapse;
+}
+
+/* 리스트 테이블 */
+.listTable{BORDER-TOP: #f5f5f5 1px solid; BORDER-bottom: #f5f5f5 1px solid;}
+  .listTable th{BORDER-bottom: 1px solid #f5f5f5; padding-left:1px;padding-right:1px;background-color: #fff; height:20px;}
+  .listTable td{BORDER-bottom: 1px solid #f5f5f5; padding-left:1px;padding-right:1px;background-color: #ddd; height:20px;}
+
+/* 리스트 타이틀 */
+.listTitle{font-family:"돋움"; font-size:9pt; color:#000000 ;
+        font-weight: bold ; vertical-align: middle}
+
+/* 리스트 내용 */
+.listCenter {font-size:9pt; color:#000000; font-family:"돋움, Arial"; height:24px; text-align:center; vertical-align:middle;}
+.listLeft {font-size:9pt; color:#000000; font-family:"돋움, Arial"; height:24px; text-align:left; vertical-align:middle;}
+.listRight {font-size:9pt; color:#000000; font-family:"돋움, Arial"; height:24px; text-align:right; vertical-align:middle;}
+
+/* 일반 테이블 */
+.generalTable{BORDER-TOP: #D2D4D1 1px solid;BORDER-bottom: #D2D4D1 1.5px solid;BORDER-left: #D2D4D1 1px solid;BORDER-right: #D2D4D1 1px solid;}
+  .generalTable th{ padding-left:2px; padding-right:5px;background-color: #f5f5f5; Text-align: right; border-bottom:1px solid #fff; }
+  .generalTable td{ padding-left:2px; padding-right:5px;background-color: #f5f5f5; }
+
+/* 강조 내용 */
+.emphasisCenter {font-family:"돋움"; font-size:9pt; color:#2E4B90 ; font-weight: bold ; padding-right:3px; text-align: center ; vertical-align: middle}
+.emphasisLeft {font-family:"돋움"; font-size:9pt; color:#2E4B90 ; font-weight: bold ; padding-right:3px; text-align: left ; vertical-align: middle}
+.emphasisRight {font-family:"돋움"; font-size:9pt; color:#2E4B90 ; font-weight: bold ; padding-right:3px; text-align: right ; vertical-align: middle}

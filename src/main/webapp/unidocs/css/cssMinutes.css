@@ -1,0 +1,63 @@
+@charset "utf-8";
+
+ul { margin:0; padding:0;}
+li { margin:0; padding:0; list-style:none;}
+dl { margin:0; padding:0; line-height:160%;}
+dt { margin:0; padding:0; list-style:none;line-height:160%;}
+dd { margin:0; padding:0; list-style:none;line-height:160%;}
+p  { margin:0; line-height:160%; clear:both;}
+hr {margin-top:5px;margin-bottom:5px;clear:both;}
+
+#minutes { text-align:justify;}
+
+.mname  { width:92%; line-height:160%; text-align:center; font-size:25pt;} /* 회의명 */
+.mchasu { width:8%; text-align:right;}  /* 차수 */
+.ar     {float:right;text-align:right;} /* 오른쪽 정렬 */
+.ac     { text-align:center;}  /* 중앙 정렬 */
+.am     { padding-right:15px;} /* 오른쪽 스페이스 */
+.bold  { font-weight:bold;}    /* 발언자 진하게 처리 */
+.sbold  { font-weight:bold; padding-right:10px;} /* 발언자 진하게 처리 */
+.abold  { font-weight:bold;}   /* 발언자외 진하게 처리 */
+.amember{ padding-right:20px;} /* 출석의원/위원 처리 */
+
+.em1 { text-indent:1em; }
+.em2 { text-indent:2em; }
+.em3 { text-indent:3em; }
+.em4 { text-indent:4em; }
+.em5 { text-indent:5em; }
+.em6 { text-indent:6em; }
+.em7 { text-indent:7em; }
+.em8 { text-indent:8em; }
+.em9 { text-indent:9em; }
+.em10{ text-indent:10em;}
+.em05{ text-indent:0.5em;}
+.em15{ text-indent:1.5em;}
+
+.aMan span {display:inline-block;float:left; width:4em; padding-left:1.4em !important;}
+.nvcMan span {display:inline-block;float:left; padding-left:1.4em;}
+.po span {display:inline-block;float:left; padding-left:1.4em;}
+.as span {display:inline-block;float:left; padding-left:1.4em;}
+
+.minuteName1 {height:28px;}
+.minuteName1 .minutesName2 {float:left; width:93%;}
+.minuteName1 .minutesName2 .minutesName3 {margin:0;padding:0;font-size:2em;line-height:100%;font-weight:bold;text-align:center; display:block; }
+
+.minuteName1 .chasu {float:right;width:6%;margin-top:7px;text-align:right !important;}
+
+#attendance dl{ width:100%;}
+#attendance dt { width:50%; float:left; }
+#attendance dd { width:50%;float:right; }
+
+.fontClass1 { font-family: 굴림; }
+.fontClass2 { font-family: 돋움; }
+.fontClass3 { font-family: 바탕; }
+.fontClass4 { font-family: 궁서; }
+
+#contents div {text-align:justify;}
+a:link    {color:#0000FF; text-decoration:none}
+a:active  {color:#0000FF; text-decoration:none}
+a:visited {color:#0000FF; text-decoration:none}
+a:hover   {color:#ff00FF; text-decoration:none}
+
+dl.attendmem { width:100%; }
+dl.attendmem dt { float:left; }

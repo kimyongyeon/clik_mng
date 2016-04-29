@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<bean id="egov.propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:/clik/clikProps/jdbc.properties</value>
+                <value>classpath:/clik/clikProps/globals.properties</value>
+            </list>
+        </property>
+    </bean>
+
+	<!-- DataSource -->
+	<alias name="dataSource" alias="egov.dataSource"/>
+    <!--<alias name="dataSource-tibero" alias="dataSource"/>-->
+    
+    <!-- 직원 계정 데이터베이스 -->
+    <bean id="docsDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName"  value="${docs.driver}"/>
+		<property name="url" value="${docs.dburl}"/>
+        <property name="username" value="${docs.username}"/>
+        <property name="password" value="${docs.password}"/>
+        <property name="maxActive" value="10"/>
+	    <property name="maxIdle" value="10"/>   
+	    <property name="maxWait" value="-1"/>
+	</bean> 
+
+	<!-- Tibero -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${clik.driver}"/>
+		<property name="url" value="${clik.dburl}" />
+		<property name="username" value="${clik.username}"/>
+		<property name="password" value="${clik.password}"/>
+        <property name="maxActive" value="2"/>
+	    <property name="maxIdle" value="1"/>   
+	    <property name="maxWait" value="-1"/>		    
+	</bean>
+	<bean id="dataSource-tibero" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${clik.driver}"/>
+		<property name="url" value="${clik.dburl}" />
+		<property name="username" value="${clik.username}"/>
+		<property name="password" value="${clik.password}"/>
+        <property name="maxActive" value="2"/>
+	    <property name="maxIdle" value="1"/>
+	    <property name="maxWait" value="-1"/>
+	</bean>
+
+    <!--<bean id="dataSource" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">-->
+        <!--<constructor-arg ref="dataSource-tibero" />-->
+        <!--<property name="logFormatter">-->
+            <!--<bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">-->
+                <!--<property name="loggingType" value="MULTI_LINE" />-->
+                <!--<property name="sqlPrefix" value="SQL         :  "/>-->
+            <!--</bean>-->
+        <!--</property>-->
+    <!--</bean>-->
+
+    <!-- 홈페이지DB : 통합ID (SSO인증) -->
+    <bean id="nanetDataSource" class="org.apache.commons.dbcp.BasicDataSource"
+        destroy-method="close">
+        <property name="driverClassName" value="${sso.driver}" />
+        <property name="url" value="${sso.dburl}" />
+        <property name="username" value="${sso.username}" />
+        <property name="password" value="${sso.password}" />
+        <property name="maxActive" value="100"/>
+	    <property name="maxIdle" value="30"/> 
+    </bean>
+
+	<!-- 국회전자도서관 DB 운영 -->
+	<bean id="nadlDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${nadl.driver}" />
+		<property name="url" value="${nadl.dburl}" />
+		<property name="username" value="${nadl.username}" />
+		<property name="password" value="${nadl.password}" />
+        <property name="maxActive" value="100"/>
+	    <property name="maxIdle" value="30"/>     
+	</bean>
+
+    <!-- DB Pool이 생성이 되더라고 특정 시간 호출되지 않으면 DBMS 설정에 따라 연결을 끊어질 때
+		이 경우 DBCP를 사용하셨다면.. 다음과 같은 설정을 추가하시면 연결을 유지시켜 줍니다. -->
+	<!--
+	<property name="validationQuery" value="select 1 from dual" />
+	<property name="testWhileIdle" value="true" />
+	<property name="timeBetweenEvictionRunsMillis" value="60000" /> -->  <!-- 1분 -->
+
+	<!-- DBCP가 아닌 WAS의 DataSource를 사용하시는 경우도 WAS별로 동일한 설정을 하실 수 있습니다.
+		(WAS별 구체적인 설정은 WAS document 확인) -->
+</beans>

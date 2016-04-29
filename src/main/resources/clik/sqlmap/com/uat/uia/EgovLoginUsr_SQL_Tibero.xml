@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="LoginUsr">
+
+	<typeAlias  alias="loginVO" type="clikmng.nanet.go.kr.cmm.LoginVO"/>
+
+	<!-- 로그인 처리를 위한 resultMap -->
+	<resultMap id="login" class="clikmng.nanet.go.kr.cmm.LoginVO">
+
+<result property="mngrId" />
+<result property="mngrNm" />
+<result property="mngrPw" />
+<result property="mngrEmail" />
+<result property="mngrDept" />
+<result property="authorCode" />
+<result property="frstRegistPnttm" />
+<result property="mngrSeCode" />
+
+</resultMap>
+	
+	
+	<!-- 일반 로그인 -->
+	<select id="loginDAO.actionLogin" parameterClass="java.util.HashMap" resultMap="login">
+	<![CDATA[
+			/* SELECT PKG_OBFUS.DECRYPT(MNGR_ID,'NAEODOCZ') AS mngrId */
+			SELECT MNGR_ID AS mngrId
+					, MNGR_NM AS mngrNm
+					, PKG_OBFUS.DECRYPT(PASSWORD,'NAEODOCZ') AS mngrPw
+					, MNGR_EMAIL AS mngrEmail
+					, MNGR_DEPT AS mngrDept
+					, AUTHOR_CODE AS authorCode
+					, FRST_REGIST_PNTTM AS frstRegistPnttm
+					, MNGR_SE_CODE
+					
+			  FROM manag_user
+			 /* WHERE MNGR_ID = PKG_OBFUS.ENCRYPT(userId,'NAEODOCZ') */ 
+			 /* WHERE MNGR_ID = upper(userId) */ 
+			 WHERE (MNGR_ID = upper(#userId#) and mngr_se_code = 1) 
+					or (MNGR_ID = #userId# and mngr_se_code = 2)
+			 
+		]]>
+	</select>
+	
+	<!-- 일반 로그인 -->
+	<select id="loginDAO.actionLogin2" parameterClass="java.util.HashMap" resultMap="login">
+	<![CDATA[
+			/* SELECT PKG_OBFUS.DECRYPT(MNGR_ID,'NAEODOCZ') AS mngrId */
+			SELECT MNGR_ID AS mngrId
+					, MNGR_NM AS mngrNm
+					, PKG_OBFUS.DECRYPT(PASSWORD,'NAEODOCZ') AS mngrPw
+					, MNGR_EMAIL AS mngrEmail
+					, MNGR_DEPT AS mngrDept
+					, AUTHOR_CODE AS authorCode
+					, FRST_REGIST_PNTTM AS frstRegistPnttm
+					, MNGR_SE_CODE
+					
+			  FROM manag_user
+			 /* WHERE MNGR_ID = PKG_OBFUS.ENCRYPT(userId,'NAEODOCZ') */ 
+			 WHERE MNGR_ID = #userId# 
+			 	AND PASSWORD = PKG_OBFUS.ENCRYPT(#password#,'NAEODOCZ')		 	
+		]]>
+	</select>	
+</sqlMap>

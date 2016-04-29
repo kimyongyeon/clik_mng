@@ -1,0 +1,1445 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="MdmManage">
+	<typeAlias  alias="mdmPolicyInfoVO" 	type="clikmng.nanet.go.kr.mdm.model.MdmPolicyInfoVO"/>
+	<typeAlias  alias="mdmPolicyInfoFileVO" type="clikmng.nanet.go.kr.mdm.model.MdmPolicyInfoFileVO"/>
+	<typeAlias  alias="mdmSearchVO" 		type="clikmng.nanet.go.kr.mdm.model.MdmSearchVO"/>
+	<typeAlias  alias="mdmRegionNewsVO" 	type="clikmng.nanet.go.kr.mdm.model.MdmRegionNewsVO"/>
+	<typeAlias  alias="mdmIsViewVO" 	    type="clikmng.nanet.go.kr.mdm.model.MdmIsViewVO"/>
+	<typeAlias  alias="mdmOutSiteVO" 	    type="clikmng.nanet.go.kr.mdm.model.MdmOutSiteVO"/>
+	<typeAlias  alias="mdmOutSeedVO" 	    type="clikmng.nanet.go.kr.mdm.model.MdmOutSeedVO"/>
+	<typeAlias  alias="mdmOutDocTypeVO"	    type="clikmng.nanet.go.kr.mdm.model.MdmOutDocTypeVO"/>
+	
+	<resultMap class="clikmng.nanet.go.kr.mdm.model.MdmFileVO" id="outbbsFileCmmn">
+		<result property="atchFileId"    column="DOWNID" />
+		<result property="orignlFileNm"  column="FILE_NM" />
+		<result property="fileStreCours" column="DOWNPATH" />
+		<result property="streFileNm" 	 column="DOC_CNVR_PDF_PATH" />
+		<result property="fileSn" 		 column="DOC_CNVR_STTU_CODE" />
+		<result property="fileCn" 		 column="DOC_CNVR_RESULT_MSSAGE" />
+		<result property="fileExtsn" 	 column="FILEEXT" />
+	</resultMap>
+
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoSeq" resultClass="int">
+        <![CDATA[
+			SELECT 
+				SEQ_OUTBBS.NEXTVAL AS SEQ 
+			FROM 
+				DUAL
+		]]>
+    </select>
+
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoFileSeq" resultClass="String">
+        <![CDATA[
+			SELECT 
+				SEQ_IF_DOWNLOAD.NEXTVAL AS SEQ 
+			FROM 
+				DUAL
+		]]>
+    </select>
+
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoMaxRegDate" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				MAX(REGDATE) AS REGDATE 
+			FROM 
+				webrobot_contents 
+			WHERE
+				DOCTYPE != '140'
+				AND REGDATE <= #TODAY# || '999999'
+		]]>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoDfltListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				webrobot_contents 
+			WHERE
+				DOCTYPE != '140'
+				]]>
+				<isNotEmpty prepend="AND" property="schDt1">				  
+					<![CDATA[ REGDATE >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDt2">				  
+					<![CDATA[ REGDATE <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+				</isNotEmpty>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoDfltList" parameterClass="mdmSearchVO" resultClass="mdmPolicyInfoVO">
+        <![CDATA[
+        	SELECT 
+        		M.* 
+        	FROM 
+        	(
+        		SELECT 
+        			ROWNUM AS RNUM, A.*
+        		FROM 
+        		( 
+        			SELECT 
+        				B.OUTBBS_CN, B.EXTID, B.DOCTYPE, B.SITEID, B.TITLE, REPLACE(B.CDATE, '/', '') AS CDATE, B.REGDATE, B.CUD_CODE, B.URL
+        				,B.ISVIEW, B.DUPLICATION, DY.DOCTYPE_NAME AS SITENM, ST.SITENM AS SEEDNM, ST.SITEURL AS SITEURL, SD.SEEDNM AS SEEDNAME
+                        ,( SELECT COUNT(*) AS CNT FROM webrobot_attach WHERE OUTBBS_CN = B.OUTBBS_CN AND CUD_CODE != 'D' ) FILECNT 
+                        ,( SELECT COUNT(*) AS CNT FROM webrobot_attach WHERE OUTBBS_CN = B.OUTBBS_CN AND (DOC_CNVR_STTU_CODE = '1' OR DOC_CNVR_STTU_CODE = '3') AND CUD_CODE != 'D' ) FILESUCCCNT 
+                        ,( SELECT COUNT(*) AS CNT FROM webrobot_attach WHERE OUTBBS_CN = B.OUTBBS_CN AND DOC_CNVR_STTU_CODE = '2' AND CUD_CODE != 'D' ) FILEFLRCNT 
+                        ,( 
+                        	SELECT 
+                        		COUNT(*) AS CNT 
+                        	FROM 
+                        		webrobot_contents 
+                        	WHERE 
+	                			DUPLICATION = B.DUPLICATION 
+	                			AND CUD_CODE != 'D'
+	                			]]>
+								<isNotEmpty prepend="AND" property="schDt1">				  
+									<![CDATA[ REGDATE >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+								</isNotEmpty>
+								<isNotEmpty prepend="AND" property="schDt2">				  
+									<![CDATA[ REGDATE <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+								</isNotEmpty>
+	                	) DUPCNT
+					FROM 
+	                	webrobot_contents B, OUTDOCTYPE DY, webrobot_site ST, webrobot_seed SD
+	                WHERE 
+	                	B.DOCTYPE != '140'
+	                	AND B.DOCTYPE = DY.DOCTYPE
+	                	AND B.SITEID = ST.SITEID
+	                	AND B.SEEDID = SD.SEEDID(+)
+	                	<isNotEmpty prepend="AND" property="schDt1">				  
+							<![CDATA[ B.REGDATE >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt2">				  
+							<![CDATA[ B.REGDATE <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+						</isNotEmpty>
+				        <![CDATA[
+ 	                	ORDER BY B.REGDATE DESC
+	            ) A
+	        ) M
+	        WHERE 
+	        	RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+		]]>
+    </select>
+
+	<!-- 2015.04.15 지방정책정보 통합쿼리  -->
+	<!-- 지방정책정보 카운트를 조회한다 -->
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+    	<![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				webrobot_contents B
+		]]>
+			<!-- 변환 -->
+			<isNotEmpty property="schConversion">
+				,webrobot_attach
+			</isNotEmpty>	
+		<![CDATA[
+			WHERE
+				B.DOCTYPE != '140'
+		]]>
+				<!-- 검색어  -->
+				<isNotEmpty property="schKw">
+					<isEqual property="schKey" compareValue="schTitle">
+						<![CDATA[ AND B.TITLE LIKE '%' || #schKw# || '%' ]]>
+					</isEqual>
+					<isEqual property="schKey" compareValue="schContent">
+						<![CDATA[ AND B.CONTENT LIKE '%' || #schKw# || '%' ]]>
+					</isEqual>
+					<isEqual property="schKey" compareValue="cnId">
+						<![CDATA[ AND B.OUTBBS_CN IN ( $schKw$ ) ]]>
+					</isEqual>												
+				</isNotEmpty>
+				
+				<isNotEmpty property="schDtConditionOperators">
+				AND (
+					
+					<!-- 수집일자 -->
+					<isNotEmpty property="schDt1">
+						<![CDATA[ ( B.REGDATE >= REPLACE(#schDt1#, '-', '') || 000000 AND ]]>
+					</isNotEmpty>
+					<isEmpty property="schDt1">
+					    <isNotEmpty property="schDt2">
+						( 1=1 AND
+						</isNotEmpty>
+					</isEmpty>
+					    
+					<isNotEmpty property="schDt2">
+						<![CDATA[ B.REGDATE <= REPLACE(#schDt2#, '-', '') || 235959 ) ]]>
+					</isNotEmpty>
+					<isEmpty property="schDt2">
+					    <isNotEmpty property="schDt1">
+						1=1 )
+						</isNotEmpty>
+					</isEmpty> 
+					
+					<isEqual property="schDtConditionOperators" compareValue="Y">
+					    OR
+					</isEqual>
+					
+					<!-- 등록일자 -->
+					<isNotEmpty property="schDt3">
+						<![CDATA[ ( REPLACE(B.CDATE,'/','') >= REPLACE(#schDt3#, '-', '') || '000000' AND ]]>
+					</isNotEmpty>
+					<isEmpty property="schDt3">
+					    <isNotEmpty property="schDt4">
+						( 1=1 AND
+						</isNotEmpty>
+					</isEmpty>
+					
+					<isNotEmpty property="schDt4">
+						<![CDATA[ REPLACE(B.CDATE,'/','') <= REPLACE(#schDt4#, '-', '') || '235959' )]]>
+					</isNotEmpty>
+					<isEmpty property="schDt4">
+					    <isNotEmpty property="schDt3">
+						1=1 )
+						</isNotEmpty>
+					</isEmpty>
+				)
+				</isNotEmpty>
+				
+				<!-- 게시 -->
+				<isNotEmpty prepend="AND" property="schIsView">				  
+					<isEqual property="schIsView" compareValue="N">
+				    	B.ISVIEW = 'N'
+					</isEqual>
+					<isEqual property="schIsView" compareValue="Y">
+				    	NVL(B.ISVIEW,'Y') = 'Y'
+					</isEqual>
+				</isNotEmpty>
+				
+				<!-- 삭제 -->
+				<isNotEmpty prepend="AND" property="schDel">
+					<isEqual property="schDel" compareValue="D">
+					    B.CUD_CODE = 'D'
+					</isEqual>
+					<isEqual property="schDel" compareValue="Y">
+					    B.CUD_CODE != 'D'
+					</isEqual>
+				</isNotEmpty>
+				
+				<!-- 중복 -->
+				<isNotEmpty prepend="AND" property="schDuplication">	
+				<![CDATA[			  				
+				B.DUPLICATION IN (															
+					SELECT 																		
+						DUPLICATION																
+					FROM 																		
+						webrobot_contents 														
+					WHERE																		
+			        	DOCTYPE != '140'														
+						AND CUD_CODE != 'D'														
+			    ]]>																		
+					<isNotEmpty property="schDtConditionOperators">
+						AND (
+							
+							<!-- 수집일자 -->
+							<isNotEmpty property="schDt1">
+								<![CDATA[ ( REGDATE >= REPLACE(#schDt1#, '-', '') || 000000 AND ]]>
+							</isNotEmpty>
+							<isEmpty property="schDt1">
+							    <isNotEmpty property="schDt2">
+								( 1=1 AND
+								</isNotEmpty>
+							</isEmpty>
+							    
+							<isNotEmpty property="schDt2">
+								<![CDATA[ REGDATE <= REPLACE(#schDt2#, '-', '') || 235959 ) ]]>
+							</isNotEmpty>
+							<isEmpty property="schDt2">
+							    <isNotEmpty property="schDt1">
+								1=1 )
+								</isNotEmpty>
+							</isEmpty> 
+							
+							<isEqual property="schDtConditionOperators" compareValue="Y">
+							    OR
+							</isEqual>
+							
+							<!-- 등록일자 -->
+							<isNotEmpty property="schDt3">
+								<![CDATA[ ( REPLACE(CDATE,'/','') >= REPLACE(#schDt3#, '-', '') || '000000' AND ]]>
+							</isNotEmpty>
+							<isEmpty property="schDt3">
+							    <isNotEmpty property="schDt4">
+								( 1=1 AND
+								</isNotEmpty>
+							</isEmpty>
+							
+							<isNotEmpty property="schDt4">
+								<![CDATA[ REPLACE(CDATE,'/','') <= REPLACE(#schDt4#, '-', '') || '235959' )]]>
+							</isNotEmpty>
+							<isEmpty property="schDt4">
+							    <isNotEmpty property="schDt3">
+								1=1 )
+								</isNotEmpty>
+							</isEmpty>
+						)
+						</isNotEmpty>
+						
+					GROUP BY																	
+						DUPLICATION 															
+						<isEqual property="schDuplication" compareValue="Y">					
+							<![CDATA[ HAVING COUNT(DUPLICATION) > 1 ]]>							
+						</isEqual>																
+						<isEqual property="schDuplication" compareValue="N">					
+							<![CDATA[ HAVING COUNT(DUPLICATION) < 2 ]]>							
+						</isEqual>																
+				)	
+				</isNotEmpty>
+
+				<!-- 검색유형 : 수집사이트 -->
+				<isEqual property="selCondition" compareValue="siteType">
+					<isNotEmpty prepend="AND" property="schRegion2">
+					<![CDATA[ B.REGION = #schRegion2# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schSiteId">
+					<![CDATA[ B.SITEID = #schSiteId# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schSeedId">
+					<![CDATA[ B.SEEDID = #schSeedId# ]]>
+					</isNotEmpty>
+				</isEqual>
+				
+				<!-- 검색유형 : 기관유형 -->
+				<isNotEmpty prepend="AND" property="schOrgCodeStep1">
+					B.SITEID IN ( 
+						SELECT 
+							SITEID 
+						FROM 
+							webrobot_site 
+						WHERE 1 = 1
+						<isNotEmpty prepend="AND" property="schOrgCodeStep4">
+							SITEID = #schOrgCodeStep4#
+						</isNotEmpty>
+						<isEmpty property="schOrgCodeStep4">
+							<isNotEmpty prepend="AND" property="schOrgCodeStep1">
+								ORG_1 = #schOrgCodeStep1#
+							</isNotEmpty>
+							<isNotEmpty prepend="AND" property="schOrgCodeStep2">
+								ORG_2 = #schOrgCodeStep2#
+							</isNotEmpty>
+							<isNotEmpty prepend="AND" property="schOrgCodeStep3">				  
+								ORG_3 = #schOrgCodeStep3#
+							</isNotEmpty>
+						</isEmpty>
+					)
+				</isNotEmpty>			
+
+				<!-- 검색유형 : 자료유형(정책정보) : 자료유형2 -->
+				<isNotEmpty prepend="AND" property="schDocType">				  
+				   B.DOCTYPE = #schDocType#
+				</isNotEmpty>
+				
+				<!-- 지방의회 담당자 등록자료 유무 -->	
+ 				<isNotEmpty prepend="AND" property="chargerYn">
+				    B.CHARGER_ID IS NOT NULL
+				</isNotEmpty>
+    </select>
+
+	<!-- 지방정책정보 통합쿼리  -->
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoList" parameterClass="mdmSearchVO" resultClass="mdmPolicyInfoVO" >
+        <![CDATA[
+		SELECT 
+			RET.RNUM, RET.OUTBBS_CN, RET.EXTID, RET.DOCTYPE, RET.SITEID, RET.TITLE, RET.CDATE, 
+				RET.REGDATE, RET.CUD_CODE, RET.URL, RET.WRITER, RET.ISVIEW, RET.DUPLICATION
+				, RET.SITENM, RET.SEEDNM, RET.SITEURL, RET.SEEDNAME
+				, RET.DUPCNT
+		FROM (
+			SELECT 	
+				M.*
+  			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+        		SELECT *
+        			FROM (
+        			SELECT
+        			]]>
+        			<isNotEqual property="schKey" compareValue="cnId">
+        				/*+ INDEX(B IDX_WC_REGDATE) */
+        			</isNotEqual>
+        			<isEqual property="schKey" compareValue="cnId">
+						/*+ INDEX(B IDX_WC_OUTBBS_CN) */
+					</isEqual>
+					<![CDATA[
+        				B.OUTBBS_CN
+        				, B.EXTID
+        				, B.DOCTYPE
+        				, B.SITEID
+        				, B.TITLE
+        				, REPLACE(B.CDATE, '/', '') AS CDATE
+        				, B.REGDATE
+        				, B.CUD_CODE
+        				, B.URL
+        				, B.WRITER
+	                    , B.ISVIEW
+	                    , B.DUPLICATION
+	                    , DY.DOCTYPE_NAME AS SITENM
+	                    , ST.SITENM AS SEEDNM
+	                    , ST.SITEURL AS SITEURL
+	                    , SD.SEEDNM AS SEEDNAME
+	                    , COUNT(*) OVER(PARTITION BY DUPLICATION) AS DUPCNT
+					FROM 
+	                	webrobot_contents B
+	                	, OUTDOCTYPE DY
+	                	, webrobot_site ST
+	                	, webrobot_seed SD
+	                WHERE 
+	                	B.DOCTYPE != '140'
+	                	AND B.DOCTYPE = DY.DOCTYPE
+	                	AND B.SITEID = ST.SITEID
+	                	AND B.SEEDID = SD.SEEDID(+)
+				]]>
+				
+						<!-- 검색어  -->
+						<isNotEmpty property="schKw">
+							<isEqual property="schKey" compareValue="schTitle">
+								<![CDATA[ AND B.TITLE LIKE '%' || #schKw# || '%' ]]>
+							</isEqual>
+							<isEqual property="schKey" compareValue="schContent">
+								<![CDATA[ AND B.CONTENT LIKE '%' || #schKw# || '%' ]]>
+							</isEqual>
+							<isEqual property="schKey" compareValue="cnId">
+								<![CDATA[ AND B.OUTBBS_CN IN ( $schKw$ ) ]]>
+							</isEqual>												
+						</isNotEmpty>
+						
+						<isNotEmpty property="schDtConditionOperators">
+							AND (
+								
+								<!-- 수집일자 -->
+								<isNotEmpty property="schDt1">
+									<![CDATA[ ( B.REGDATE >= REPLACE(#schDt1#, '-', '') || 000000 AND ]]>
+								</isNotEmpty>
+								<isEmpty property="schDt1">
+								    <isNotEmpty property="schDt2">
+									( 1=1 AND
+									</isNotEmpty>
+								</isEmpty>
+								    
+								<isNotEmpty property="schDt2">
+									<![CDATA[ B.REGDATE <= REPLACE(#schDt2#, '-', '') || 235959 ) ]]>
+								</isNotEmpty>
+								<isEmpty property="schDt2">
+								    <isNotEmpty property="schDt1">
+									1=1 )
+									</isNotEmpty>
+								</isEmpty> 
+								
+								<isEqual property="schDtConditionOperators" compareValue="Y">
+								    OR
+								</isEqual>
+								
+								<!-- 등록일자 -->
+								<isNotEmpty property="schDt3">
+									<![CDATA[ ( REPLACE(B.CDATE,'/','') >= REPLACE(#schDt3#, '-', '') || '000000' AND ]]>
+								</isNotEmpty>
+								<isEmpty property="schDt3">
+								    <isNotEmpty property="schDt4">
+									( 1=1 AND
+									</isNotEmpty>
+								</isEmpty>
+								
+								<isNotEmpty property="schDt4">
+									<![CDATA[ REPLACE(B.CDATE,'/','') <= REPLACE(#schDt4#, '-', '') || '235959' )]]>
+								</isNotEmpty>
+								<isEmpty property="schDt4">
+								    <isNotEmpty property="schDt3">
+									1=1 )
+									</isNotEmpty>
+								</isEmpty>
+							)
+							</isNotEmpty>
+						
+						<!-- 게시 -->
+						<isNotEmpty prepend="AND" property="schIsView">				  
+							<isEqual property="schIsView" compareValue="N">
+						    	B.ISVIEW = 'N'
+							</isEqual>
+							<isEqual property="schIsView" compareValue="Y">
+						    	NVL(B.ISVIEW,'Y') = 'Y'
+							</isEqual>
+						</isNotEmpty>
+						
+						<!-- 삭제 -->
+						<isNotEmpty prepend="AND" property="schDel">
+							<isEqual property="schDel" compareValue="D">
+							    B.CUD_CODE = 'D'
+							</isEqual>
+							<isEqual property="schDel" compareValue="Y">
+							    B.CUD_CODE != 'D'
+							</isEqual>
+						</isNotEmpty>
+						
+						<!-- 검색유형 : 수집사이트 -->
+						<isEqual property="selCondition" compareValue="siteType">
+							<isNotEmpty prepend="AND" property="schRegion2">
+							<![CDATA[ B.REGION = #schRegion2# ]]>
+							</isNotEmpty>
+							<isNotEmpty prepend="AND" property="schSiteId">
+							<![CDATA[ B.SITEID = #schSiteId# ]]>
+							</isNotEmpty>
+							<isNotEmpty prepend="AND" property="schSeedId">
+							<![CDATA[ B.SEEDID = #schSeedId# ]]>
+							</isNotEmpty>
+						</isEqual>
+						
+						<!-- 검색유형 : 기관유형 -->
+						<isNotEmpty prepend="AND" property="schOrgCodeStep1">
+							B.SITEID IN ( 
+								SELECT 
+									SITEID 
+								FROM 
+									webrobot_site 
+								WHERE 1 = 1
+								<isNotEmpty prepend="AND" property="schOrgCodeStep4">
+									SITEID = #schOrgCodeStep4#
+								</isNotEmpty>
+								<isEmpty property="schOrgCodeStep4">
+									<isNotEmpty prepend="AND" property="schOrgCodeStep1">
+										ORG_1 = #schOrgCodeStep1#
+									</isNotEmpty>
+									<isNotEmpty prepend="AND" property="schOrgCodeStep2">
+										ORG_2 = #schOrgCodeStep2#
+									</isNotEmpty>
+									<isNotEmpty prepend="AND" property="schOrgCodeStep3">				  
+										ORG_3 = #schOrgCodeStep3#
+									</isNotEmpty>
+								</isEmpty>
+							)
+						</isNotEmpty>			
+		
+						<!-- 검색유형 : 자료유형(정책정보) : 자료유형2 -->
+						<isNotEmpty prepend="AND" property="schDocType">				  
+						    B.DOCTYPE = #schDocType#
+						</isNotEmpty>
+						
+						<!-- 지방의회 담당자 등록자료 유무 -->	
+		 				<isNotEmpty prepend="AND" property="chargerYn">
+						    B.CHARGER_ID IS NOT NULL
+						</isNotEmpty>
+				) AA
+				ORDER BY 
+					<isEmpty property="sort">
+						AA.REGDATE DESC
+					</isEmpty>
+					
+					<isNotEmpty property="sort">
+					    AA.$sort$
+					</isNotEmpty>
+				<![CDATA[
+				) A 
+			) M
+			WHERE 
+				RNUM > #firstRecord# AND RNUM <= #lastRecord#
+			) RET 
+	
+		]]>
+			WHERE
+				1=1
+				<!-- 중복 -->
+				<isNotEmpty prepend="AND" property="schDuplication">	
+					<isEqual property="schDuplication" compareValue="Y">					
+					<![CDATA[RET.DUPCNT > 1]]>
+					</isEqual>																
+					<isEqual property="schDuplication" compareValue="N">					
+					<![CDATA[RET.DUPCNT <= 1]]>
+					</isEqual>																
+				</isNotEmpty>
+		
+		<![CDATA[
+		GROUP BY RET.RNUM, RET.OUTBBS_CN, RET.EXTID, RET.DOCTYPE, RET.SITEID, RET.TITLE, RET.CDATE, 
+				RET.REGDATE, RET.CUD_CODE, RET.URL, RET.WRITER, RET.ISVIEW, RET.DUPLICATION
+				, RET.SITENM, RET.SEEDNM, RET.SITEURL, RET.SEEDNAME, RET.DUPCNT
+		ORDER BY RET.RNUM ASC
+		]]>		
+    </select>
+    
+<!-- 사용안함 -->
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoCnvrsListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				webrobot_contents B
+			WHERE
+				B.DOCTYPE != '140'
+				]]>
+				<isNotEmpty prepend="AND" property="schDt1">				  
+					<![CDATA[ REGDATE >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDt2">				  
+					<![CDATA[ REGDATE <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="cnId">				  
+					<![CDATA[ OUTBBS_CN LIKE #cnId# || '%' ]]>
+				</isNotEmpty>
+	        	<![CDATA[
+				AND B.OUTBBS_CN IN (
+					SELECT 
+						OUTBBS_CN 
+					FROM 
+						webrobot_attach 
+					WHERE 
+						OUTBBS_CN = B.OUTBBS_CN 
+						AND CUD_CODE != 'D'
+						]]>
+						<isEqual prepend="AND" property="schConversion" compareValue="1">
+							<![CDATA[ (DOC_CNVR_STTU_CODE = '1' OR DOC_CNVR_STTU_CODE = '3') ]]>
+						</isEqual>
+						<isEqual prepend="AND" property="schConversion" compareValue="2">
+							<![CDATA[ DOC_CNVR_STTU_CODE = '2' ]]>
+						</isEqual>
+					GROUP BY 
+						OUTBBS_CN
+				)
+				<isNotEmpty prepend="AND" property="schOrgCodeStep1">
+					B.SITEID IN ( 
+						SELECT 
+							SITEID 
+						FROM 
+							webrobot_site 
+						WHERE 
+							ORG_1 = #schOrgCodeStep1#
+							<isNotEmpty prepend="AND" property="schOrgCodeStep2">				  
+								ORG_2 = #schOrgCodeStep2#
+							</isNotEmpty>
+							<isNotEmpty prepend="AND" property="schOrgCodeStep3">				  
+								ORG_3 = #schOrgCodeStep3#
+							</isNotEmpty>
+					)
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDocType">				  
+				    <![CDATA[ B.DOCTYPE = #schDocType# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schIsView">				  
+				    B.ISVIEW = #schIsView#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDel">				  
+					<isEqual property="schDel" compareValue="D">
+					    B.CUD_CODE = 'D'
+					</isEqual>
+					<isEqual property="schDel" compareValue="Y">
+					    B.CUD_CODE != 'D'
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schRegion">				  
+				    B.REGION = #schRegion#
+				</isNotEmpty>
+				<isNotEqual prepend="AND" property="schSiteId" compareValue="0">
+				    B.SITEID = #schSiteId#
+				</isNotEqual>
+				<isNotEqual prepend="AND" property="schSeedId" compareValue="0">
+				    B.SEEDID = #schSeedId#
+				</isNotEqual>
+				<isNotEmpty prepend="AND" property="schTitle">				  
+				    <![CDATA[ B.TITLE LIKE '%' || #schTitle# || '%' ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schContent">
+					<![CDATA[ B.CONTENT LIKE '%' || #schContent# || '%' ]]>
+				</isNotEmpty>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoCnvrsList" parameterClass="mdmSearchVO" resultClass="mdmPolicyInfoVO">
+        <![CDATA[
+			SELECT 	
+				M.*
+  			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+        			SELECT 
+        				B.OUTBBS_CN, B.EXTID, B.DOCTYPE, B.SITEID, B.TITLE, REPLACE(B.CDATE, '/', '') AS CDATE, B.REGDATE, B.CUD_CODE, B.URL, B.WRITER
+	                    ,B.ISVIEW, B.DUPLICATION, DY.DOCTYPE_NAME AS SITENM, ST.SITENM AS SEEDNM, ST.SITEURL AS SITEURL, SD.SEEDNM AS SEEDNAME
+                        ,( SELECT COUNT(*) AS CNT FROM webrobot_attach WHERE OUTBBS_CN = B.OUTBBS_CN AND CUD_CODE != 'D' ) FILECNT 
+                        ,( SELECT COUNT(*) AS CNT FROM webrobot_attach WHERE OUTBBS_CN = B.OUTBBS_CN AND (DOC_CNVR_STTU_CODE = '1' OR DOC_CNVR_STTU_CODE = '3') AND CUD_CODE != 'D' ) FILESUCCCNT 
+                        ,( SELECT COUNT(*) AS CNT FROM webrobot_attach WHERE OUTBBS_CN = B.OUTBBS_CN AND DOC_CNVR_STTU_CODE = '2' AND CUD_CODE != 'D' ) FILEFLRCNT 
+                        ,( 
+                        	SELECT 
+                        		COUNT(*) AS CNT 
+                        	FROM 
+                        		webrobot_contents 
+                        	WHERE 
+	                			DUPLICATION = B.DUPLICATION 
+	                			AND CUD_CODE != 'D'
+	                			]]>
+								<isNotEmpty prepend="AND" property="schDt1">				  
+									<![CDATA[ REGDATE >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+								</isNotEmpty>
+								<isNotEmpty prepend="AND" property="schDt2">				  
+									<![CDATA[ REGDATE <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+								</isNotEmpty>
+	                			<![CDATA[
+	                	) DUPCNT
+					FROM 
+	                	webrobot_contents B, OUTDOCTYPE DY, webrobot_site ST, webrobot_seed SD
+	                WHERE 
+	                	B.DOCTYPE != '140'
+	                	AND B.DOCTYPE = DY.DOCTYPE
+	                	AND B.SITEID = ST.SITEID
+	                	AND B.SEEDID = SD.SEEDID(+)
+						]]>
+						<isNotEmpty prepend="AND" property="schDt1">				  
+							<![CDATA[ B.REGDATE >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt2">				  
+							<![CDATA[ B.REGDATE <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="cnId">				  
+							<![CDATA[ B.OUTBBS_CN LIKE #cnId# || '%' ]]>
+						</isNotEmpty>
+			        	<![CDATA[
+ 						AND B.OUTBBS_CN IN (
+							SELECT 
+								OUTBBS_CN 
+							FROM 
+								webrobot_attach 
+							WHERE 
+								OUTBBS_CN = B.OUTBBS_CN 
+								AND CUD_CODE != 'D'
+								]]>
+								<isEqual prepend="AND" property="schConversion" compareValue="1">
+									<![CDATA[ (DOC_CNVR_STTU_CODE = '1' OR DOC_CNVR_STTU_CODE = '3') ]]>
+								</isEqual>
+								<isEqual prepend="AND" property="schConversion" compareValue="2">
+									<![CDATA[ DOC_CNVR_STTU_CODE = '2' ]]>
+								</isEqual>
+							GROUP BY 
+								OUTBBS_CN
+						)
+						<isNotEmpty prepend="AND" property="schOrgCodeStep1">	
+							B.SITEID IN ( 
+								SELECT 
+									SITEID 
+								FROM 
+									webrobot_site 
+								WHERE 
+									ORG_1 = #schOrgCodeStep1#
+									<isNotEmpty prepend="AND" property="schOrgCodeStep2">				  
+										ORG_2 = #schOrgCodeStep2#
+									</isNotEmpty>
+									<isNotEmpty prepend="AND" property="schOrgCodeStep3">				  
+										ORG_3 = #schOrgCodeStep3#
+									</isNotEmpty>
+							)
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDocType">				  
+						   	<![CDATA[ B.DOCTYPE like '%' || #schDocType# || '%' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schIsView">				  
+						    B.ISVIEW = #schIsView#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDel">				  
+							<isEqual property="schDel" compareValue="D">
+							    B.CUD_CODE = 'D'
+							</isEqual>
+							<isEqual property="schDel" compareValue="Y">
+							    B.CUD_CODE != 'D'
+							</isEqual>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schRegion">				  
+						    B.REGION = #schRegion#
+						</isNotEmpty>
+						<isNotEqual prepend="AND" property="schSiteId" compareValue="0">
+						    B.SITEID = #schSiteId#
+						</isNotEqual>
+						<isNotEqual prepend="AND" property="schSeedId" compareValue="0">
+						    B.SEEDID = #schSeedId#
+						</isNotEqual>
+						<isNotEmpty prepend="AND" property="schTitle">				  
+						    <![CDATA[ B.TITLE like '%' || #schKw# || '%' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schContent">
+							<![CDATA[ B.CONTENT LIKE '%' || #schContent# || '%' ]]>
+						</isNotEmpty>
+					<![CDATA[
+					ORDER BY
+						B.REGDATE DESC
+				) A 
+			) M
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+		]]>
+    </select>
+ <!-- 사용안함 -->   
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoDplctListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				webrobot_contents B
+			WHERE
+				B.DOCTYPE != '140'
+	        	]]>
+				<isNotEmpty prepend="AND" property="schDt1">				  
+					<![CDATA[ REGDATE >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDt2">				  
+					<![CDATA[ REGDATE <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="cnId">				  
+					<![CDATA[ OUTBBS_CN LIKE #cnId# || '%' ]]>
+				</isNotEmpty>
+	        	<![CDATA[
+				AND B.DUPLICATION IN (
+					SELECT 
+						DUPLICATION
+					FROM 
+						webrobot_contents 
+					WHERE
+	                	DOCTYPE != '140'
+						AND CUD_CODE != 'D'
+	                	]]>
+						<isNotEmpty prepend="AND" property="schDt1">				  
+							<![CDATA[ REGDATE >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt2">				  
+							<![CDATA[ REGDATE <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+						</isNotEmpty>
+					GROUP BY
+						DUPLICATION 
+						<isEqual property="schDuplication" compareValue="Y">
+							<![CDATA[ HAVING COUNT(DUPLICATION) > 1 ]]>
+						</isEqual>
+						<isEqual property="schDuplication" compareValue="N">
+							<![CDATA[ HAVING COUNT(DUPLICATION) < 2 ]]>
+						</isEqual>
+				)
+				<isNotEmpty prepend="AND" property="schOrgCodeStep1">
+					B.SITEID IN ( 
+						SELECT 
+							SITEID 
+						FROM 
+							webrobot_site 
+						WHERE 
+							ORG_1 = #schOrgCodeStep1#
+							<isNotEmpty prepend="AND" property="schOrgCodeStep2">				  
+								ORG_2 = #schOrgCodeStep2#
+							</isNotEmpty>
+							<isNotEmpty prepend="AND" property="schOrgCodeStep3">				  
+								ORG_3 = #schOrgCodeStep3#
+							</isNotEmpty>
+					)
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDocType">			  
+				    B.DOCTYPE = #schDocType#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schIsView">				  
+				    B.ISVIEW = #schIsView#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDel">				  
+					<isEqual property="schDel" compareValue="D">
+					    B.CUD_CODE = 'D'
+					</isEqual>
+					<isEqual property="schDel" compareValue="Y">
+					    B.CUD_CODE != 'D'
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schRegion">				  
+				    B.REGION = #schRegion#
+				</isNotEmpty>
+				<isNotEqual prepend="AND" property="schSiteId" compareValue="0">
+				    B.SITEID = #schSiteId#
+				</isNotEqual>
+				<isNotEqual prepend="AND" property="schSeedId" compareValue="0">
+				    B.SEEDID = #schSeedId#
+				</isNotEqual>
+				<isNotEmpty prepend="AND" property="schTitle">
+				    <![CDATA[ B.TITLE LIKE '%' || #schTitle# || '%' ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schContent">
+					<![CDATA[ B.CONTENT LIKE '%' || #schContent# || '%' ]]>
+				</isNotEmpty>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoDplctList" parameterClass="mdmSearchVO" resultClass="mdmPolicyInfoVO">
+        <![CDATA[
+			SELECT 	
+				M.*
+  			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+        			SELECT 
+        				B.OUTBBS_CN, B.EXTID, B.DOCTYPE, B.SITEID, B.TITLE, REPLACE(B.CDATE, '/', '') AS CDATE, B.REGDATE, B.CUD_CODE, B.URL
+	                    ,B.ISVIEW, B.DUPLICATION, DY.DOCTYPE_NAME AS SITENM, ST.SITENM AS SEEDNM, ST.SITEURL AS SITEURL, SD.SEEDNM AS SEEDNAME
+                        ,( SELECT COUNT(*) AS CNT FROM webrobot_attach WHERE OUTBBS_CN = B.OUTBBS_CN AND CUD_CODE != 'D' ) FILECNT 
+                        ,( SELECT COUNT(*) AS CNT FROM webrobot_attach WHERE OUTBBS_CN = B.OUTBBS_CN AND (DOC_CNVR_STTU_CODE = '1' OR DOC_CNVR_STTU_CODE = '3') AND CUD_CODE != 'D' ) FILESUCCCNT 
+                        ,( SELECT COUNT(*) AS CNT FROM webrobot_attach WHERE OUTBBS_CN = B.OUTBBS_CN AND DOC_CNVR_STTU_CODE = '2' AND CUD_CODE != 'D' ) FILEFLRCNT 
+                        ,( 
+                        	SELECT 
+                        		COUNT(*) AS CNT 
+                        	FROM 
+                        		webrobot_contents 
+                        	WHERE 
+	                			DUPLICATION = B.DUPLICATION 
+	                			AND CUD_CODE != 'D'
+	                			]]>
+								<isNotEmpty prepend="AND" property="schDt1">				  
+									<![CDATA[ REGDATE >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+								</isNotEmpty>
+								<isNotEmpty prepend="AND" property="schDt2">				  
+									<![CDATA[ REGDATE <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+								</isNotEmpty>
+	                			<![CDATA[
+	                	) DUPCNT
+					FROM 
+	                	webrobot_contents B, OUTDOCTYPE DY, webrobot_site ST, webrobot_seed SD
+	                WHERE 
+	                	B.DOCTYPE != '140'
+	                	]]>
+						<isNotEmpty prepend="AND" property="schDt1">				  
+							<![CDATA[ B.REGDATE >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt2">				  
+							<![CDATA[ B.REGDATE <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="cnId">				  
+							<![CDATA[ B.OUTBBS_CN LIKE #cnId# || '%' ]]>
+						</isNotEmpty>
+						<![CDATA[
+	                	AND B.DOCTYPE = DY.DOCTYPE
+	                	AND B.SITEID = ST.SITEID
+	                	AND B.SEEDID = SD.SEEDID(+)
+ 						AND B.DUPLICATION IN (
+							SELECT 
+								DUPLICATION
+							FROM 
+								webrobot_contents 
+							WHERE
+			                	DOCTYPE != '140'
+								AND CUD_CODE != 'D'
+			                	]]>
+								<isNotEmpty prepend="AND" property="schDt1">				  
+									<![CDATA[ REGDATE >= REPLACE(#schDt1#, '-', '') || '000000' ]]>
+								</isNotEmpty>
+								<isNotEmpty prepend="AND" property="schDt2">				  
+									<![CDATA[ REGDATE <= REPLACE(#schDt2#, '-', '') || '999999' ]]>
+								</isNotEmpty>
+			                	<![CDATA[
+							GROUP BY
+								DUPLICATION 
+							]]>
+							<isEqual property="schDuplication" compareValue="Y">
+								<![CDATA[ HAVING COUNT(DUPLICATION) > 1 ]]>
+							</isEqual>
+							<isEqual property="schDuplication" compareValue="N">
+								<![CDATA[ HAVING COUNT(DUPLICATION) < 2 ]]>
+							</isEqual>
+						)
+						<isNotEmpty prepend="AND" property="schOrgCodeStep1">	
+							B.SITEID IN ( 
+								SELECT 
+									SITEID 
+								FROM 
+									webrobot_site 
+								WHERE 
+									ORG_1 = #schOrgCodeStep1#
+									<isNotEmpty prepend="AND" property="schOrgCodeStep2">				  
+										ORG_2 = #schOrgCodeStep2#
+									</isNotEmpty>
+									<isNotEmpty prepend="AND" property="schOrgCodeStep3">				  
+										ORG_3 = #schOrgCodeStep3#
+									</isNotEmpty>
+							)
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDocType">				  
+						   	<![CDATA[ B.DOCTYPE like '%' || #schDocType# || '%' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schIsView">				  
+						    B.ISVIEW = #schIsView#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDel">				  
+							<isEqual property="schDel" compareValue="D">
+							    B.CUD_CODE = 'D'
+							</isEqual>
+							<isEqual property="schDel" compareValue="Y">
+							    B.CUD_CODE != 'D'
+							</isEqual>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schRegion">				  
+						    B.REGION = #schRegion#
+						</isNotEmpty>
+						<isNotEqual prepend="AND" property="schSiteId" compareValue="0">
+						    B.SITEID = #schSiteId#
+						</isNotEqual>
+						<isNotEqual prepend="AND" property="schSeedId" compareValue="0">
+						    B.SEEDID = #schSeedId#
+						</isNotEqual>
+						<isNotEmpty prepend="AND" property="schTitle">				  
+						    <![CDATA[ B.TITLE like '%' || #schKw# || '%' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schContent">
+							<![CDATA[ B.CONTENT LIKE '%' || #schContent# || '%' ]]>
+						</isNotEmpty>
+					<![CDATA[
+					ORDER BY
+						B.REGDATE DESC
+				) A 
+			) M
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+		]]>
+    </select>
+
+	<select id="MdmPolicyInfoDAO.selectMdmPolicyInfoView" parameterClass="string" resultClass="mdmPolicyInfoVO">
+	<![CDATA[
+			SELECT 
+				A.OUTBBS_CN
+				,A.EXTID
+				,A.TITLE
+				,A.DOCTYPE
+				,B.ORG_1
+				,B.ORG_2
+				,B.ORG_3
+				,D.ORGNM AS ORG_1NM
+				,E.ORGNM AS ORG_2NM
+				,F.ORGNM AS ORG_3NM				
+				,NVL(B.SITEID,0) AS SITEID
+				,B.SITENM
+				,B.SITEURL
+				,NVL(C.SEEDID,0) AS SEEDID
+				,C.SEEDNM
+				,C.SEEDURL
+				,REPLACE(A.CDATE,'-','') AS CDATE
+				,A.WRITER
+				,REPLACE(REPLACE(A.EXTRACTHTML,chr(13)),chr(10)) AS EXTRACTHTML
+				,A.CONTENT
+				,A.DUPLICATION
+				,A.ISVIEW
+				,A.REGDATE
+				,A.UPDT
+				,REPLACE(REPLACE(A.DELDT, '-', ''), '/', '') AS DELDT
+				,A.REGION
+				,(SELECT 
+					COUNT(webrobot_contents.DUPLICATION)
+				FROM webrobot_contents 
+				WHERE A.OUTBBS_CN = '$OUTBBS_CN$'
+				AND A.DUPLICATION = webrobot_contents.DUPLICATION) AS DUPCNT
+				,A.URL
+				,A.LAST_UPDUSR_ID
+			FROM 
+				webrobot_contents A
+				,webrobot_site B
+				,webrobot_seed C
+				,OUTORGCODESTEP1 D
+				,OUTORGCODESTEP2 E
+				,OUTORGCODESTEP3 F				
+			WHERE 
+				A.OUTBBS_CN = '$OUTBBS_CN$'
+				AND A.SITEID = B.SITEID
+				AND A.SEEDID = C.SEEDID(+)
+				AND B.ORG_1 = D.ORGCODE
+				AND B.ORG_2 = E.ORGCODE
+				AND B.ORG_3 = F.ORGCODE(+)			
+		]]>
+	</select>
+    
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoFileList" parameterClass="string" resultClass="mdmPolicyInfoFileVO">
+        <![CDATA[
+			SELECT 
+				DOWNID
+				,REGDATE
+				,DOWNURL
+				,EXTID
+				,DOWNPURL
+				,REPLACE(DOWNPATH, '\', '/') AS DOWNPATH
+				,SEEDID
+				,DOWNTYPE
+				,DUPLICATION
+				,DOC_CNVR_STTU_CODE
+				,DOC_CNVR_RESULT_MSSAGE
+				,DOC_CNVR_PDF_PATH
+				,OUTBBS_PDF_FILE_NM
+				,CASE WHEN INSTR(DOWNPATH, '.', -1) > 1 THEN LOWER(SUBSTR(DOWNPATH, (INSTR(DOWNPATH, '.', -1) + 1)))
+					  ELSE ''
+				END FILEEXT
+			FROM 
+				webrobot_attach
+			WHERE 
+				OUTBBS_CN = '$OUTBBS_CN$'
+				AND CUD_CODE != 'D'
+			ORDER BY
+				DOC_CNVR_STTU_CODE ASC
+		]]>
+    </select>
+ 
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoFileListCmmn" parameterClass="string" resultMap="outbbsFileCmmn">
+        <![CDATA[
+			SELECT 
+				DOWNID
+				,CASE 
+					WHEN INSTR(DOWNPATH, '\', -1) > 1 THEN SUBSTR(DOWNPATH, (INSTR(DOWNPATH, '\', -1) + 1))
+					WHEN INSTR(DOWNPATH, '/', -1) > 1 THEN SUBSTR(DOWNPATH, (INSTR(DOWNPATH, '/', -1) + 1))
+					ELSE ''
+				END FILE_NM
+				,DOWNPATH
+				,DOC_CNVR_PDF_PATH
+				,DOC_CNVR_STTU_CODE
+				,DOC_CNVR_RESULT_MSSAGE 
+				,CASE WHEN INSTR(DOWNPATH, '.', -1) > 1 THEN LOWER(SUBSTR(DOWNPATH, (INSTR(DOWNPATH, '.', -1) + 1)))
+					ELSE ''
+				END FILEEXT
+			FROM 
+				webrobot_attach 
+			WHERE 
+				OUTBBS_CN = #OUTBBS_CN#
+				AND CUD_CODE != 'D'
+			ORDER BY 
+				DOWNID ASC
+        ]]>
+    </select>
+ 
+    <select id="MdmPolicyInfoDAO.selectMdmPolicyInfoListCmmn" parameterClass="string" resultClass="mdmPolicyInfoVO">
+        <![CDATA[
+			SELECT 
+				OUTBBS_CN, SEEDNM, SITENM, TITLE, CDATE, WRITER, REGDATE
+			FROM 
+				webrobot_contents 
+			WHERE 
+				DUPLICATION = #DUPLICATION#
+				AND CUD_CODE != 'D'
+			ORDER BY 
+				CDATE ASC
+        ]]>
+    </select>
+
+    <select id="MdmPolicyInfoDAO.selectMdmOutSite" parameterClass="string" resultClass="mdmOutSiteVO">
+        <![CDATA[
+			SELECT 
+				*
+			FROM 
+				webrobot_site 
+			WHERE
+				SITEID = #SITEID#
+				AND ROWNUM = 1
+		]]>
+    </select>
+
+    <select id="MdmPolicyInfoDAO.selectMdmOutSiteList" parameterClass="string" resultClass="mdmOutSiteVO">
+        <![CDATA[
+			SELECT 
+				SITEID, SITENM
+			FROM 
+				webrobot_site 
+			WHERE
+				REGION = #REGION#
+			ORDER BY 
+				SITENM ASC
+		]]>
+    </select>
+    
+    <!--
+    	SITE LIST 조회(기관명으로) 
+     -->
+    <select id="MdmPolicyInfoDAO.selectMdmOutSiteListForOrg" parameterClass="mdmOutSiteVO" resultClass="mdmOutSiteVO">
+        <![CDATA[
+			SELECT 
+				SITEID, SITENM
+			FROM 
+				webrobot_site 
+			WHERE 1 = 1
+			  AND ORG_1 = #ORG_1#
+			  AND ORG_2 = #ORG_2#
+		]]>
+		<isNotEmpty prepend="AND" property="ORG_3">					  
+			  ORG_3 = #ORG_3#
+		</isNotEmpty>
+	    <![CDATA[	
+			ORDER BY 
+				SITENM ASC
+		]]>
+    </select>    
+
+    <select id="MdmPolicyInfoDAO.selectMdmOutSeed" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				SEEDNM
+			FROM 
+				webrobot_seed 
+			WHERE
+				SEEDID = #SEEDID#
+				AND ROWNUM = 1
+		]]>
+    </select>
+
+    <select id="MdmPolicyInfoDAO.selectMdmOutSeedList" parameterClass="mdmOutSeedVO" resultClass="mdmOutSeedVO">
+        <![CDATA[
+			SELECT 
+				SEEDID, SEEDNM
+			FROM 
+				webrobot_seed 
+			WHERE 1 = 1
+		]]>
+		<isNotEmpty prepend="AND" property="REGION">
+				REGION = #REGION#
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="SITEID">
+				SITEID = #SITEID#
+		</isNotEmpty>
+		<![CDATA[				
+			ORDER BY 
+				SEEDNM ASC
+		]]>
+    </select>
+
+    <select id="MdmPolicyInfoDAO.selectMdmOutDocTypeList" resultClass="mdmOutDocTypeVO">
+        <![CDATA[
+			SELECT 
+				DOCTYPE, DOCTYPE_NAME
+			FROM 
+				OUTDOCTYPE 
+			ORDER BY 
+				DOCTYPE ASC
+		]]>
+	</select>
+
+   	<select id="MdmPolicyInfoDAO.selectMdmPolicyInfoFileDownPath" parameterClass="string" resultClass="mdmPolicyInfoFileVO">
+        <![CDATA[
+			SELECT 
+				DOWNID
+				,REGDATE
+				,DOWNURL
+				,EXTID
+				,DOWNPURL
+				,REPLACE(DOWNPATH, '\', '/') AS DOWNPATH
+				,SEEDID
+				,DOWNTYPE
+				,DUPLICATION
+				,DOC_CNVR_STTU_CODE
+				,DOC_CNVR_RESULT_MSSAGE
+				,DOC_CNVR_PDF_PATH
+				,CUD_CODE
+				,OUTBBS_CN
+				,DOC_CNVR_DT
+				,OUTBBS_PDF_FILE_NM
+			FROM 
+				webrobot_attach 
+			WHERE 
+				DOWNID = '$DOWNID$'
+				AND ROWNUM = 1
+		]]>
+    </select>
+    
+    <update id="MdmPolicyInfoDAO.deleteMdmPolicyInfoFile" parameterClass="java.lang.String">
+		<![CDATA[
+			UPDATE 
+				webrobot_attach
+			SET
+				CUD_CODE 		= 'D'
+			WHERE 
+				DOWNID 			= '$DOWNID$'
+		]]>
+	</update>
+
+    <update id="MdmPolicyInfoDAO.updateMdmPolicyInfoFileListReCnvrs" parameterClass="string">
+        <![CDATA[
+			UPDATE 
+				webrobot_attach 
+			SET
+				DOC_CNVR_STTU_CODE = '0'
+			WHERE 
+				DOWNID = #DOWNID#
+		]]>
+    </update>
+
+    <update id="MdmPolicyInfoDAO.updateMdmPolicyInfoIsView" parameterClass="mdmIsViewVO">
+        <![CDATA[
+			UPDATE 
+				webrobot_contents
+			SET
+				ISVIEW = #isview#
+				,UPDT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			WHERE 
+				OUTBBS_CN = #uid#
+		]]>
+    </update>
+    
+    <!-- 게시여부를 게시판 단위로 일괄 수정한다. -->
+    <update id="MdmPolicyInfoDAO.updateMdmPolicyInfoIsViewAll" parameterClass="mdmIsViewVO">
+    	<![CDATA[
+	    	UPDATE 
+	    		webrobot_contents
+			SET
+				ISVIEW = #isview#
+				, UPDT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			WHERE 
+				SEEDID = #seedid#
+		]]>
+    </update>
+
+    <update id="MdmPolicyInfoDAO.deleteMdmPolicyInfoChk" parameterClass="mdmIsViewVO">
+        <![CDATA[
+			UPDATE 
+				webrobot_contents 
+			SET
+				CUD_CODE = #isview#
+				,DELDT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				,LAST_UPDUSR_ID = #LAST_UPDUSR_ID#
+			WHERE 
+				OUTBBS_CN = #uid#
+		]]>
+    </update>
+
+    <update id="MdmPolicyInfoDAO.deleteMdmPolicyInfo" parameterClass="mdmPolicyInfoVO">
+        <![CDATA[
+			UPDATE 
+				webrobot_contents 
+			SET
+				CUD_CODE 		= 'D'
+				,DELDT 			= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				,LAST_UPDUSR_ID = #LAST_UPDUSR_ID#
+			WHERE 
+				OUTBBS_CN = #OUTBBS_CN#
+		]]>
+    </update>
+
+    <insert id="MdmPolicyInfoDAO.insertMdmPolicyInfo" parameterClass="mdmPolicyInfoVO">
+        <![CDATA[
+			INSERT 
+				INTO 
+			webrobot_contents (
+				OUTBBS_CN
+				,EXTID
+				,REGDATE
+				,SEEDID
+				,SITEID
+				,SEEDNM
+				,SITENM
+				,TITLE
+				,EXTRACTHTML
+				,CONTENT
+				,RASMBLY_ID
+				,DURING
+				,CMIT
+				,URL
+				,CDATE
+				,WRITER
+				,SERIES
+				,DUPLICATION
+				,DUPTITLE
+				,DUPCONTENT
+				,DUPFILE
+				,REGION
+				,DOCTYPE
+				,CATEGORYID
+				,UPDT
+				,DELDT
+				,SEEDURL
+				,CUD_CODE
+				,AUTO
+				,ATTACHCNT
+				,CKCOUNT
+				,ISVIEW
+			) VALUES (
+				#OUTBBS_CN#
+				,#EXTID#
+				,TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				,#SEEDID#
+				,#SITEID#
+				,#SEEDNM#
+				,#SITENM#
+				,#TITLE#
+				,#EXTRACTHTML:CLOB#
+				,#CONTENT#
+				,#RASMBLY_ID#
+				,#DURING#
+				,#CMIT#
+				,#URL#
+				,#CDATE#
+				,#WRITER#
+				,#SERIES#
+				,#DUPLICATION#
+				,#DUPTITLE#
+				,#DUPCONTENT#
+				,#DUPFILE#
+				,#REGION#
+				,#DOCTYPE#
+				,#CATEGORYID#
+				,#UPDT#
+				,#DELDT#
+				,#SEEDURL#
+				,'C'
+				,'1'
+				,#ATTACHCNT#
+				,'0'
+				,#ISVIEW#
+			)
+		]]>
+    </insert>
+
+    <insert id="MdmPolicyInfoDAO.insertMdmPolicyInfoFile" parameterClass="mdmPolicyInfoFileVO">
+        <![CDATA[
+			INSERT 
+				INTO 
+			webrobot_attach (
+				DOWNID
+				,REGDATE
+				,DOWNURL
+				,EXTID
+				,DOWNPURL
+				,DOWNPATH
+				,SEEDID
+				,DOWNTYPE
+				,DUPLICATION
+				,CUD_CODE
+				,OUTBBS_CN
+				,DOC_CNVR_STTU_CODE
+			) VALUES (
+				#DOWNID#
+				,#REGDATE#
+				,#DOWNURL#
+				,#EXTID#
+				,#DOWNPURL#
+				,#DOWNPATH#
+				,#SEEDID#
+				,#DOWNTYPE#
+				,#DUPLICATION#
+				,'C'
+				,#OUTBBS_CN#
+				,#DOC_CNVR_STTU_CODE#
+			)
+		]]>
+    </insert>
+
+    <update id="MdmPolicyInfoDAO.updateMdmPolicyInfo" parameterClass="mdmPolicyInfoVO">
+<!--
+ 				SEEDID = #SEEDID#
+				,SITEID = #SITEID#
+				,SEEDNM = #SEEDNM#
+				,SITENM = #SITENM# 
+-->
+        <![CDATA[
+			UPDATE 
+				webrobot_contents
+			SET
+				TITLE 			= #TITLE#
+				,EXTRACTHTML 	= #EXTRACTHTML:CLOB#
+				,CONTENT 		= #CONTENT#
+				,WRITER 		= #WRITER#
+				,REGION 		= #REGION#
+				,DOCTYPE 		= #DOCTYPE#
+				,CATEGORYID 	= #CATEGORYID#
+				,UPDT 			= #UPDT#
+				,CUD_CODE 		= 'U'
+				,ATTACHCNT 		= #ATTACHCNT#
+				,CDATE 			= #CDATE#
+				,DUPLICATION 	= #DUPLICATION#
+				,LAST_UPDUSR_ID	= #LAST_UPDUSR_ID#
+			WHERE
+				OUTBBS_CN = #OUTBBS_CN#
+		]]>
+    </update>
+    
+</sqlMap>

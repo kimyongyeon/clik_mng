@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN"
+    "http://www.ibatis.com/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+	
+	<sqlMap resource="clik/sqlmap/com/mdm/MdmManage_SQL_Tibero.xml"/>
+	
+	<sqlMap resource="clik/sqlmap/com/mdm/Mdm_Minutes_SQL_Tibero.xml"/>
+	<sqlMap resource="clik/sqlmap/com/mdm/Mdm_Bill_SQL_Tibero.xml"/>
+	<sqlMap resource="clik/sqlmap/com/mdm/Mdm_Member_SQL_Tibero.xml"/>
+	<sqlMap resource="clik/sqlmap/com/mdm/Mdm_PolicyInfo_SQL_Tibero.xml"/>
+	<sqlMap resource="clik/sqlmap/com/mdm/Mdm_EduManual_SQL_Tibero.xml"/>
+	<sqlMap resource="clik/sqlmap/com/mdm/Mdm_RegionNews_SQL_Tibero.xml"/>
+	<sqlMap resource="clik/sqlmap/com/mdm/Mdm_Code_SQL_Tibero.xml"/>
+	
+</sqlMapConfig>

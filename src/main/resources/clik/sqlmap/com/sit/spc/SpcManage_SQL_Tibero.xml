@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SpcManager">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="comDefaultVO" type="clikmng.nanet.go.kr.cmm.ComDefaultVO"/>
+	<typeAlias  alias="spcVO" type="clikmng.nanet.go.kr.sit.spc.service.SpcVO" />
+
+	<!-- 스페셜 검색 정보 조회::목록조회 게시물정보 -->
+	<select id="SpcDAO.selectSpcList" parameterClass="spcVO" resultClass="spcVO">
+<![CDATA[
+	SELECT *
+	FROM (
+	SELECT T0.*, ROWNUM RNUM
+		FROM (
+	]]>
+	 <![CDATA[
+			SELECT A.SPECL_SEARCH_ID AS speclSearchId
+						, A.MAIN_SJ AS mainSj
+						, A.MAIN_IMAGE_PATH AS mainImagePath
+						, A.MAIN_IMAGE_FILE_NM AS mainImageFileNm
+						, A.MAIN_URL AS mainUrl
+	 					, AGGR_CONCAT(C.KWRD, ',') AS kwrd
+						, TO_CHAR(TO_DATE(A.FRST_REGIST_PNTTM, 'YYYY-MM-DD'), 'YYYY-MM-DD') AS frstRegistPnttm
+						, B.LOASM_NM AS loasmNm
+						, B.INSTT_CL_CODE AS insttClCode
+						, B.BRTC_CODE AS brtcCode
+						, B.LOASM_CODE AS loasmCode
+						, D.FILE_STRE_COURS  AS streCours
+						, D.STRE_FILE_NM AS streFileNm
+		        		, D.FILE_EXTSN AS fileExtsn
+			  FROM special_search A
+			    LEFT OUTER JOIN organ B
+			      ON A.ASMBLY_NM = B.LOASM_CODE
+			    LEFT OUTER JOIN ssearch_keyword C
+			     ON A.SPECL_SEARCH_ID = C.SPECL_SEARCH_ID
+			    LEFT JOIN file_detail_info D 
+			      ON A.MAIN_IMAGE_FILE_NM =  D.ATCH_FILE_ID AND D.FILE_SN =0  
+			 WHERE 1=1
+	 ]]>
+	 <isNotEmpty property="searchKeyword">
+	 	<isNotEqual property="searchKeyword" compareValue="">
+			<isEqual property="searchCondition" compareValue="selMainSj">
+				AND A.MAIN_SJ LIKE '%'||#searchKeyword#||'%'
+			</isEqual>
+			<isEqual property="searchCondition" compareValue="selAsmblyNm">
+				AND B.LOASM_NM LIKE '%'||#searchKeyword#||'%'
+			</isEqual>
+			<isEqual property="searchCondition" compareValue="selKwrd">
+				AND kwrd LIKE '%'||#searchKeyword#||'%'
+			</isEqual>
+			<isEqual property="searchCondition" compareValue="">
+				AND (( kwrd LIKE '%'||#searchKeyword#||'%' ) or ( B.LOASM_NM LIKE '%'||#searchKeyword#||'%' ) or ( A.MAIN_SJ LIKE '%'||#searchKeyword#||'%'))
+			</isEqual>			
+	 	</isNotEqual>
+	 </isNotEmpty> 
+	 <![CDATA[
+		 GROUP BY A.SPECL_SEARCH_ID
+		 			, A.MAIN_SJ
+		 			, A.MAIN_IMAGE_PATH
+		 			, A.MAIN_IMAGE_FILE_NM
+		 			, A.MAIN_URL
+		 			, A.FRST_REGIST_PNTTM
+		 			, B.LOASM_NM
+		 			, B.INSTT_CL_CODE	 
+		 			, B.BRTC_CODE
+		 			, B.LOASM_CODE
+		 			, D.FILE_STRE_COURS 
+					, D.STRE_FILE_NM
+			        , D.FILE_EXTSN
+		ORDER BY A.FRST_REGIST_PNTTM DESC
+	]]>
+	<![CDATA[
+		) T0
+	)
+		WHERE 		RNUM > #firstIndex# AND ROWNUM <= #recordCountPerPage#
+	]]>
+</select>
+
+	
+	<!-- 스페셜 검색 정보 조회::목록조회 게시물정보 총갯수  -->
+	<select id="SpcDAO.selectSpcListTotCnt" parameterClass="spcVO" resultClass="int">
+<![CDATA[
+	SELECT count(*)
+	FROM (
+		    SELECT A.SPECL_SEARCH_ID AS speclSearchId
+			  FROM special_search A 
+			 	LEFT OUTER JOIN organ B
+			      ON A.ASMBLY_NM = B.LOASM_CODE
+			    LEFT OUTER JOIN ssearch_keyword C
+			     ON A.SPECL_SEARCH_ID = C.SPECL_SEARCH_ID
+			    LEFT JOIN file_detail_info D 
+			      ON A.MAIN_IMAGE_FILE_NM =  D.ATCH_FILE_ID AND D.FILE_SN =0
+			 WHERE 1=1
+	 ]]>
+	 <isNotEmpty property="searchKeyword">
+	 	<isNotEqual property="searchKeyword" compareValue="">
+			<isEqual property="searchCondition" compareValue="selMainSj">
+				AND A.MAIN_SJ LIKE '%'||#searchKeyword#||'%'
+			</isEqual>
+			<isEqual property="searchCondition" compareValue="selAsmblyNm">
+				AND B.LOASM_NM LIKE '%'||#searchKeyword#||'%'
+			</isEqual>
+			<isEqual property="searchCondition" compareValue="selKwrd">
+				AND C.KWRD LIKE '%'||#searchKeyword#||'%'
+			</isEqual>
+			<isEqual property="searchCondition" compareValue="">
+				AND (( C.KWRD LIKE '%'||#searchKeyword#||'%' ) or ( B.LOASM_NM LIKE '%'||#searchKeyword#||'%' ) or ( A.MAIN_SJ LIKE '%'||#searchKeyword#||'%'))
+			</isEqual>					
+	 	</isNotEqual>
+	 </isNotEmpty>
+<![CDATA[	 
+	GROUP BY A.SPECL_SEARCH_ID
+		 			, A.MAIN_SJ
+		 			, A.MAIN_IMAGE_PATH
+		 			, A.MAIN_IMAGE_FILE_NM
+		 			, A.MAIN_URL
+		 			, A.FRST_REGIST_PNTTM
+		 			, B.LOASM_NM
+		 			, B.INSTT_CL_CODE	 
+		 			, B.BRTC_CODE
+		 			, B.LOASM_CODE
+		 			, D.FILE_STRE_COURS 
+					, D.STRE_FILE_NM
+			        , D.FILE_EXTSN
+		ORDER BY A.FRST_REGIST_PNTTM DESC
+	)
+	 ]]>
+	 
+	 
+</select>
+	
+	<!-- 스페셜 검색 정보 조회:: 지방의회 정보 검색-->
+	<select id="SpcDAO.selectAsmblyCode" parameterClass="spcVO" resultClass="spcVO">
+	<![CDATA[
+		SELECT LOASM_TY_CODE AS loasmTyCode
+					, LOASM_NM AS loasmNm
+					, BRTC_CODE AS brtcCode
+					, LOASM_CODE AS loasmCode
+					, CTPRVNGUGUN_CODE AS ctprvngugunCode
+					, INSTT_CL_CODE AS insttClCode   
+		  FROM organ
+		 WHERE BRTC_CODE = #brtcCode#
+	]]>
+	</select>
+	
+	<!-- 스페셜 검색 등록::입력  -->
+	<insert id="SpcDAO.insertSpcInfo" parameterClass="spcVO">
+	 <![CDATA[
+
+	INSERT INTO special_search (
+		SPECL_SEARCH_ID,
+		MAIN_SJ,
+		MAIN_CTT,
+		MAIN_URL,
+		MAIN_IMAGE_PATH,
+		MAIN_IMAGE_FILE_NM,
+		FRST_REGISTER_ID,
+		FRST_REGIST_PNTTM,
+		LAST_UPDUSR_ID,
+		LAST_UPDT_PNTTM,
+		SUB_IMAGE1_PATH,
+		SUB_IMAGE2_PATH,
+		SUB_IMAGE3_PATH,
+		SUB_IMAGE4_PATH,
+		SUB_IMAGE5_PATH,
+		SUB_IMAGE6_PATH,
+		SUB_IMAGE1_FILE_NM,
+		SUB_IMAGE2_FILE_NM,
+		SUB_IMAGE3_FILE_NM,
+		SUB_IMAGE4_FILE_NM,
+		SUB_IMAGE5_FILE_NM,
+		SUB_IMAGE6_FILE_NM,
+		SUB_IMAGE1_URL,
+		SUB_IMAGE2_URL,
+		SUB_IMAGE3_URL,
+		SUB_IMAGE4_URL,
+		SUB_IMAGE5_URL,
+		SUB_IMAGE6_URL,
+		SUB_TEXT1,
+		SUB_TEXT2,
+		SUB_TEXT3,
+		SUB_TEXT4,
+		SUB_TEXT5,
+		SUB_TEXT6,
+		ASMBLY_NM
+	)VALUES(
+		#speclSearchId#,
+		#mainSj#,
+		#mainCtt#,
+		#mainUrl#,
+		#mainImagePath#,
+		#mainImageFileNm#,
+		/* PKG_OBFUS.ENCRYPT(frstRegisterId,'NAEODOCZ'), */
+		#frstRegisterId#,
+		sysdate,
+		/* PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ'), */
+		#lastUpdusrId#,
+		sysdate,		
+		#subImage1Path#,
+		#subImage2Path#,
+		#subImage3Path#,
+		#subImage4Path#,   
+		#subImage5Path#,   
+		#subImage6Path#,   
+		#subImage1FileNm#,
+		#subImage2FileNm#,
+		#subImage3FileNm#,
+		#subImage4FileNm#,
+		#subImage5FileNm#,
+		#subImage6FileNm#,
+		#subImage1Url#,    
+		#subImage2Url#,    
+		#subImage3Url#,    
+		#subImage4Url#,    
+		#subImage5Url#,    
+		#subImage6Url#,    
+		#subText1#,         
+		#subText2#,         
+		#subText3#,         
+		#subText4#,         
+		#subText5#,         
+		#subText6#,         
+		#selAssembly#					
+		)
+	 ]]>
+	</insert>		
+		
+	<!-- 스페셜 검색 등록:: 스페셜검색 정보삭제 -->
+	<delete id="SpcDAO.deleteSpcInfo" parameterClass="spcVO">
+	 <![CDATA[
+		DELETE FROM special_search 
+		 WHERE SPECL_SEARCH_ID = #speclSearchId#
+	 ]]>
+	</delete>		
+		
+	<!-- 스페셜 검색 등록:: 키워드 삭제  -->
+	<delete id="SpcDAO.deleteKwrdInfo" parameterClass="spcVO">
+	 <![CDATA[
+		DELETE FROM ssearch_keyword 
+		 WHERE SPECL_SEARCH_ID = #speclSearchId#
+	 ]]>
+	</delete>		
+		
+	<!-- 스페셜 검색 등록:: 키워드 등록  -->
+	<insert id="SpcDAO.insertKwrdInfo" parameterClass="spcVO">
+	 <![CDATA[
+
+	INSERT INTO ssearch_keyword (
+		SPECL_SEARCH_KWRD_ID,
+		SPECL_SEARCH_ID,
+		KWRD
+	)VALUES(
+		#speclSearchKwrdId#,
+		#speclSearchId#,
+		#kwrd#
+		)
+	 ]]>
+	</insert>	
+
+	<!-- 스페셜 검색 정보 조회:: 상세조회-->
+	<select id="SpcDAO.selectSpcDetail" parameterClass="spcVO" resultClass="spcVO">
+	<![CDATA[
+		SELECT  SPECL_SEARCH_ID AS speclSearchId
+				, MAIN_SJ AS mainSj
+				, MAIN_CTT AS mainCtt
+				, MAIN_URL AS mainUrl
+				, MAIN_IMAGE_PATH AS mainImagePath
+				, MAIN_IMAGE_FILE_NM AS mainImageFileNm
+				, FRST_REGISTER_ID AS frstRegisterId 
+				, FRST_REGIST_PNTTM AS frstRegistPnttm 
+				, SUB_IMAGE1_PATH AS subImage1Path   
+				, SUB_IMAGE2_PATH AS subImage2Path   
+				, SUB_IMAGE3_PATH AS subImage3Path   
+				, SUB_IMAGE4_PATH AS subImage4Path   
+				, SUB_IMAGE5_PATH AS subImage5Path   
+				, SUB_IMAGE6_PATH AS subImage6Path   
+				, SUB_IMAGE1_FILE_NM AS subImage1FileNm
+				, SUB_IMAGE2_FILE_NM AS subImage2FileNm
+				, SUB_IMAGE3_FILE_NM AS subImage3FileNm
+				, SUB_IMAGE4_FILE_NM AS subImage4FileNm
+				, SUB_IMAGE5_FILE_NM AS subImage5FileNm
+				, SUB_IMAGE6_FILE_NM AS subImage6FileNm
+				, SUB_IMAGE1_URL AS subImage1Url    
+				, SUB_IMAGE2_URL AS subImage2Url    
+				, SUB_IMAGE3_URL AS subImage3Url    
+				, SUB_IMAGE4_URL AS subImage4Url    
+				, SUB_IMAGE5_URL AS subImage5Url    
+				, SUB_IMAGE6_URL AS subImage6Url    
+				, SUB_TEXT1 AS subText1    
+				, SUB_TEXT2 AS subText2    
+				, SUB_TEXT3 AS subText3    
+				, SUB_TEXT4 AS subText4    
+				, SUB_TEXT5 AS subText5    
+				, SUB_TEXT6 AS subText6    
+				, ASMBLY_NM AS asmblyNm
+		  FROM special_search
+		 WHERE SPECL_SEARCH_ID = #speclSearchId#
+	]]>
+	</select>	
+
+	<!-- 스페셜 검색 정보 조회:: 키워드 상세조회-->
+	<select id="SpcDAO.selectSpcDetailKwrd" parameterClass="spcVO" resultClass="spcVO">
+	<![CDATA[
+		SELECT KWRD AS kwrd
+		  FROM ssearch_keyword
+		 WHERE SPECL_SEARCH_ID = #speclSearchId#
+		 ORDER BY SPECL_SEARCH_KWRD_ID ASC
+	]]>
+	</select>	
+	
+	<!-- 스페셜 검색 정보 수정:: -->
+	<update id="SpcDAO.updateSpcInfo" parameterClass="spcVO" >
+	<![CDATA[
+		UPDATE		special_search 
+		      SET		MAIN_SJ = #mainSj#
+		      			, MAIN_CTT =  #mainCtt#
+		      			, MAIN_URL =  #mainUrl#
+		      			/* , LAST_UPDUSR_ID = PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ') */
+		      			, LAST_UPDUSR_ID = #lastUpdusrId#
+						, LAST_UPDT_PNTTM = SYSDATE
+						, SUB_TEXT1 = #subText1#         
+						, SUB_TEXT2 = #subText2#         
+						, SUB_TEXT3 = #subText3#         
+						, SUB_TEXT4 = #subText4#         
+						, SUB_TEXT5 = #subText5#         
+						, SUB_TEXT6 = #subText6#         
+						, ASMBLY_NM = #selAssembly#
+						, SUB_IMAGE1_URL  = #subImage1Url#    
+						, SUB_IMAGE2_URL  = #subImage2Url#    
+						, SUB_IMAGE3_URL  = #subImage3Url#    
+						, SUB_IMAGE4_URL  = #subImage4Url#    
+						, SUB_IMAGE5_URL  = #subImage5Url#    
+						, SUB_IMAGE6_URL  = #subImage6Url# 												
+	]]>
+			<dynamic> 
+			<isEqual property="inputFileSn" compareValue="0">
+				<isNotEmpty property="mainImagePath">
+		      			, MAIN_IMAGE_PATH = #mainImagePath#
+		      			, MAIN_IMAGE_FILE_NM = #mainImageFileNm#
+		      	</isNotEmpty>
+			</isEqual>
+			<isEqual property="inputFileSn" compareValue="1">
+		      			, SUB_IMAGE1_PATH = #subImage1Path#
+						, SUB_IMAGE1_FILE_NM = #subImage1FileNm#
+			</isEqual>
+			<isEqual property="inputFileSn" compareValue="2">
+		      			, SUB_IMAGE2_PATH = #subImage2Path#
+						, SUB_IMAGE2_FILE_NM = #subImage2FileNm#
+			</isEqual>
+			<isEqual property="inputFileSn" compareValue="3">
+		      			, SUB_IMAGE3_PATH = #subImage3Path#
+						, SUB_IMAGE3_FILE_NM = #subImage3FileNm#
+			</isEqual>
+			<isEqual property="inputFileSn" compareValue="4">
+		      			, SUB_IMAGE4_PATH = #subImage4Path#
+						, SUB_IMAGE4_FILE_NM = #subImage4FileNm#
+			</isEqual>
+			<isEqual property="inputFileSn" compareValue="5">
+		      			, SUB_IMAGE5_PATH = #subImage5Path#
+						, SUB_IMAGE5_FILE_NM = #subImage5FileNm#
+			</isEqual>
+			<isEqual property="inputFileSn" compareValue="6">
+		      			, SUB_IMAGE6_PATH = #subImage6Path#   
+						, SUB_IMAGE6_FILE_NM = #subImage6FileNm#
+			</isEqual>
+			</dynamic>
+	 <![CDATA[
+		 WHERE		SPECL_SEARCH_ID = #speclSearchId#
+	 ]]>
+	 </update>	
+
+	<!-- 스페셜 검색 정보 수정:: -->
+	<update id="SpcDAO.updateSpcFileInfo" parameterClass="spcVO" >
+	<![CDATA[
+		UPDATE		special_search 
+		      SET		MAIN_SJ = #mainSj#
+		      			, MAIN_CTT =  #mainCtt#
+		      			, MAIN_URL =  #mainUrl#
+		      			, MAIN_IMAGE_PATH = #mainImagePath#
+		      			, MAIN_IMAGE_FILE_NM = #mainImageFileNm#
+						/* , LAST_UPDUSR_ID = PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ') */
+						, LAST_UPDUSR_ID = #lastUpdusrId#
+						, LAST_UPDT_PNTTM = SYSDATE
+						, SUB_IMAGE1_PATH = #subImage1Path#
+						, SUB_IMAGE2_PATH = #subImage2Path#
+						, SUB_IMAGE3_PATH = #subImage3Path#
+						, SUB_IMAGE4_PATH = #subImage4Path#   
+						, SUB_IMAGE5_PATH = #subImage5Path#   
+						, SUB_IMAGE6_PATH = #subImage6Path#   
+						, SUB_IMAGE1_FILE_NM = #subImage1FileNm#
+						, SUB_IMAGE2_FILE_NM = #subImage2FileNm#
+						, SUB_IMAGE3_FILE_NM = #subImage3FileNm#
+						, SUB_IMAGE4_FILE_NM = #subImage4FileNm#
+						, SUB_IMAGE5_FILE_NM = #subImage5FileNm#
+						, SUB_IMAGE6_FILE_NM = #subImage6FileNm#
+						, SUB_IMAGE1_URL  = #subImage1Url#    
+						, SUB_IMAGE2_URL  = #subImage2Url#    
+						, SUB_IMAGE3_URL  = #subImage3Url#    
+						, SUB_IMAGE4_URL  = #subImage4Url#    
+						, SUB_IMAGE5_URL  = #subImage5Url#    
+						, SUB_IMAGE6_URL  = #subImage6Url#    
+						, SUB_TEXT1 = #subText1#         
+						, SUB_TEXT2 = #subText2#         
+						, SUB_TEXT3 = #subText3#         
+						, SUB_TEXT4 = #subText4#         
+						, SUB_TEXT5 = #subText5#         
+						, SUB_TEXT6 = #subText6#         
+						, ASMBLY_NM = #selAssembly#		
+		 WHERE		SPECL_SEARCH_ID = #speclSearchId#
+		 
+	 ]]>
+	 </update>	
+	
+
+			
+</sqlMap>

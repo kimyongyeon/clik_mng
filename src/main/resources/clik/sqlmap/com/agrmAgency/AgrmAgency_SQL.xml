@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="AgencyInfo">
+    <select id="dlib.op.user.LibraryInfoUserSearchCountForExcel" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+    	select count(*) as count from library_info where 1=1
+    	<isNotEmpty property="class2">
+			and class2 = #class2#
+		</isNotEmpty>			
+		<isNotEmpty property="agree_yn">		
+			and agree_yn = #agree_yn#
+		</isNotEmpty>
+		<isEmpty property="agree_yn">		
+			and agree_yn != 'T'
+		</isEmpty>
+		<isNotEmpty property="org_div">			
+			and org_div = #org_div#
+		</isNotEmpty>
+		<!--2012-08-27 권인애 : 기관종류 구분 변경에 따른 추가-->
+		<isNotEmpty property="org_div2">			
+			and org_div2 = #org_div2#
+		</isNotEmpty>
+		<isNotEmpty property="local">			
+			and local = #local#
+		</isNotEmpty>
+		<isNotEmpty property="local2">			
+			and local2 like '$local2$%'
+		</isNotEmpty>
+		<isNotEmpty property="start_reg_date">
+			<isNotEmpty property="end_reg_date">
+			and reg_date &gt;= #start_reg_date# and reg_date &lt;= #end_reg_date#
+			</isNotEmpty>
+		</isNotEmpty> 
+    </select>
+    
+	<!--2012-08-27 권인애 : 기관종류구분 변경에 따른 수정-->
+    <select id="dlib.op.user.LibraryInfoUserSearchForExcel" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+	    select 
+			agree_no, a.name, agree_name, name_before,
+			main_yn, maxid, minid , count,
+			reg_date, contract_method, local,
+			local2, org_div, charge, tel_no,
+			user_mail, address, post_code, remark,org_div2	,dept_name, gps_latitude,gps_longitude,
+			( select agree_name from united_library_info where agree_no = a.agree_no  ) as united_name
+		from library_info a left outer join
+			(select name, count(userid) count, min(userid) minid,max(userid) maxid from macaddress where name in (select name from library_info) group by name ) b
+		on a.name = b.name
+		where 1=1
+		<isNotEmpty property="class2">
+			and class2 = #class2#
+		</isNotEmpty>			
+		<isNotEmpty property="agree_yn">		
+			and agree_yn = #agree_yn#
+		</isNotEmpty>			
+		<isEmpty property="agree_yn">		
+			and agree_yn != 'T'
+		</isEmpty>
+		<isNotEmpty property="org_div">			
+			and org_div = #org_div#
+		</isNotEmpty>
+		<!--2012-08-27 권인애 : 기관종류 구분 변경에 따른 추가-->
+		<isNotEmpty property="org_div2">			
+			and org_div2 = #org_div2#
+		</isNotEmpty>
+		<isNotEmpty property="local">			
+			and local = #local#
+		</isNotEmpty>
+		<isNotEmpty property="local2">			
+			and local2 like '$local2$%'
+		</isNotEmpty> 
+		<isNotEmpty property="start_reg_date">
+			<isNotEmpty property="end_reg_date">
+			and reg_date &gt;= #start_reg_date# and reg_date &lt;= #end_reg_date#
+			</isNotEmpty>
+		</isNotEmpty> 		
+		order by agree_no
+    </select>
+    
+
+    <select id="dlib.op.user.LibraryInfoUserSearchCount" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+        SELECT 
+          COUNT(*) as totalRecordCount
+        FROM LIBRARY_INFO
+        <dynamic prepend="WHERE">
+        <isEqual property="VALUESTRING" compareValue="agree_name">
+            AGREE_NAME LIKE '%$SEARCHNAME$%'
+        </isEqual>          
+
+        <isEqual property="VALUESTRING" compareValue="name">
+            NAME LIKE '%$SEARCHNAME$%'
+        </isEqual>  
+        
+        <isEqual property="VALUESTRING" compareValue="reg_date">
+            REG_DATE LIKE '%$SEARCHNAME$%'
+        </isEqual>  
+        
+        <isEqual property="VALUESTRING" compareValue="charge">
+            CHARGE LIKE '%$SEARCHNAME$%'
+        </isEqual>  
+        
+        <isEqual property="VALUESTRING" compareValue="contract_no">
+            CONTRACT_NO = #SEARCHNAME#
+        </isEqual>  
+        
+        <isEqual property="VALUESTRING" compareValue="user_name">
+            <![CDATA[   
+            NAME IN (SELECT DISTINCT B.NAME FROM USERINFO A, LIBRARY_INFO B 
+                    WHERE (A.CLASS = '1' OR A.CLASS = '2') 
+                    AND A.USER_NAME = B.NAME 
+                    AND A.USERID LIKE '%$SEARCHNAME$%') 
+            ]]>     
+        </isEqual>  
+        
+        <isEqual property="VALUESTRING" compareValue="mgr_name">
+            <![CDATA[   
+                NAME IN (SELECT DISTINCT B.NAME FROM LIBRARY_MGR A, LIBRARY_INFO B 
+                        WHERE A.NAME = B.NAME AND A.ADMIN_NAME LIKE '%$SEARCHNAME$%') 
+            ]]>                     
+        </isEqual>  
+        
+        <isEqual property="VALUESTRING" compareValue="old_name">
+            <![CDATA[   
+                NAME IN (SELECT DISTINCT NAME_LAST FROM LIBRARY_HISTORY 
+                        WHERE NAME_BEFORE LIKE '%$SEARCHNAME$%')        
+            ]]>             
+        </isEqual>      
+        </dynamic>
+    </select>
+    
+    <select id="dlib.op.user.LibraryInfoUserSearch" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+        SELECT 
+            <isNotEmpty property="firstRecordIndex">
+                skip #firstRecordIndex# first #recordCountPerPage# 
+            </isNotEmpty>
+          NAME, CHARGE, REG_DATE, CLASS2, CLASS 
+          , AGREE_NAME, NA_CHARGE, USER_MAIL, LOCAL, TEL_NO, MOBILE_NO, PAPER_PRICE   
+          , AGREE_YN, AGREE_NO, DISPLAY_YN, DISPLAY_NAME, CONTRACT_YN, CONTRACT_NO, ACCOUNT_PERIOD        
+          , CONTRACT_METHOD, LOCAL2, ORG_DIV, ORG_CHIEF, ADDRESS, POST_CODE, MAIN_YN, REMARK, BRANCH_ID   
+          FROM LIBRARY_INFO
+        <dynamic prepend="WHERE">
+        <isEqual property="VALUESTRING" compareValue="agree_name">
+            AGREE_NAME LIKE '%$SEARCHNAME$%'
+        </isEqual>          
+
+        <isEqual property="VALUESTRING" compareValue="name">
+            NAME LIKE '%$SEARCHNAME$%'
+        </isEqual>  
+        
+        <isEqual property="VALUESTRING" compareValue="reg_date">
+            REG_DATE LIKE '%$SEARCHNAME$%'
+        </isEqual>  
+        
+        <isEqual property="VALUESTRING" compareValue="charge">
+            CHARGE LIKE '%$SEARCHNAME$%'
+        </isEqual>  
+        
+        <isEqual property="VALUESTRING" compareValue="contract_no">
+            CONTRACT_NO = #SEARCHNAME#
+        </isEqual>  
+        
+        <isEqual property="VALUESTRING" compareValue="user_name">
+            <![CDATA[   
+            NAME IN (SELECT DISTINCT B.NAME FROM USERINFO A, LIBRARY_INFO B 
+                    WHERE (A.CLASS = '1' OR A.CLASS = '2') 
+                    AND A.USER_NAME = B.NAME 
+                    AND A.USERID LIKE '%$SEARCHNAME$%') 
+            ]]>     
+        </isEqual>  
+        
+        <isEqual property="VALUESTRING" compareValue="mgr_name">
+            <![CDATA[   
+                NAME IN (SELECT DISTINCT B.NAME FROM LIBRARY_MGR A, LIBRARY_INFO B 
+                        WHERE A.NAME = B.NAME AND A.ADMIN_NAME LIKE '%$SEARCHNAME$%') 
+            ]]>                     
+        </isEqual>  
+        
+        <isEqual property="VALUESTRING" compareValue="old_name">
+            <![CDATA[   
+                NAME IN (SELECT DISTINCT NAME_LAST FROM LIBRARY_HISTORY 
+                        WHERE NAME_BEFORE LIKE '%$SEARCHNAME$%')        
+            ]]>             
+        </isEqual>      
+
+        <isNotEmpty property="UPDATE_NAME">
+            <![CDATA[   
+                NAME = #UPDATE_NAME#        
+            ]]>             
+        </isNotEmpty>
+
+        </dynamic>
+        ORDER BY NAME, CHARGE DESC
+    </select>
+	<!--    2012-08-06 권인애 : 새 컬럼 추가 -->
+	<!--    2012-08-31 권인애 : 쿼리 null 수정  -->
+	<select id="dlib.op.user.LibraryInfo" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+	 SELECT 
+          NAME, NVL(CHARGE,'') AS CHARGE, REG_DATE, NVL(CLASS2,'') AS CLASS2, NVL(CLASS,'') AS CLASS 
+         , AGREE_NAME, NVL(NA_CHARGE,'') AS NA_CHARGE, NVL(USER_MAIL,'') AS USER_MAIL, NVL(LOCAL,'') AS LOCAL, NVL(TEL_NO,'') AS TEL_NO, NVL(MOBILE_NO,'') AS MOBILE_NO, NVL(PAPER_PRICE,'') AS PAPER_PRICE   
+          , NVL(AGREE_YN,'') AS AGREE_YN, NVL(AGREE_NO,'') AS AGREE_NO, NVL(DISPLAY_YN,'') AS DISPLAY_YN, NVL(DISPLAY_NAME,'') AS DISPLAY_NAME, NVL(CONTRACT_YN,'') AS CONTRACT_YN, NVL(CONTRACT_NO,'') AS CONTRACT_NO
+          , NVL(ACCOUNT_PERIOD,'') AS ACCOUNT_PERIOD , NVL(CONTRACT_DATE,'') AS CONTRACT_DATE, NVL(PC_LOGIN_TYPE,'') AS PC_LOGIN_TYPE
+          , SUBSTR(NVL(PC_LOGIN_TYPE,'0000'),1,1) AS PC_LOGIN_TYPE0
+          , SUBSTR(NVL(PC_LOGIN_TYPE,'0000'),2,1) AS PC_LOGIN_TYPE1
+          , SUBSTR(NVL(PC_LOGIN_TYPE,'0000'),3,1) AS PC_LOGIN_TYPE2
+          , SUBSTR(NVL(PC_LOGIN_TYPE,'0000'),4,1) AS PC_LOGIN_TYPE3
+          , NVL(FEE_USE,'') AS FEE_USE, NVL(CARD_USE,'') AS CARD_USE, NVL(PCID_PREFIX,'') AS PCID_PREFIX, NVL(PC_ID_COUNT,'') AS PC_ID_COUNT    
+          , NVL(CONTRACT_METHOD,'') AS CONTRACT_METHOD , NVL(LOCAL2,'') AS LOCAL2, NVL(ORG_DIV,'') AS ORG_DIV , NVL(ORG_CHIEF,'') AS ORG_CHIEF, NVL(ADDRESS,'') AS ADDRESS, NVL(POST_CODE,'') AS POST_CODE
+          , NVL(MAIN_YN,'') AS MAIN_YN, NVL(REMARK,'') AS REMARK, NVL(BRANCH_ID,'') AS BRANCH_ID , NVL(UP_AGREE_NO,'') AS UP_AGREE_NO
+         , NVL(ORG_DIV2,'') AS ORG_DIV2
+         , NVL(DEPT_NAME,'') AS DEPT_NAME
+         , NVL(GPS_LATITUDE,'') AS GPS_LATITUDE
+         , NVL(GPS_LONGITUDE,'') AS GPS_LONGITUDE
+    FROM LIBRARY_INFO
+    WHERE NAME =  #NAME#
+    </select>
+    
+	<select id="dlib.op.user.LibraryInfoOrg" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+       SELECT 
+          a.NAME, a.CHARGE, a.REG_DATE, a.CLASS2,a.CLASS 
+          , a.AGREE_NAME, a.NA_CHARGE, a.USER_MAIL, a.LOCAL, a.TEL_NO, a.MOBILE_NO, a.PAPER_PRICE   
+          , a.AGREE_YN, a.AGREE_NO, a.DISPLAY_YN, a.DISPLAY_NAME, a.CONTRACT_YN, a.CONTRACT_NO, a.ACCOUNT_PERIOD    
+          , a.CONTRACT_DATE
+          , a.PC_LOGIN_TYPE
+          , SUBSTR(NVL(a.PC_LOGIN_TYPE,'0000'),1,1) AS PC_LOGIN_TYPE0
+          , SUBSTR(NVL(a.PC_LOGIN_TYPE,'0000'),2,1) AS PC_LOGIN_TYPE1
+          , SUBSTR(NVL(a.PC_LOGIN_TYPE,'0000'),3,1) AS PC_LOGIN_TYPE2
+          , SUBSTR(NVL(a.PC_LOGIN_TYPE,'0000'),4,1) AS PC_LOGIN_TYPE3
+          , a.FEE_USE, a.CARD_USE, a.PCID_PREFIX, a.PC_ID_COUNT    
+          , a.CONTRACT_METHOD,a.LOCAL2, a.ORG_DIV, a.ORG_CHIEF, a.ADDRESS, a.POST_CODE, a.MAIN_YN, a.REMARK, a.BRANCH_ID  
+          , NVL(a.UP_AGREE_NO,'')
+          , NVL(a.ORG_DIV2,'')
+          , NVL(a.DEPT_NAME,'')
+          FROM LIBRARY_INFO a
+          WHERE NAME =  #NAME#
+    </select>
+    
+    <select id="dlib.op.user.LibraryInfoOrg " parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+       SELECT 
+          a.NAME, a.CHARGE, a.REG_DATE, a.CLASS2,a.CLASS 
+          , a.AGREE_NAME, a.NA_CHARGE, a.USER_MAIL, a.LOCAL, a.TEL_NO, a.MOBILE_NO, a.PAPER_PRICE   
+          , a.AGREE_YN, a.AGREE_NO, a.DISPLAY_YN, a.DISPLAY_NAME, a.CONTRACT_YN, a.CONTRACT_NO, a.ACCOUNT_PERIOD    
+          , a.CONTRACT_DATE
+          , a.PC_LOGIN_TYPE
+          , SUBSTR(NVL(a.PC_LOGIN_TYPE,'0000'),1,1) AS PC_LOGIN_TYPE0
+          , SUBSTR(NVL(a.PC_LOGIN_TYPE,'0000'),2,1) AS PC_LOGIN_TYPE1
+          , SUBSTR(NVL(a.PC_LOGIN_TYPE,'0000'),3,1) AS PC_LOGIN_TYPE2
+          , SUBSTR(NVL(a.PC_LOGIN_TYPE,'0000'),4,1) AS PC_LOGIN_TYPE3
+          , a.FEE_USE, a.CARD_USE, a.PCID_PREFIX, a.PC_ID_COUNT    
+          , a.CONTRACT_METHOD,a.LOCAL2, a.ORG_DIV, a.ORG_CHIEF, a.ADDRESS, a.POST_CODE, a.MAIN_YN, a.REMARK, a.BRANCH_ID  
+          , a.UP_AGREE_NO, a.ORG_DIV2, a.DEPT_NAME,b.agree_name as up_agree_name
+          FROM LIBRARY_INFO a, united_library_info b 
+          WHERE NAME =  #NAME#
+          and a.up_agree_no=b.agree_no
+    </select>
+    
+    <select id="dlib.op.user.LibraryInfoUserDupCount" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM LIBRARY_INFO WHERE NAME = #NAME# AND NAME != #OLD_NAME#
+    </select>
+
+
+    <!-- LIBRARY_HISTORY 조회  -->
+    <select id="dlib.op.user.LibraryInfoUserHistorySearch" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+        SELECT 
+          NAME_LAST, NAME_BEFORE, MOD_DATE AS CHANGE_DATE, CODE_TYPE, SERIAL_NO
+          , CODE_NO, NAME_AFTER, UPDATE_BY, COMBINE_DATE         
+          FROM LIBRARY_HISTORY
+          WHERE NAME_LAST = #NAME_LAST#
+          AND CODE_TYPE = #CODE_TYPE#
+        ORDER BY MOD_DATE DESC, SERIAL_NO DESC
+    </select>
+
+
+
+    <!-- LIBRARY_INFO 메일 조회  -->
+    
+    <select id="dlib.op.user.LibraryInfoUserMailSearch" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+        SELECT USER_MAIL 
+          FROM LIBRARY_INFO
+          WHERE AGREE_YN = 'Y' 
+          <dynamic>
+          <isNotEmpty property="class">
+          AND CLASS2 = #class#
+          </isNotEmpty>
+		  <isNotEmpty property="local">
+		  AND LOCAL = #local# 
+		  </isNotEmpty>
+		  <isNotEmpty property="org_div">
+		  AND ORG_DIV = #org_div# 
+		  </isNotEmpty>
+		  <isNotEmpty property="org_div2">
+		  AND ORG_DIV2 = #org_div2# 
+		  </isNotEmpty>
+		  </dynamic>          
+    </select>
+    
+
+    
+	<!-- 2012-08-06 권인애 : 협정체결 일련번호 구하기(체결Y,보류D,탈퇴S)-->
+	 <select id="dlib.op.user.SelectAgreeNo" resultClass="java.util.HashMap">
+        SELECT MAX(agree_no)+1 AS agree_no 
+        FROM LIBRARY_INFO 
+        WHERE agree_yn='Y' 
+        OR  agree_yn='D' 
+        OR  agree_yn='S'    
+    </select>
+
+    
+    <!--    2012-08-06 권인애 : 통합기관조회 (본관) -->
+	<!--    2012-08-31 권인애 : 본관 이름 가져오기 -->
+	<!--    2012-09-05 권인애 : 정렬 및 페이징 추가-->
+    <select id="dlib.op.user.LibraryUniList" resultClass="java.util.HashMap" parameterClass="java.util.HashMap">
+    	SELECT 
+    	<isNotEmpty property="firstRecordIndex">
+                SKIP #firstRecordIndex# FIRST #recordCountPerPage# 
+        </isNotEmpty>
+    			B.AGREE_NAME AS AGREE_NAME, B.AGREE_NO AS AGREE_NO, A.CNT AS CNT  
+    	FROM (
+                    SELECT UP_AGREE_NO,COUNT(*) AS CNT FROM LIBRARY_INFO  GROUP  BY UP_AGREE_NO
+				)A, 
+				UNITED_LIBRARY_INFO B
+		WHERE A.UP_AGREE_NO=B.AGREE_NO
+		<isNotEmpty prepend="AND" property="search_name">
+          <![CDATA[           
+            	B.AGREE_NAME LIKE '%$search_name$%'
+        ]]>
+        </isNotEmpty>   
+        <isNotEmpty prepend="AND" property="search_agree_no">
+          <![CDATA[           
+            	B.AGREE_NO=#search_agree_no#
+        ]]>
+        </isNotEmpty> 
+        <isNotEmpty prepend="AND" property="cnt">
+          <![CDATA[           
+            	CNT > #cnt#
+        ]]>
+        </isNotEmpty> 
+		  ORDER BY AGREE_NO
+	</select>
+		  
+	<select id="dlib.op.user.LibraryUniListOrg" resultClass="java.util.HashMap" parameterClass="java.util.HashMap">
+         SELECT 
+        <isNotEmpty property="firstRecordIndex">
+                SKIP #firstRecordIndex# FIRST #recordCountPerPage# 
+        </isNotEmpty>
+        <![CDATA[         	
+            	AGREE_NO,AGREE_NAME FROM UNITED_LIBRARY_INFO
+        ]]>
+        <isNotEmpty prepend="WHERE" property="search_name">
+          <![CDATA[           
+            	AGREE_NAME LIKE '%$search_name$%'
+        ]]>
+        </isNotEmpty>   
+        <isNotEmpty prepend="WHERE" property="search_agree_no">
+          <![CDATA[           
+            	AGREE_NO=#search_agree_no#
+        ]]>
+        </isNotEmpty> 
+        ORDER BY AGREE_NO
+    </select>
+    
+     <!--    2012-08-06 권인애 : 통합기관조회 (분관) -->
+     <!--    2012-09-05 권인애 : 페이징 추가          -->
+    <select id="dlib.op.user.UniSubSearchList" resultClass="java.util.HashMap" parameterClass="java.util.HashMap">
+       SELECT 
+       <isNotEmpty property="subfirstRecordIndex">
+                SKIP #subfirstRecordIndex# FIRST #subrecordCountPerPage# 
+        </isNotEmpty>
+       <![CDATA[     	
+           		* FROM LIBRARY_INFO 
+        WHERE UP_AGREE_NO = #agree_no#
+        ORDER BY MAIN_YN DESC
+        ]]>
+    </select>
+    
+
+    
+    <!-- 2012-08-06 권인애 : UNITED_LIBRARY_INFO 에 중복내용 검색  -->
+    <select id="dlib.op.user.sqlUniDupCount" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM UNITED_LIBRARY_INFO WHERE AGREE_NO=#UP_AGREE_NO#
+    </select>
+    
+    <!--    2012-08-13 권인애 : 협정기관 메일 통합기관조회 (본관) -->
+    <select id="dlib.op.user.MailLibraryUniList" resultClass="java.util.HashMap" parameterClass="java.util.HashMap">
+        <![CDATA[           
+            	SELECT b.AGREE_NO,
+            		     a.AGREE_NAME,
+            			 b.USER_MAIL 
+            	FROM   LIBRARY_INFO b, UNITED_LIBRARY_INFO a
+           		WHERE  b.UP_AGREE_NO = a.AGREE_NO 
+                AND b.AGREE_NAME=a.AGREE_NAME
+          ]]>
+         <isNotEmpty prepend="AND" property="search_name">
+          <![CDATA[           
+            	b.AGREE_NAME LIKE '%$search_name$%'
+           ]]>
+        </isNotEmpty>    
+    </select>
+    
+    <!--    2012-09-05 권인애 :  통합기관 수 조회 -->
+    <select id="dlib.op.user.sqlUniCount" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+        SELECT COUNT(*) 
+        FROM (
+		        	SELECT 
+			    			B.AGREE_NAME AS AGREE_NAME, B.AGREE_NO AS AGREE_NO, A.CNT AS CNT  
+			    	FROM (
+			                    SELECT UP_AGREE_NO,COUNT(*) AS CNT FROM LIBRARY_INFO  GROUP  BY UP_AGREE_NO
+							)A, 
+							UNITED_LIBRARY_INFO B
+					WHERE A.UP_AGREE_NO=B.AGREE_NO
+					<isNotEmpty prepend="AND" property="search_name">
+			          <![CDATA[           
+			            	B.AGREE_NAME LIKE '%$search_name$%'
+			        ]]>
+			        </isNotEmpty>   
+			        <isNotEmpty prepend="AND" property="cnt">
+			          <![CDATA[           
+			            	CNT > #cnt#
+			        ]]>
+			        </isNotEmpty> 
+				  ORDER BY AGREE_NO
+				)
+	</select>
+				
+	<select id="dlib.op.user.sqlUniCountOrg" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM UNITED_LIBRARY_INFO
+         <isNotEmpty prepend="WHERE" property="search_name">
+          <![CDATA[           
+            	AGREE_NAME LIKE '%$search_name$%'
+        ]]>
+        </isNotEmpty>   
+    </select>
+    
+    <!--    2012-09-05 권인애 :  하나의 통합기관이 가진 분관수 조회 -->
+    <select id="dlib.op.user.sqlSubCnt" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+        SELECT COUNT(*) FROM LIBRARY_INFO
+        WHERE 1=1
+        <isNotEmpty prepend="AND" property="agree_no">
+          <![CDATA[           
+            	up_agree_no=#agree_no#
+           ]]>
+        </isNotEmpty>
+    </select>
+    
+    <!-- 협정기관 통계 -->
+    <select id="dlib.op.user.LibraryInfoStats" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+       SELECT  '대학도서관' AS ORG_DIV2, '4년제대학' AS ORG_DIV, (SELECT COUNT(*) FROM LIBRARY_INFO WHERE ORG_DIV2 = '1' AND ORG_DIV = '1') AS CNT FROM DUAL
+		UNION ALL
+		SELECT  '' AS ORG_DIV2, '대학원대학교' AS ORG_DIV, (SELECT COUNT(*) FROM LIBRARY_INFO WHERE ORG_DIV2 = '1' AND ORG_DIV = '3') AS CNT FROM DUAL
+		UNION ALL
+		SELECT  '' AS ORG_DIV2, '전문대학' AS ORG_DIV, (SELECT COUNT(*) FROM LIBRARY_INFO WHERE ORG_DIV2 = '1' AND ORG_DIV = '5') AS CNT FROM DUAL
+		UNION ALL
+		SELECT  '' AS ORG_DIV2, '기타대학' AS ORG_DIV, (SELECT COUNT(*) FROM LIBRARY_INFO WHERE ORG_DIV2 = '1' AND ORG_DIV = '10') AS CNT FROM DUAL
+		UNION ALL
+		SELECT  '국외협정기관' AS ORG_DIV2, '외국전문' AS ORG_DIV, (SELECT COUNT(*) FROM LIBRARY_INFO WHERE ORG_DIV2 = '2' AND ORG_DIV = '8') AS CNT FROM DUAL
+		UNION ALL
+		SELECT  '' AS ORG_DIV2, '외국대학' AS ORG_DIV, (SELECT COUNT(*) FROM LIBRARY_INFO WHERE ORG_DIV2 = '2' AND ORG_DIV = '4') AS CNT FROM DUAL
+		UNION ALL
+		SELECT  '전문도서관' AS ORG_DIV2, '전문도서관' AS ORG_DIV, (SELECT COUNT(*) FROM LIBRARY_INFO WHERE ORG_DIV2 = '3' AND ORG_DIV = '6') AS CNT FROM DUAL
+		UNION ALL
+		SELECT  '' AS ORG_DIV2, '의회' AS ORG_DIV, (SELECT COUNT(*) FROM LIBRARY_INFO WHERE ORG_DIV2 = '3' AND ORG_DIV = '14') AS CNT FROM DUAL
+		UNION ALL
+		SELECT  '' AS ORG_DIV2, '자치단체' AS ORG_DIV, (SELECT COUNT(*) FROM LIBRARY_INFO WHERE ORG_DIV2 = '3' AND ORG_DIV = '15') AS CNT FROM DUAL
+		UNION ALL
+		SELECT  '' AS ORG_DIV2, '방송사' AS ORG_DIV, (SELECT COUNT(*) FROM LIBRARY_INFO WHERE ORG_DIV2 = '3' AND ORG_DIV = '16') AS CNT FROM DUAL
+		UNION ALL
+		SELECT  '' AS ORG_DIV2, '신문사' AS ORG_DIV, (SELECT COUNT(*) FROM LIBRARY_INFO WHERE ORG_DIV2 = '3' AND ORG_DIV = '17') AS CNT FROM DUAL
+		UNION ALL
+		SELECT  '공공도서관' AS ORG_DIV2, '공공도서관' AS ORG_DIV, (SELECT COUNT(*) FROM LIBRARY_INFO WHERE ORG_DIV2 = '4' AND ORG_DIV = '2') AS CNT FROM DUAL
+		UNION ALL
+		SELECT  '값 없음' AS ORG_DIV2, '' AS ORG_DIV, (SELECT COUNT(*) FROM LIBRARY_INFO WHERE (ORG_DIV2 IS NULL OR LENGTH(ORG_DIV2) = 0) AND LENGTH(ORG_DIV) > 0) AS CNT FROM DUAL
+		UNION ALL
+		SELECT  '' AS ORG_DIV2, '값 없음' AS ORG_DIV, (SELECT COUNT(*) FROM LIBRARY_INFO WHERE LENGTH(ORG_DIV2) > 0 AND (ORG_DIV IS NULL OR LENGTH(ORG_DIV) = 0)) AS CNT FROM DUAL
+		UNION ALL
+		SELECT  '값 없음' AS ORG_DIV2, '값 없음' AS ORG_DIV, (SELECT COUNT(*) FROM LIBRARY_INFO WHERE (ORG_DIV2 IS NULL OR LENGTH(ORG_DIV2) = 0) AND (ORG_DIV IS NULL OR LENGTH(ORG_DIV) = 0)) AS CNT FROM DUAL
+		UNION ALL
+		SELECT  '전체 기관수' AS ORG_DIV2, '' AS ORG_DIV, (SELECT COUNT(*) FROM LIBRARY_INFO ) AS CNT FROM DUAL
+    </select>
+
+	<!-- 검색 pc목록  -->
+    <select id="dlib.op.user.MacAddressSearch" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+        SELECT 
+            A.USERID, B.MAC, B.CPUID, B.NAME, B.CARD_USE, B.FEE_USE, B.STOP_USE
+            , B.MANAGER, B.IP, B.IP2, B.PUBLIC_IP, B.PUBLIC_IP2, B.IP_AUTH
+            , B.APP_STATUS, B.APP_REASON, B.REG_DATE, B.COMMENT
+            FROM USERINFO A, OUTER MACADDRESS B
+            WHERE 1=1
+            AND A.USER_NAME = B.NAME
+            AND A.USERID = B.USERID 
+            <dynamic>
+            <isNotEmpty property="NAME">
+            AND A.USER_NAME = #NAME#
+            </isNotEmpty>
+            <isNotEmpty property="USERID">
+            AND A.USERID = #USERID#
+            </isNotEmpty>
+            </dynamic>
+        ORDER BY A.USERID, B.APP_STATUS DESC
+    </select>
+
+</sqlMap>

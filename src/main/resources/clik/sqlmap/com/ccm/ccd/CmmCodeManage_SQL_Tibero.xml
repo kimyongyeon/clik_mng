@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="CmmCodeManage">
+
+	<typeAlias  alias="egovMap"    type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="CmmCode"   type="clikmng.nanet.go.kr.ccm.ccd.service.CmmCode"/>
+	<typeAlias  alias="CmmCodeVO" type="clikmng.nanet.go.kr.ccm.ccd.service.CmmCodeVO"/>
+	<typeAlias  alias="CmmClCodeVO" type="clikmng.nanet.go.kr.ccm.ccd.service.CmmClCodeVO"/>
+	<typeAlias  alias="CmmClCode" type="clikmng.nanet.go.kr.ccm.ccd.service.CmmClCode"/>
+
+	<select id="CmmCodeManageDAO.selectCmmClCodeList" parameterClass="CmmCodeVO" resultClass="egovMap">
+		<![CDATA[
+			SELECT  *
+			  FROM  (
+			SELECT ROWNUM RNUM, ALL_LIST.*
+			  FROM  (
+			SELECT  CL_CODE
+			     ,  CL_CODE_NM
+			     ,  USE_AT
+			  FROM  common_class_code
+			 WHERE  1 = 1
+		]]>
+			<isEqual prepend="AND" property="searchCondition" compareValue="1">
+				<![CDATA[CL_CODE LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="2">
+				<![CDATA[CL_CODE_NM LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+		<![CDATA[
+				    ) ALL_LIST
+				    )
+			 WHERE  ROWNUM BETWEEN #firstIndex# AND #firstIndex# + #recordCountPerPage#
+			 ORDER BY CL_CODE ASC
+		]]>
+	</select>
+
+	<select id="CmmCodeManageDAO.selectCmmCodeList" parameterClass="CmmCodeVO" resultClass="egovMap">
+		<![CDATA[
+			SELECT  *
+			  FROM  (
+			SELECT ROWNUM RNUM, ALL_LIST.*
+			  FROM  (
+			SELECT  B.CL_CODE
+				 , 	B.CL_CODE_NM
+			     ,  A.CODE_ID
+			     ,  A.CODE_ID_NM
+			     ,  A.USE_AT
+			     ,  A.CODE_ORDR
+			  FROM  common_code   A
+			     ,  common_class_code B
+			 WHERE  A.CL_CODE = B.CL_CODE
+			   AND  A.CL_CODE = #codeClCd#
+		]]>
+			<isEqual prepend="AND" property="searchCondition" compareValue="1">
+				<![CDATA[A.CODE_ID LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="2">
+				<![CDATA[A.CODE_ID_NM LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="clCode">
+				<![CDATA[A.CL_CODE LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<!--  
+			<isEqual prepend="AND" property="searchCondition" compareValue="clCode">
+				<![CDATA[A.USE_AT = 'Y']]>
+			</isEqual>
+			-->
+		<![CDATA[
+				    ) ALL_LIST
+				    )
+			 ORDER BY CODE_ORDR ASC
+		]]>
+<!-- WHERE  ROWNUM BETWEEN #firstIndex# AND #firstIndex# + #recordCountPerPage# -->
+
+	</select>
+	
+	<select id="CmmCodeManageDAO.selectCmmDetailCodeList" parameterClass="CmmCodeVO" resultClass="egovMap">
+		<![CDATA[
+			SELECT  *
+			  FROM  (
+			SELECT ROWNUM RNUM, ALL_LIST.*
+			  FROM  (
+			SELECT  A.CODE_ID
+			     ,  A.CODE
+			     ,  A.CODE_NM
+			     ,  A.CODE_DC
+			     ,  A.USE_AT
+			     ,  A.CODE_ORDR
+			  FROM  common_detail_code A
+			     ,  common_code       B
+			 WHERE 	B.USE_AT  = 'Y'
+			   AND  A.CODE_ID = B.CODE_ID
+			   AND  A.CODE_ID = #codeId#
+		]]>
+			<isEqual prepend="AND" property="searchCondition" compareValue="1">
+				<![CDATA[A.CODE_ID LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="2">
+				<![CDATA[A.CODE    LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+		<![CDATA[
+				    ) ALL_LIST
+				    )
+		]]>
+		<![CDATA[ ORDER BY CODE_ORDR]]>		
+	</select>	
+
+	<select id="CmmCodeManageDAO.selectCmmCodeListTotCnt" parameterClass="CmmCodeVO" resultClass="int">
+		<![CDATA[
+			SELECT  COUNT(*) totcnt
+			  FROM  common_code   A
+			     ,  common_class_code B
+			 WHERE  A.CL_CODE = B.CL_CODE
+		]]>
+			<isEqual prepend="AND" property="searchCondition" compareValue="1">
+				<![CDATA[CODE_ID LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="2">
+				<![CDATA[CODE_ID_NM LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+	</select>
+
+	<select id="CmmCodeManageDAO.selectCmmCodeDetail" parameterClass="CmmCodeVO" resultClass="CmmCodeVO">
+		<![CDATA[
+            SELECT  
+                    A.CODE       commCd
+                 ,  A.CODE_NM    commCdNm
+                 ,  A.CODE_DC    codeDc
+                 ,  A.USE_AT     useAt
+              FROM  common_detail_code A
+                 ,  common_code       B
+             WHERE  A.CODE_ID = B.CODE_ID
+			   AND  A.CODE_ID = #parentCd#
+			   AND  A.CODE    = #code#  
+		]]>
+	</select>
+
+	<insert id="CmmCodeManageDAO.insertCmmCode">
+		<![CDATA[
+		    INSERT
+		      INTO  common_code
+		         (  CODE_ID
+		         ,  CODE_ID_NM
+		         ,  CODE_ID_DC
+		         ,  CL_CODE
+		         ,  USE_AT
+		         ,  FRST_REGIST_PNTTM
+		         ,  FRST_REGISTER_ID
+		         ,  LAST_UPDT_PNTTM
+		         ,  LAST_UPDUSR_ID
+		         )
+		    VALUES
+		         (  #codeId#
+		         ,  #codeIdNm#
+		         ,  #codeIdDc#
+		         ,  #clCode#
+		         ,  #useAt#
+		         ,  sysdate
+		         ,  #frstRegisterId#
+		         ,  sysdate
+		         ,  #frstRegisterId#
+		         )
+		]]>
+	</insert>
+
+	<update id="CmmCodeManageDAO.updateCmmCode">
+		<![CDATA[
+            UPDATE  common_code
+               SET  CODE_ID_NM        = #codeIdNm#
+                 ,  CODE_ID_DC        = #codeIdDc#
+                 ,  USE_AT            = #useAt#
+                 ,  LAST_UPDT_PNTTM = sysdate
+                 ,  LAST_UPDUSR_ID    = #lastUpdusrId#
+             WHERE  CODE_ID           = #codeId#
+		]]>
+	</update>
+
+	<delete id="CmmCodeManageDAO.deleteCmmCode">
+		<![CDATA[
+ 			 DELETE FROM common_code
+             WHERE  CODE_ID = #codeId#
+		]]>
+	</delete>
+	
+	<select id="CmmClCodeManageDAO.selectCmmClCodeDetail" parameterClass="CmmClCode" resultClass="CmmClCode">
+		<![CDATA[
+            SELECT  CL_CODE    clCode
+			     ,  CL_CODE_NM clCodeNm
+                 ,  CL_CODE_DC clCodeDc
+                 ,  USE_AT     useAt
+              FROM  common_class_code
+             WHERE  CL_CODE    = #clCode#
+		]]>
+	</select>
+
+	<insert id="CmmClCodeManageDAO.insertCmmClCode">
+		<![CDATA[
+		    INSERT
+		      INTO  common_class_code
+		         (  CL_CODE
+		         ,  CL_CODE_NM
+		         ,  CL_CODE_DC
+		         ,  USE_AT
+		         ,  FRST_REGIST_PNTTM
+		         ,  FRST_REGISTER_ID
+		         ,  LAST_UPDT_PNTTM
+		         ,  LAST_UPDUSR_ID
+		         )
+		    VALUES
+		         (  #clCode#
+		         ,  #clCodeNm#
+		         ,  #clCodeDc#
+		         ,  #useAt#
+		         ,  sysdate
+		         ,  #frstRegisterId#
+		         ,  sysdate
+		         ,  #frstRegisterId#
+		         )
+		]]>
+	</insert>
+
+	<update id="CmmClCodeManageDAO.updateCmmClCode">
+		<![CDATA[
+            UPDATE  common_class_code
+               SET  CL_CODE_NM        = #clCodeNm#
+                 ,  CL_CODE_DC        = #clCodeDc#
+                 ,  USE_AT            = #useAt#
+                 ,  LAST_UPDT_PNTTM = sysdate
+                 ,  LAST_UPDUSR_ID    = #lastUpdusrId#
+             WHERE  CL_CODE           = #clCode#
+		]]>
+	</update>
+
+	<delete id="CmmClCodeManageDAO.deleteCmmClCode">
+		<![CDATA[
+		   DELETE FROM common_class_code
+			WHERE CL_CODE = #clCode#
+		]]>
+	</delete>	
+	
+	<insert id="CmmCodeManageDAO.insertCmmDetailCode">
+		<![CDATA[
+		    INSERT
+		      INTO  common_detail_code
+		         (  CODE_ID
+		         ,  CODE
+		         ,  CODE_NM
+		         ,  CODE_DC
+		         ,  CODE_ORDR
+		         ,  USE_AT
+		         ,  FRST_REGIST_PNTTM
+		         ,  FRST_REGISTER_ID
+		         ,  LAST_UPDT_PNTTM
+		         ,  LAST_UPDUSR_ID
+		         )
+		    VALUES
+		         (  #codeId#
+		         ,  #code#
+		         ,  #codeNm#
+		         ,  #codeDc#
+		         ,  #codeOrdr#
+		         ,  #useAt#
+		         ,  sysdate
+		         ,  #frstRegisterId#
+		         ,  sysdate
+		         ,  #frstRegisterId#
+		         )
+		]]>
+	</insert>
+
+	<update id="CmmCodeManageDAO.updateCmmDetailCode">
+		<![CDATA[
+            UPDATE  common_detail_code
+               SET  CODE_NM           = #codeNm#
+                 ,  CODE_DC           = #codeDc#
+                 ,  USE_AT            = #useAt#
+                 ,  LAST_UPDT_PNTTM = sysdate
+                 ,  LAST_UPDUSR_ID    = #lastUpdusrId#
+             WHERE  CODE_ID   = #codeId#
+               AND  CODE      = #code#
+		]]>
+	</update>
+	
+	<update id="CmmCodeManageDAO.updateCmmDetailCodeOrdr">
+		<![CDATA[
+            UPDATE  common_detail_code
+               SET  CODE_ORDR           = #codeOrdr#
+                 ,  LAST_UPDT_PNTTM = sysdate
+                 ,  LAST_UPDUSR_ID    = #lastUpdusrId#
+             WHERE  CODE_ID   = #codeId#
+               AND  CODE      = #code#
+		]]>
+	</update>	
+
+	<delete id="CmmCodeManageDAO.deleteCmmDetailCode">
+		<![CDATA[
+            DELETE FROM common_detail_code
+             WHERE  CODE_ID   = #codeId#
+               AND  CODE      = #code#
+		]]>
+	</delete>
+
+	<!-- 추가 -->
+
+	<select id="CmmCodeManageDAO.selectCmmClCode" parameterClass="CmmCodeVO" resultClass="CmmCodeVO">
+		<![CDATA[
+            SELECT  CL_CODE_NM commCdNm
+                 ,  CL_CODE    commCd               
+                 ,  USE_AT     useAt
+			  FROM  common_class_code B  			     
+			 WHERE  CL_CODE = #codeClCd#
+		]]>
+	</select>	
+
+	<select id="CmmCodeManageDAO.selectCmmCode" parameterClass="CmmCodeVO" resultClass="CmmCodeVO">
+		<![CDATA[
+            SELECT  
+                    A.CODE_ID    commCd
+			     ,  A.CODE_ID_NM commCdNm
+                 ,  A.USE_AT     useAt
+			  FROM  common_code   A
+			     ,  common_class_code B
+			 WHERE  A.CL_CODE = B.CL_CODE
+               AND  A.CODE_ID = #codeId#
+		]]>
+	</select>
+	
+	<update id="CmmCodeManageDAO.updateCmmCodeOrdr">
+		<![CDATA[
+            UPDATE  common_code
+               SET  CODE_ORDR           = #codeOrdr#
+                 ,  LAST_UPDT_PNTTM 	= sysdate
+                 ,  LAST_UPDUSR_ID    	= #lastUpdusrId#
+             WHERE  CODE_ID   			= #codeId#
+		]]>
+	</update>	
+
+</sqlMap>

@@ -1,0 +1,47 @@
+@charset "euc-kr";
+/* 관리자 상단 */
+#gt_top { position:relative; width:100%; height:81px; background:url(../GTMS/images/gtm/top_bg.gif) repeat-x; }
+#gt_top h1 { position:absolute; left:17px; top:12px; }
+#gt_top .user { position:absolute; top:17px; left:520px; line-height:120%; }
+#gt_top .sidemenu { position:absolute; left:818px; top:16px; }
+#gt_top .sidemenu li { float:left; padding-left:18px; line-height:130%; display:inline-block;  }
+#gt_top .sidemenu li.sm1 { width:85px; background:url(../GTMS/images/gtm/sidemenu_icon1.gif) no-repeat; }
+#gt_top .sidemenu li.sm2 { background:url(../GTMS/images/gtm/sidemenu_icon2.gif) no-repeat; }
+#gt_top .sidemenu li a:link,
+#gt_top .sidemenu li a:visited { color:#5d81c9; text-decoration:none; }
+#gt_top .sidemenu li a:active, 
+#gt_top .sidemenu li a:focus, 
+#gt_top .sidemenu li a:hover { color:#06c; }
+#gt_top #menu { position:absolute; left:15px; top:44px; }
+#gt_top #menu li { float:left; width:108px; height:37px; }
+#gt_top #menu li a:link, 
+#gt_top #menu li a:visited { width:108px; height:37px; padding-top:13px; font-weight:bold; background:url(../GTMS/images/gtm/menu_off.gif) no-repeat; display:inline-block; text-decoration:none; color:#ccc; text-align:center;  }
+#gt_top #menu li a:active,
+#gt_top #menu li a:focus,
+#gt_top #menu li a:hover,
+#gt_top #menu li a.select { width:108px; height:37px; background:url(../GTMS/images/gtm/menu_on.gif) no-repeat; display:inline-block; text-decoration:none; color:#fff; }
+/* 관리자 좌측메뉴 */
+body.left_box { background:url(../GTMS/images/gtm/gtleft_bg.gif) repeat-y; }
+#gt_left h1 { padding:20px 0 0 14px;}
+#gt_left .left_1depth { margin:5px 0 0 15px; width:173px; list-style:none;}
+#gt_left .left_1depth li { border-bottom:1px solid #ccc; background:url(../GTMS/images/gtm/submenu_blt1.gif) no-repeat 5px 8px; padding:9px 0 6px 23px;}
+#gt_left .left_2depth { margin:6px 0 0 -23px; list-style:none;}
+#gt_left .left_2depth li { border-top:1px dashed #ddd; border-bottom:none; background:url(../GTMS/images/gtm/submenu_blt2.gif) no-repeat 23px 9px; padding:8px 0 5px 36px;}
+#gt_left a:link,
+#gt_left a:visited { color:#666; text-decoration:none;}
+#gt_left a:active,
+#gt_left a:focus,
+#gt_left a:hover,
+#gt_left a.select { color:#0066FF; text-decoration:none; font-weight:bold;}
+.slk { color:#0066FF; text-decoration:underline; font-weight:bold; }
+/* 인트로 */
+.introimg { margin:80px 0 0 30px; }
+/* 본문관련 */
+.gtwrap { width:757px; margin:28px 0 0 30px; }
+.gtwrap .pagetitle { width:738px; height:20px; padding-left:18px; border-bottom:1px solid #999; font:bold 15px gulim; background:url(../GTMS/images/gtm/pagetitle_blt.gif) no-repeat 5px 5px; color:#113d8e; line-height:120%; display:block; margin-bottom:30px; }
+.gtwrap .gtcontent { width:737px; line-height:120%; margin:0 auto; }
+/* 관리자 관리 권한 */
+.pgm_auth li { float:left; width:150px; margin:0 5px; display:inline; }
+.pgm_auth li .pgm { padding:3px; margin-bottom:7px;}
+.input_txt{font-size:12px; border-right: #d8d8d8 1px solid; padding-right: 3px; border-top: #9a9a9a 1px solid; padding-left: 3px; padding-bottom: 1px; border-left: #9a9a9a 1px solid; color: #232323; padding-top:1px; border-bottom: #d8d8d8 1px solid;}
+.input_active {background:#F4FAFF;}

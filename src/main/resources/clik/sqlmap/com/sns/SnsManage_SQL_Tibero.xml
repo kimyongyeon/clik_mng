@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SnsStat">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="comDefaultVO" type="clikmng.nanet.go.kr.cmm.ComDefaultVO"/>
+	<typeAlias  alias="snsManageVO" type="clikmng.nanet.go.kr.sns.service.SnsManageVO" />
+	<typeAlias  alias="snsVO" type="clikmng.nanet.go.kr.sns.service.SnsVO" />	
+
+	<!-- ::ResultMap 선언 -->
+	<resultMap id="SnsManageVOs" class="clikmng.nanet.go.kr.sns.service.SnsManageVO">
+		<result property="snsSeCode" 			column="SNS_SE_CODE"			columnIndex="1"/>
+		<result property="snsAcntId" 			column="SNS_ACNT_ID" 			columnIndex="2"/>
+		<result property="useAt" 				column="USE_AT" 				columnIndex="3"/>
+		<result property="snsSeCodeNm" 			column="SNS_SE_CODENM" 			columnIndex="4"/>
+		<result property="asembyNm" 			column="ASEMBY_NM" 				columnIndex="5"/>
+	</resultMap>
+	
+	<!-- SNS 소통센터관리::목록조회 게시물정보 -->
+	<select id="SnsManage.selectSnsManage" parameterClass="snsManageVO" resultClass="snsManageVO">
+	<![CDATA[
+	SELECT *
+	FROM (
+	SELECT T0.*, ROWNUM RNUM
+		FROM (
+		SELECT
+			B.CODE_NM AS snsSeCodeNm,
+			A.SNS_SE_CODE AS snsSeCode,
+			A.SNS_ACNT_ID AS snsAcntId,
+			A.USE_AT AS useAt,			
+			A.DEL_AT AS delAt,
+			A.ASEMBY_NM AS asembyNm
+		FROM sns_center_user A, 
+		     common_detail_code B     
+		WHERE 1=1
+		AND NVL(A.DEL_AT,'N') = 'N'
+		AND A.SNS_SE_CODE = B.CODE(+)
+		AND B.CODE_ID(+) = 'RKS009'
+	]]>
+	<isNotEmpty property="snsSeCode" >
+		AND A.SNS_SE_CODE = #snsSeCode#
+	</isNotEmpty>
+	<isNotEmpty property="searchKeyword">
+		<isEqual property="searchCondition" compareValue="SNS_ID">
+		AND SNS_ACNT_ID LIKE '%' || #searchKeyword# || '%'
+		</isEqual>
+		<isEqual property="searchCondition" compareValue="ASEMBY_NM">
+		AND A.ASEMBY_NM LIKE '%' || #searchKeyword# || '%'
+		</isEqual>
+		<isEmpty property="searchCondition">
+		AND (SNS_ACNT_ID LIKE '%' || #searchKeyword# || '%'
+			OR A.ASEMBY_NM LIKE '%' || #searchKeyword# || '%')
+		</isEmpty>
+	</isNotEmpty>	 	
+	<isNotEmpty property="useAt" >
+		AND NVL(A.USE_AT,'Y') = #useAt#
+ 	</isNotEmpty>
+	<isNotEmpty property="searchSort" >
+		ORDER BY $searchSort$
+ 	</isNotEmpty>
+	<![CDATA[
+		) T0
+	)		
+		WHERE RNUM BETWEEN #firstIndex# + 1 AND #firstIndex# + #recordCountPerPage#
+	]]>
+	</select>
+
+
+	
+	<!-- SNS 소통센터관리::목록조회_게시물 총갯수  -->
+	<select id="SnsManage.selectSnsManageCnt" parameterClass="snsManageVO" resultClass="int">
+	<![CDATA[
+		SELECT COUNT(*) totcnt
+		  FROM sns_center_user A, 
+		       common_detail_code B   
+		 WHERE 1=1
+			AND NVL(A.DEL_AT,'N') = 'N'
+			AND A.SNS_SE_CODE = B.CODE(+)
+			AND B.CODE_ID(+) = 'RKS009'
+	 ]]>
+	<isNotEmpty property="snsSeCode" >
+		AND A.SNS_SE_CODE = #snsSeCode#
+	</isNotEmpty>
+	<isNotEmpty property="searchKeyword">
+		<isEqual property="searchCondition" compareValue="SNS_ID">
+		AND SNS_ACNT_ID LIKE '%' || #searchKeyword# || '%'
+		</isEqual>
+		<isEqual property="searchCondition" compareValue="ASEMBY_NM">
+		AND A.ASEMBY_NM LIKE '%' || #searchKeyword# || '%'
+		</isEqual>
+		<isEmpty property="searchCondition">
+		AND (SNS_ACNT_ID LIKE '%' || #searchKeyword# || '%'
+			OR A.ASEMBY_NM LIKE '%' || #searchKeyword# || '%')
+		</isEmpty>
+	</isNotEmpty>	 	
+	<isNotEmpty property="useAt" >
+		AND NVL(A.USE_AT,'Y') = #useAt#
+ 	</isNotEmpty>
+	</select>
+	
+	<!-- sns 소통센터관리::입력  -->
+	<insert id="SnsManage.insertSnsManage">
+	 <![CDATA[
+
+	INSERT INTO sns_center_user (
+		SNS_SE_CODE,
+		SNS_ACNT_ID,
+		ASEMBY_NM,
+		USE_AT,
+		DEL_AT,
+		FRST_REGISTER_ID,
+		FRST_REGIST_PNTTM,
+		LAST_UPDUSR_ID,
+		LAST_UPDT_PNTTM
+	)VALUES(
+		#snsSeCode#,
+		#snsAcntId#,
+		#asembyNm#,
+		#useAt#,
+		'N',
+		/* PKG_OBFUS.ENCRYPT(frstRegisterId,'NAEODOCZ'), */
+		#frstRegisterId#,
+		sysdate,
+		/* PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ'), */
+		#lastUpdusrId#,
+		sysdate
+		)
+	 ]]>
+	</insert>	
+	
+	<!-- SNS 소통센터관리::SNS코드 목록 -->
+<!-- 	
+	<select id="SnsManage.selectSnsCodeList" resultClass="egovMap">
+		SELECT
+			CASE A.SNS_SE_CODE
+			WHEN 'FB' THEN 'FACEBOOK'
+			WHEN 'TW' THEN 'TWITTER'
+			END AS SNS_SE_CODE
+		FROM sns_center_user A
+	</select>
+ -->	
+ 
+ 	<!-- SNS 소통센터 상세보기 -->
+ 	<select id="SnsManage.selectSnsDetail" resultMap="SnsManageVOs">
+		SELECT
+			(
+			SELECT CODE_NM
+			  FROM common_detail_code
+			 WHERE CODE_ID = 'RKS009'
+			   AND CODE = A.SNS_SE_CODE
+			   AND USE_AT = 'Y'
+			) AS SNS_SE_CODENM,
+			A.SNS_SE_CODE,
+			A.SNS_ACNT_ID,
+			A.USE_AT,
+			A.ASEMBY_NM
+		FROM sns_center_user A
+		WHERE 1=1
+		  AND SNS_SE_CODE = #snsSeCode#
+		  AND SNS_ACNT_ID = #snsAcntId#
+ 	</select>
+ 	
+	<!-- SNS 소통센터관리::삭제  -->
+	<update id="SnsManage.deleteSnsManage" parameterClass="snsManageVO">
+	 <![CDATA[
+		UPDATE sns_center_user
+		   SET DEL_AT= 'Y'
+		 WHERE SNS_SE_CODE = #snsSeCode#
+		   AND SNS_ACNT_ID = #snsAcntId#
+	 ]]>
+	</update> 	
+	
+	<!-- SNS 소통센터관리::수정  -->
+	<update id="SnsManage.updtSnsManage" parameterClass="snsManageVO">
+	 <![CDATA[
+		UPDATE sns_center_user
+		   SET SNS_ACNT_ID = #newSnsAcntId#
+		       , USE_AT = #useAt#
+		       , ASEMBY_NM = #asembyNm#
+			   /* , LAST_UPDUSR_ID = PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ') */
+			   , LAST_UPDUSR_ID = #lastUpdusrId#
+			   , LAST_UPDT_PNTTM = sysdate	       
+		 WHERE SNS_SE_CODE = #snsSeCode#
+		   AND SNS_ACNT_ID = #snsAcntId#
+	 ]]>
+	</update>
+	
+	<!-- SNS 최신글::등록 -->
+	<insert id="SnsManage.insertSnsNbc" parameterClass="snsVO">
+		<![CDATA[
+			INSERT INTO sns_center_message
+				(SNS_SE_CODE, SNS_ACNT_ID, NBC, FRST_REGIST_PNTTM, NBC_LINK)
+			VALUES
+				(#sns_se_code#, #sns_acnt_id#, #nbc#, SYSDATE, #nbc_link#)
+		]]>
+	</insert>
+	
+	<!-- SNS 최신글::삭제 -->
+	<update id="SnsManage.deleteSnsNbc" parameterClass="snsVO">
+		<![CDATA[
+			DELETE FROM sns_center_message
+			WHERE	SNS_SE_CODE = #sns_se_code#
+					AND SNS_ACNT_ID = #sns_acnt_id#
+		]]>
+	</update>
+	
+	<!-- SNS 사용여부 수정-->
+	<update id="SnsManage.updateSnsUseAt" parameterClass="snsManageVO">
+		<![CDATA[
+			UPDATE		sns_center_user
+				  SET		USE_AT = #useAt#
+			 WHERE		SNS_ACNT_ID = #snsAcntId#
+		]]>
+	</update>
+	
+	
+</sqlMap>

@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="MobManage">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="UseLogSummaryVO" type="clikmng.nanet.go.kr.sts.stm.service.UseLogSummaryVO"/>	
+	<typeAlias  alias="MobManageSearchVO" type="clikmng.nanet.go.kr.mob.service.MobManageDefaultVO"/>
+	<typeAlias  alias="MobVO" type="clikmng.nanet.go.kr.mob.service.MobManageVO"/>
+	<typeAlias  alias="MobileLogVO" type="clikmng.nanet.go.kr.mob.service.MobileLogVO"/>
+	
+	
+	<!-- 의견보내기 정보 조회::목록조회 게시물정보 -->
+	<select id="MobManageDAO.selectMobOnsList" parameterClass="MobVO" resultClass="MobVO">
+<![CDATA[
+			SELECT 	*
+			FROM (
+				SELECT 	T0.*, ROWNUM RNUM
+				FROM (
+				
+					SELECT 	SEQ AS seq
+							, USER_ID AS userId
+							, USER_CLASS AS userClass
+							, OPINION_CN AS opinionCn
+							, TO_CHAR(FRST_REGISTER_PNTTM, 'YYYY-MM-DD') AS regDate
+		  			FROM 	remark_send
+		 			WHERE 	1 = 1		
+	 	]]>
+					<isNotEmpty property="searchKeyword">
+					 	<isNotEqual property="searchKeyword" compareValue="">
+							<isEqual property="searchCondition" compareValue="selUser">
+								<![CDATA[
+									AND USER_ID LIKE '%' || #searchKeyword# || '%'
+								]]>
+							</isEqual>
+							<isEqual property="searchCondition" compareValue="selCn">
+								<![CDATA[
+									AND OPINION_CN LIKE '%' || #searchKeyword# || '%'
+								]]>
+							</isEqual>
+							<isEqual property="searchCondition" compareValue="0">
+								<![CDATA[
+									AND (USER_ID LIKE '%' || #searchKeyword# || '%' OR OPINION_CN LIKE '%' || #searchKeyword# || '%')
+								]]>
+							</isEqual>		
+					 	</isNotEqual>
+					</isNotEmpty>
+					<isNotEmpty property="schDt1">
+						<![CDATA[	AND TO_CHAR(FRST_REGISTER_PNTTM, 'YYYYMMDD') >= REPLACE(#schDt1#, '-', '') ]]>
+					</isNotEmpty>
+					<isNotEmpty property="schDt2">
+						<![CDATA[	AND TO_CHAR(FRST_REGISTER_PNTTM, 'YYYYMMDD') <= REPLACE(#schDt2#, '-', '') ]]>			
+					</isNotEmpty>
+		<![CDATA[
+				ORDER BY FRST_REGISTER_PNTTM DESC
+		
+				) T0
+			)		
+			WHERE RNUM BETWEEN #firstIndex# + 1 AND #firstIndex# + #recordCountPerPage#
+		]]>
+</select>
+	
+	<!-- 의견보내기 정보 조회::목록조회 게시물정보 총갯수  -->
+	<select id="MobManageDAO.selectMobOnsListTotCnt" parameterClass="MobVO" resultClass="int">
+<![CDATA[
+			SELECT 	COUNT(*) totcnt
+ 			FROM 	remark_send
+			WHERE 	1 = 1		
+	 	]]>
+			<isNotEmpty property="searchKeyword">
+			 	<isNotEqual property="searchKeyword" compareValue="">
+					<isEqual property="searchCondition" compareValue="selUser">
+						<![CDATA[
+							AND USER_ID LIKE '%' || #searchKeyword# || '%'
+						]]>
+					</isEqual>
+					<isEqual property="searchCondition" compareValue="selCn">
+						<![CDATA[
+							AND OPINION_CN LIKE '%' || #searchKeyword# || '%'
+						]]>
+					</isEqual>
+					<isEqual property="searchCondition" compareValue="">
+						<![CDATA[
+							AND (USER_ID LIKE '%' || #searchKeyword# || '%' OR OPINION_CN LIKE '%' || #searchKeyword# || '%')
+						]]>
+					</isEqual>		
+			 	</isNotEqual>
+			</isNotEmpty>
+			<isNotEmpty property="schDt1">
+				<![CDATA[	AND TO_CHAR(FRST_REGISTER_PNTTM, 'YYYYMMDD') >= REPLACE(#schDt1#, '-', '') ]]>
+			</isNotEmpty>
+			<isNotEmpty property="schDt2">
+				<![CDATA[	AND TO_CHAR(FRST_REGISTER_PNTTM, 'YYYYMMDD') <= REPLACE(#schDt2#, '-', '') ]]>			
+			</isNotEmpty>
+</select>
+
+	<!-- 의견보내기::게시물 삭제 -->
+	<delete id="MobManageDAO.deleteMobOns" parameterClass="MobVO">
+		<![CDATA[
+			DELETE 
+			FROM 	remark_send
+			WHERE	SEQ 
+		]]>
+			<iterate prepend="IN" property="delSeqList" open="(" close=")" conjunction=",">
+				<![CDATA[
+ 					#delSeqList[]#
+ 				]]>
+			</iterate>
+	</delete>
+	
+	<!-- 자료이용통계 - 접속현황 -->
+	<select id="MobManageDAO.selectMobileVisitTotalCnt" parameterClass="mobManageSearchVO" resultClass="java.lang.String">
+	    SELECT
+			NVL(COUNT(SSLOG_ID),0) AS VISIT_TOTAL_CNT
+		FROM
+			LOG_SESSION_MOBILE
+		WHERE
+			LOGIN_DATE BETWEEN #schDt1# AND #schDt2#
+	</select>
+	
+	<!-- 모바일자료 이용통계 -->
+	<select id="MobManageDAO.selectDusList" parameterClass="mobManageSearchVO" resultClass="UseLogSummaryVO">
+		<![CDATA[
+			SELECT	NVL(b.CODE_ID,'SC_ALL') AS rasmblyDtaSeCode
+					, 'SC' AS logSeCode
+					, count(*) AS useCo
+			FROM	(SELECT	* 
+					FROM	LOG_SEARCH_MOBILE 
+					WHERE	1 = 1
+						AND DATA_TYPE = 'dl'
+						AND SEARCH_DATE BETWEEN #schDt1# AND #schDt2#
+					) a
+					LEFT JOIN
+					(SELECT * FROM COMMON_CODE WHERE CL_CODE = 'ELD' AND  USE_AT = 'Y') b
+					ON b.CODE_ID = (CASE WHEN INSTR(a.DATA_TYPE2, 'KDMT') != 0 THEN 'KDMT'
+									WHEN INSTR(a.DATA_TYPE2, 'KINX') != 0 OR INSTR(a.DATA_TYPE2, 'FINX') != 0 THEN 'AINX_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'MONO') != 0 OR INSTR(a.DATA_TYPE2, 'OLDP') != 0 OR INSTR(a.DATA_TYPE2, 'PAMP') != 0 OR INSTR(a.DATA_TYPE2, 'KRDB') != 0 THEN 'MONO_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'INET') != 0 THEN 'INET_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'SERL') != 0 OR INSTR(a.DATA_TYPE2, 'NEWS') != 0 THEN 'SERL_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'PROC') != 0 THEN 'PROC_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'REFD') != 0 THEN 'REFD_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'MULT') != 0 OR INSTR(a.DATA_TYPE2, 'MIFO') != 0 OR INSTR(a.DATA_TYPE2, 'MAPI') != 0 OR INSTR(a.DATA_TYPE2, 'ADBK') != 0 OR INSTR(a.DATA_TYPE2, 'CONT') != 0 OR INSTR(a.DATA_TYPE2, 'NONB') != 0 THEN 'NONB_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'EBOK') != 0 OR INSTR(a.DATA_TYPE2, 'WEDB') != 0 THEN 'ELEC_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'TLAW') != 0 THEN 'TLAW_ALL'
+									WHEN TRIM(a.DATA_TYPE2) = 'ALL' THEN 'ALL'
+									ELSE a.DATA_TYPE2 END)
+			GROUP BY b.CODE_ID
+			
+			UNION ALL
+			
+			SELECT	c.CODE_ID AS	rasmblyDtaSeCode
+					, 'DV' AS logSeCode
+					, count(*) AS useCo 
+			FROM	(SELECT	* 
+					FROM	LOG_SEARCH_DETAIL_MOBILE 
+					WHERE	1 = 1
+						AND DATA_TYPE = 'dl'
+						AND SEARCH_DATE BETWEEN #schDt1# AND #schDt2#
+					) a
+					LEFT JOIN
+					(SELECT * FROM COMMON_CODE WHERE CL_CODE = 'ELD' AND  USE_AT = 'Y') c
+					ON c.CODE_ID = (CASE WHEN INSTR(a.DATA_TYPE2, 'KDMT') != 0 THEN 'KDMT'
+									WHEN INSTR(a.DATA_TYPE2, 'KINX') != 0 OR INSTR(a.DATA_TYPE2, 'FINX') != 0 THEN 'AINX_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'MONO') != 0 OR INSTR(a.DATA_TYPE2, 'OLDP') != 0 OR INSTR(a.DATA_TYPE2, 'PAMP') != 0 OR INSTR(a.DATA_TYPE2, 'KRDB') != 0 THEN 'MONO_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'INET') != 0 THEN 'INET_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'SERL') != 0 OR INSTR(a.DATA_TYPE2, 'NEWS') != 0 THEN 'SERL_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'PROC') != 0 THEN 'PROC_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'REFD') != 0 THEN 'REFD_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'MULT') != 0 OR INSTR(a.DATA_TYPE2, 'MIFO') != 0 OR INSTR(a.DATA_TYPE2, 'MAPI') != 0 OR INSTR(a.DATA_TYPE2, 'ADBK') != 0 OR INSTR(a.DATA_TYPE2, 'CONT') != 0  OR INSTR(a.DATA_TYPE2, 'NONB') != 0 THEN 'NONB_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'EBOK') != 0 OR INSTR(a.DATA_TYPE2, 'WEDB') != 0 THEN 'ELEC_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'TLAW') != 0 THEN 'TLAW_ALL'
+									ELSE a.DATA_TYPE2 END)
+			GROUP BY c.CODE_ID	
+			
+			UNION ALL
+						
+			SELECT	c.CODE_ID AS	rasmblyDtaSeCode
+					, (CASE WHEN a.USE_TYPE = 'V' THEN 'OV'
+					WHEN a.USE_TYPE = 'D' THEN 'DL' END) AS logSeCode
+					, count(*) AS useCo 
+			FROM	(SELECT	* 
+					FROM	VIEWFREELOG_MOBILE
+					WHERE	1 = 1
+						AND DATA_TYPE = 'dl'
+						AND VIEW_DATE BETWEEN #schDt1# AND #schDt2#
+					) a
+					LEFT JOIN
+					(SELECT * FROM COMMON_CODE WHERE CL_CODE = 'ELD' AND  USE_AT = 'Y') c
+					ON c.CODE_ID = (CASE WHEN INSTR(a.DATA_TYPE2, 'KDMT') != 0 THEN 'KDMT'
+									WHEN INSTR(a.DATA_TYPE2, 'KINX') != 0 OR INSTR(a.DATA_TYPE2, 'FINX') != 0 THEN 'AINX_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'MONO') != 0 OR INSTR(a.DATA_TYPE2, 'OLDP') != 0 OR INSTR(a.DATA_TYPE2, 'PAMP') != 0 OR INSTR(a.DATA_TYPE2, 'KRDB') != 0 THEN 'MONO_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'INET') != 0 THEN 'INET_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'SERL') != 0 OR INSTR(a.DATA_TYPE2, 'NEWS') != 0 THEN 'SERL_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'PROC') != 0 THEN 'PROC_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'REFD') != 0 THEN 'REFD_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'MULT') != 0 OR INSTR(a.DATA_TYPE2, 'MIFO') != 0 OR INSTR(a.DATA_TYPE2, 'MAPI') != 0 OR INSTR(a.DATA_TYPE2, 'ADBK') != 0 OR INSTR(a.DATA_TYPE2, 'CONT') != 0 OR INSTR(a.DATA_TYPE2, 'NONB') != 0 THEN 'NONB_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'EBOK') != 0 OR INSTR(a.DATA_TYPE2, 'WEDB') != 0 THEN 'ELEC_ALL'
+									WHEN INSTR(a.DATA_TYPE2, 'TLAW') != 0 THEN 'TLAW_ALL'
+									ELSE a.DATA_TYPE2 END)
+			GROUP BY c.CODE_ID, a.USE_TYPE
+		]]>
+	</select>
+	
+	<!-- 모바일자료 이용통계(월별) -->
+	<select id="MobManageDAO.selectMonDusList" parameterClass="mobManageSearchVO" resultClass="UseLogSummaryVO">
+		<![CDATA[
+			SELECT	data.USE_DATE
+					, NVL(MAX(DECODE(data.logSeCode, 'SS', data.useCo)), '0') AS SS
+					, NVL(MAX(DECODE(data.logSeCode, 'SC', data.useCo)), '0') AS SC
+					, NVL(MAX(DECODE(data.logSeCode, 'DV', data.useCo)), '0') AS DV
+					, NVL(MAX(DECODE(data.logSeCode, 'OV', data.useCo)), '0') AS OV
+					, NVL(MAX(DECODE(data.logSeCode, 'DL', data.useCo)), '0') AS DL
+			FROM	(
+					SELECT	LOGIN_DATE AS USE_DATE
+							, 'SS' AS logSeCode
+							, NVL(COUNT(SSLOG_ID),0) AS useCo
+					FROM 	(SELECT	SUBSTR(LOGIN_DATE, 1, 7) AS LOGIN_DATE
+									, SSLOG_ID
+							FROM 	LOG_SESSION_MOBILE
+							WHERE 	1 = 1
+									AND LOGIN_DATE BETWEEN #schDt1# AND #schDt2#
+							)	
+					GROUP BY LOGIN_DATE
+				
+					UNION ALL			
+							
+					SELECT	SEARCH_DATE AS USE_DATE
+							, 'SC' AS logSeCode
+							, count(*) AS useCo
+					FROM	(SELECT	SUBSTR(SEARCH_DATE, 1, 7) AS SEARCH_DATE
+							FROM	LOG_SEARCH_MOBILE 
+							WHERE	1 = 1
+								AND DATA_TYPE = 'dl'
+								AND SEARCH_DATE BETWEEN #schDt1# AND #schDt2#
+							)
+					GROUP BY SEARCH_DATE
+					
+					UNION ALL
+					
+					SELECT	SEARCH_DATE AS USE_DATE
+							, 'DV' AS logSeCode
+							, count(*) AS useCo 
+					FROM	(SELECT	SUBSTR(SEARCH_DATE, 1, 7) AS SEARCH_DATE
+							FROM	LOG_SEARCH_DETAIL_MOBILE 
+							WHERE	1 = 1
+								AND DATA_TYPE = 'dl'
+								AND SEARCH_DATE BETWEEN #schDt1# AND #schDt2#
+							)
+					GROUP BY SEARCH_DATE	
+					
+					UNION ALL
+								
+					SELECT	VIEW_DATE AS USE_DATE
+							, (CASE WHEN USE_TYPE = 'V' THEN 'OV'
+							WHEN USE_TYPE = 'D' THEN 'DL' END) AS logSeCode
+							, count(*) AS useCo 
+					FROM	(SELECT	SUBSTR(VIEW_DATE, 1, 7) AS VIEW_DATE, USE_TYPE
+							FROM	VIEWFREELOG_MOBILE
+							WHERE	1 = 1
+								AND DATA_TYPE = 'dl'
+								AND VIEW_DATE BETWEEN #schDt1# AND #schDt2#
+							)
+					GROUP BY VIEW_DATE, USE_TYPE
+					) data
+			GROUP BY data.USE_DATE
+			ORDER BY data.USE_DATE ASC
+		]]>
+	</select>
+	
+	<!-- 모바일 이용현황 - 누적 -->
+	<select id="MobManageDAO.selectMusSumList" parameterClass="mobManageSearchVO" resultClass="MobileLogVO">
+		<![CDATA[
+			SELECT		APP_OS 			AS appOs
+						, LOG_SE_CODE	AS logSeCode
+						, COUNT(*) 		AS cnt
+			FROM 		MDL_LOG
+		
+			WHERE		CREAT_DT BETWEEN TO_DATE(#schDt1# || '000000', 'YYYY-MM-DD HH24:MI:SS') AND TO_DATE(#schDt2# || '235959', 'YYYY-MM-DD HH24:MI:SS')
+			
+			GROUP BY	APP_OS, LOG_SE_CODE
+		]]>
+	</select>	
+	
+	<!-- 모바일 이용현황-->
+	<select id="MobManageDAO.selectMusList" parameterClass="mobManageSearchVO" resultClass="MobileLogVO">
+		<![CDATA[
+			SELECT	data.creatDt
+					, NVL(SUM(DECODE(data.logSeCode||'_'||data.appOs, 'FR_ios', data.cnt)), '0') AS FR_ios
+					, NVL(SUM(DECODE(data.logSeCode||'_'||data.appOs, 'FR_android', data.cnt)), '0') AS FR_android
+					, NVL(SUM(DECODE(data.logSeCode||'_'||data.appOs, 'NR_ios', data.cnt)), '0') AS NR_ios
+					, NVL(SUM(DECODE(data.logSeCode||'_'||data.appOs, 'NR_android', data.cnt)), '0') AS NR_android
+			FROM
+			(
+				SELECT
+		]]>
+		
+					<isEqual property="searchCondition" compareValue="term">
+						<![CDATA[
+							CREAT_DT		AS	creatDt
+						]]>
+					</isEqual>
+					<isEqual property="searchCondition" compareValue="month">
+						<![CDATA[
+							SUBSTR(CREAT_DT, 1, 6)		AS	creatDt
+						]]>
+					</isEqual>
+		<![CDATA[
+					,		LOG_SE_CODE		AS	logSeCode
+					,		APP_OS			AS	appOs
+					,		COUNT(*)		AS	cnt
+				FROM (	
+					SELECT		TO_CHAR(CREAT_DT, 'YYYYMMDD') AS CREAT_DT
+						,		LOG_SE_CODE
+						,		APP_OS
+					FROM 		MDL_LOG
+					WHERE LOG_SE_CODE = 'FR'
+				) A
+				WHERE		1 = 1
+							AND CREAT_DT BETWEEN TO_DATE(#schDt1# || '000000', 'YYYY-MM-DD HH24:MI:SS') AND TO_DATE(#schDt2# || '235959', 'YYYY-MM-DD HH24:MI:SS')
+				GROUP BY	CREAT_DT , LOG_SE_CODE , APP_OS
+			) data
+			GROUP BY data.creatDt
+			ORDER BY data.creatDt ASC
+		]]>
+	</select>	
+	
+</sqlMap>

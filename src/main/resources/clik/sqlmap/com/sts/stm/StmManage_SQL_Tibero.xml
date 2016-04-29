@@ -1,0 +1,1712 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="StmManage">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="UseLogSummaryVO" type="clikmng.nanet.go.kr.sts.stm.service.UseLogSummaryVO"/>	
+	<typeAlias  alias="stmManageDefaultVO" type="clikmng.nanet.go.kr.sts.stm.service.StmManageDefaultVO"/>
+	<typeAlias  alias="osLogSummaryVO" type="clikmng.nanet.go.kr.sts.stm.service.OSLogSummaryVO"/>	
+	<typeAlias  alias="wbsrLogSummaryVO" type="clikmng.nanet.go.kr.sts.stm.service.WbsrLogSummaryVO"/>
+	<typeAlias  alias="hourLogSummaryVO" type="clikmng.nanet.go.kr.sts.stm.service.HourLogSummaryVO"/>
+	<typeAlias  alias="dtaUseLogSummaryVO" type="clikmng.nanet.go.kr.sts.stm.service.DtaUseLogSummaryVO"/>
+	<typeAlias  alias="stmInfoMngVO" type="clikmng.nanet.go.kr.sts.stm.service.StmInfoMngVO"/>
+	<typeAlias  alias="uvsLogSummaryVO" type="clikmng.nanet.go.kr.sts.stm.service.UvsLogSummaryVO"/>
+
+	
+	<!-- 자료 이용 통계 -->
+	<select id="stmManageDAO.selectUseLogList" parameterClass="UseLogSummaryVO" resultClass="UseLogSummaryVO">
+		<![CDATA[
+
+			SELECT	MENU_NO		AS	menuNo 
+				, 	MENU_NM		as	menuNm
+				,	MENU_LEVEL	as	menuLevel
+			FROM menu_info
+			WHERE MENU_LEVEL > 0 AND MENU_CL_CODE = 'CLIK'	
+			START WITH MENU_NO = 0
+			CONNECT BY NOCYCLE PRIOR MENU_NO = UPPER_MENU_NO 
+
+			]]>
+	</select>
+
+	
+	<!-- 자료 이용 통계 -->
+	<select id="stmManageDAO.selectUseLogList1" parameterClass="UseLogSummaryVO" resultClass="UseLogSummaryVO">
+		<![CDATA[
+				SELECT		DTA_USE_LOG_SUMRY_ID		AS dtaUseLogSumryId
+						,		YEAR											AS year
+						,		MT											AS mt
+						,		DE											AS de
+						,		LOG_SE_CODE							AS logSeCode	
+						,		MENU_SCLAS_CODE					AS menuSclasCode
+						,		USE_CO									AS useCo
+				FROM 		log_datalog
+		 		WHERE 		1=1				
+	 <isNotEmpty property="searchKeyword">
+	 	<isNotEqual property="searchKeyword" compareValue="">
+			<isEqual property="searchCondition" compareValue="searchPeriod">
+				AND YEAR = #searchKeyword#
+			</isEqual>
+			<isEqual property="searchCondition" compareValue="searchLogSeCode">
+				AND LOG_SE_CODE LIKE '%' || #searchKeyword# || '%'
+			</isEqual>			
+	 	</isNotEqual>
+	 </isNotEmpty>
+			]]>
+	</select>
+	
+
+	<!-- 자료 이용 통계 - 의회별 -->
+	<select id="stmManageDAO.selectDusList" parameterClass="UseLogSummaryVO" resultClass="UseLogSummaryVO">
+		<![CDATA[
+			SELECT	c.CODE AS	rasmblyDtaSeCode
+					, 'DV' AS logSeCode
+					, count(*) AS useCo 
+			FROM	(SELECT	* 
+					FROM	LOG_SEARCH_DETAIL 
+					WHERE	1 = 1
+					AND REPLACE(SEARCH_DATE,'-','') BETWEEN #schDt1# AND #schDt2#
+		]]>
+					<isEqual property="searchCondition" compareValue="L">
+						<![CDATA[
+						AND USER_ORG_ID IS NOT NULL
+						]]>
+						
+						<isNotEmpty property="searchPsitn">
+							<![CDATA[
+							AND USER_ORG_ID = #searchPsitn#			/*지방의회*/
+							]]>
+						</isNotEmpty>
+					</isEqual>
+		<![CDATA[				
+					) a
+					LEFT JOIN 
+					(SELECT	*
+					FROM 	ORGAN
+					WHERE 	1 = 1
+		]]>	
+					<isEqual property="searchCondition" compareValue="L">
+						<isNotEmpty property="searchInsttType">
+							<![CDATA[
+							AND INSTT_CL_CODE = #searchInsttType#	/*기관유형*/
+							]]>
+						</isNotEmpty>
+		
+						<isNotEmpty property="searchRegion">
+							<![CDATA[
+							AND BRTC_CODE = #searchRegion#			/*지역*/
+							]]>
+						</isNotEmpty>
+					</isEqual>
+		<![CDATA[	
+					) b
+					ON a.USER_ORG_ID = b.LOASM_CODE
+					LEFT JOIN
+					(SELECT * FROM common_detail_code WHERE CODE_ID LIKE 'RDC'||'%') c 
+					ON c.CODE = (CASE WHEN a.DATA_TYPE = 'dl' THEN 
+									(CASE WHEN a.DATA_TYPE2 = 'OLDP' THEN 'MONO'
+										WHEN a.DATA_TYPE2 = 'PAMP' THEN 'MONO'
+										WHEN a.DATA_TYPE2 = 'KRDB' THEN 'MONO'
+										WHEN a.DATA_TYPE2 = 'KINX' THEN 'AINX'
+										WHEN a.DATA_TYPE2 = 'FINX' THEN 'AINX'
+										WHEN a.DATA_TYPE2 = 'NEWS' THEN 'SERL'
+										WHEN a.DATA_TYPE2 = 'MULT' THEN 'NONB'
+										WHEN a.DATA_TYPE2 = 'MIFO' THEN 'NONB'
+										WHEN a.DATA_TYPE2 = 'MAPI' THEN 'NONB'
+										WHEN a.DATA_TYPE2 = 'ADBK' THEN 'NONB'
+										ELSE a.DATA_TYPE2 END) || '_ALL'
+								WHEN a.DATA_TYPE = 'law' THEN 'LAW'
+								ELSE a.DATA_TYPE2 END)
+								
+			GROUP BY c.CODE
+			
+			UNION ALL
+			
+			SELECT	
+					c.CODE AS	rasmblyDtaSeCode
+					, (CASE WHEN a.USE_TYPE = 'V' THEN 'OV'
+					WHEN a.USE_TYPE = 'D' THEN 'DL' END) AS logSeCode
+					, count(*) AS useCo 
+			FROM	(SELECT	* 
+					FROM	VIEWFREELOG 
+					WHERE	1 = 1
+					AND REPLACE(VIEW_DATE,'-','') BETWEEN #schDt1# AND #schDt2#
+		]]>	
+					<isEqual property="searchCondition" compareValue="L">
+						<![CDATA[
+						AND USER_ORG_ID IS NOT NULL
+						]]>
+						
+						<isNotEmpty property="searchPsitn">
+							<![CDATA[
+							AND USER_ORG_ID = #searchPsitn#			/*지방의회*/
+							]]>
+						</isNotEmpty>
+					</isEqual>
+		<![CDATA[			
+					) a
+					LEFT JOIN 
+					(SELECT	*
+					FROM 	ORGAN
+					WHERE 	1 = 1
+		]]>	
+					<isEqual property="searchCondition" compareValue="L">
+						<isNotEmpty property="searchInsttType">
+							<![CDATA[
+							AND INSTT_CL_CODE = #searchInsttType#	/*기관유형*/
+							]]>
+						</isNotEmpty>
+		
+						<isNotEmpty property="searchRegion">
+							<![CDATA[
+							AND BRTC_CODE = #searchRegion#			/*지역*/
+							]]>
+						</isNotEmpty>
+					</isEqual>
+		<![CDATA[	
+					) b
+					ON a.USER_ORG_ID = b.LOASM_CODE
+					LEFT JOIN
+					(SELECT * FROM common_detail_code WHERE CODE_ID LIKE 'RDC'||'%') c 
+					ON c.CODE = (CASE WHEN a.DATA_TYPE = 'dl' THEN 
+									(CASE WHEN a.DATA_TYPE2 = 'OLDP' THEN 'MONO'
+										WHEN a.DATA_TYPE2 = 'PAMP' THEN 'MONO'
+										WHEN a.DATA_TYPE2 = 'KRDB' THEN 'MONO'
+										WHEN a.DATA_TYPE2 = 'KINX' THEN 'AINX'
+										WHEN a.DATA_TYPE2 = 'FINX' THEN 'AINX'
+										WHEN a.DATA_TYPE2 = 'NEWS' THEN 'SERL'
+										WHEN a.DATA_TYPE2 = 'MULT' THEN 'NONB'
+										WHEN a.DATA_TYPE2 = 'MIFO' THEN 'NONB'
+										WHEN a.DATA_TYPE2 = 'MAPI' THEN 'NONB'
+										WHEN a.DATA_TYPE2 = 'ADBK' THEN 'NONB'
+										ELSE a.DATA_TYPE2 END) || '_ALL'
+								WHEN a.DATA_TYPE = 'law' THEN 'LAW'
+								ELSE a.DATA_TYPE2 END)
+								
+			GROUP BY c.CODE, a.USE_TYPE
+		]]>
+		
+	</select>
+	
+	<!-- 자료 이용 통계 - 그룹별 -->
+	<select id="stmManageDAO.selectGrpDusList" parameterClass="UseLogSummaryVO" resultClass="UseLogSummaryVO">
+		<![CDATA[
+			SELECT 
+				data.code AS rasmblyDtaSeCode
+				, NVL(SUM(data.WAC001), '0') AS WAC001
+				, NVL(SUM(data.WAC002), '0') AS WAC002
+				, NVL(SUM(data.WAC003), '0') AS WAC003
+				, NVL(SUM(data.BAC001), '0') AS BAC001
+				, NVL(SUM(data.BAC002), '0') AS BAC002
+				, NVL(SUM(data.BAC003), '0') AS BAC003
+				, NVL(SUM(data.ASM), '0') AS ASM
+				, NVL(SUM(data.NOR), '0') AS NOR
+			FROM
+			(
+				/* 상세보기 */
+				(SELECT 
+					data1.DATA_TYPE2 AS code
+					, NVL(SUM(DECODE(data1.LOASM_TY_CODE || data1.CHARGE_SE_CODE, 'WAC001', data1.cnt)), '0') AS WAC001
+					, NVL(SUM(DECODE(data1.LOASM_TY_CODE || data1.CHARGE_SE_CODE, 'WAC002', data1.cnt)), '0') AS WAC002
+					, NVL(SUM(DECODE(data1.LOASM_TY_CODE || data1.CHARGE_SE_CODE, 'WAC003', data1.cnt)), '0') AS WAC003	
+					, NVL(SUM(DECODE(data1.LOASM_TY_CODE || data1.CHARGE_SE_CODE, 'BAC001', data1.cnt)), '0') AS BAC001
+					, NVL(SUM(DECODE(data1.LOASM_TY_CODE || data1.CHARGE_SE_CODE, 'BAC002', data1.cnt)), '0') AS BAC002
+					, NVL(SUM(DECODE(data1.LOASM_TY_CODE || data1.CHARGE_SE_CODE, 'BAC003', data1.cnt)), '0') AS BAC003
+					, NVL(SUM(DECODE(data1.LOASM_TY_CODE || data1.CHARGE_SE_CODE, '004', data1.cnt)), '0') AS ASM
+					, NVL(SUM(DECODE(data1.LOASM_TY_CODE || data1.CHARGE_SE_CODE, '000', data1.cnt)), '0') AS NOR
+				FROM
+				(
+					SELECT
+						(CASE WHEN NVL(a.CHARGE_SE_CODE, '000') = '000' THEN
+						 	(CASE WHEN a.CLASS1 = '0' THEN '000'
+						 	ELSE '004' END)
+						ELSE a.CHARGE_SE_CODE END) AS CHARGE_SE_CODE
+						, c.CODE AS DATA_TYPE2
+						, b.LOASM_TY_CODE
+						, count(*) AS cnt
+					FROM 
+						(SELECT * 
+						FROM LOG_SEARCH_DETAIL 
+						WHERE REPLACE(SEARCH_DATE,'-','') BETWEEN #schDt1# AND #schDt2#
+		]]>				
+						<isEqual property="searchCondition" compareValue="L">
+							<![CDATA[
+							AND USER_ORG_ID IS NOT NULL
+							]]>
+							
+							<isNotEmpty property="searchPsitn">
+								<![CDATA[
+								AND USER_ORG_ID = #searchPsitn#			/*지방의회*/
+								]]>
+							</isNotEmpty>
+						</isEqual>
+		
+						
+		<![CDATA[					
+						) a
+						LEFT JOIN 
+						(SELECT	*
+						FROM 	ORGAN
+						WHERE 	1 = 1
+		]]>				
+						<isEqual property="searchCondition" compareValue="L">
+							<isNotEmpty property="searchInsttType">
+								<![CDATA[
+								AND INSTT_CL_CODE = #searchInsttType#	/*기관유형*/
+								]]>
+							</isNotEmpty>
+			
+							<isNotEmpty property="searchRegion">
+								<![CDATA[
+								AND BRTC_CODE = #searchRegion#			/*지역*/
+								]]>
+							</isNotEmpty>
+						</isEqual>
+		<![CDATA[					
+						) b
+						ON a.USER_ORG_ID = b.LOASM_CODE
+						
+						LEFT JOIN
+						(SELECT * FROM common_detail_code WHERE CODE_ID LIKE 'RDC'||'%') c 
+						ON c.CODE = (CASE WHEN a.DATA_TYPE = 'dl' THEN 
+										(CASE WHEN a.DATA_TYPE2 = 'OLDP' THEN 'MONO'
+											WHEN a.DATA_TYPE2 = 'PAMP' THEN 'MONO'
+											WHEN a.DATA_TYPE2 = 'KRDB' THEN 'MONO'
+											WHEN a.DATA_TYPE2 = 'KINX' THEN 'AINX'
+											WHEN a.DATA_TYPE2 = 'FINX' THEN 'AINX'
+											WHEN a.DATA_TYPE2 = 'NEWS' THEN 'SERL'
+											WHEN a.DATA_TYPE2 = 'MULT' THEN 'NONB'
+											WHEN a.DATA_TYPE2 = 'MIFO' THEN 'NONB'
+											WHEN a.DATA_TYPE2 = 'MAPI' THEN 'NONB'
+											WHEN a.DATA_TYPE2 = 'ADBK' THEN 'NONB'
+											ELSE a.DATA_TYPE2 END) || '_ALL'
+									WHEN a.DATA_TYPE = 'law' THEN 'LAW'
+									ELSE a.DATA_TYPE2 END)
+						
+					GROUP BY CHARGE_SE_CODE, c.CODE, b.LOASM_TY_CODE, a.CLASS1
+				) data1
+				
+				GROUP BY data1.DATA_TYPE2)
+			
+			UNION ALL
+			
+				/* 자료이용 */
+				(SELECT 
+					data2.DATA_TYPE2 AS code
+					, NVL(SUM(DECODE(data2.LOASM_TY_CODE || data2.CHARGE_SE_CODE, 'WAC001', data2.cnt)), '0') AS WAC001
+					, NVL(SUM(DECODE(data2.LOASM_TY_CODE || data2.CHARGE_SE_CODE, 'WAC002', data2.cnt)), '0') AS WAC002
+					, NVL(SUM(DECODE(data2.LOASM_TY_CODE || data2.CHARGE_SE_CODE, 'WAC003', data2.cnt)), '0') AS WAC003	
+					, NVL(SUM(DECODE(data2.LOASM_TY_CODE || data2.CHARGE_SE_CODE, 'BAC001', data2.cnt)), '0') AS BAC001
+					, NVL(SUM(DECODE(data2.LOASM_TY_CODE || data2.CHARGE_SE_CODE, 'BAC002', data2.cnt)), '0') AS BAC002
+					, NVL(SUM(DECODE(data2.LOASM_TY_CODE || data2.CHARGE_SE_CODE, 'BAC003', data2.cnt)), '0') AS BAC003
+					, NVL(SUM(DECODE(data2.LOASM_TY_CODE || data2.CHARGE_SE_CODE, '004', data2.cnt)), '0') AS ASM
+					, NVL(SUM(DECODE(data2.LOASM_TY_CODE || data2.CHARGE_SE_CODE, '000', data2.cnt)), '0') AS NOR
+				FROM
+				(
+					SELECT 
+						(CASE WHEN NVL(a.CHARGE_SE_CODE, '000') = '000' THEN
+						 	(CASE WHEN a.CLASS1 = '0' THEN '000'
+						 	ELSE '004' END)
+						ELSE a.CHARGE_SE_CODE END) AS CHARGE_SE_CODE
+						, c.CODE AS DATA_TYPE2
+						, b.LOASM_TY_CODE
+						, count(*) AS cnt
+					FROM 
+						(SELECT * 
+						FROM VIEWFREELOG 
+						WHERE REPLACE(VIEW_DATE,'-','') BETWEEN #schDt1# AND #schDt2#
+							AND NVL(ACCESS_TYPE, 'D') = 'L'				/* 목록에서 조회한 데이터만 */
+		]]>
+						<isEqual property="searchCondition" compareValue="L">
+							<![CDATA[
+							AND USER_ORG_ID IS NOT NULL
+							]]>
+							
+							<isNotEmpty property="searchPsitn">
+								<![CDATA[	
+								AND USER_ORG_ID = #searchPsitn#			/*지방의회*/
+								]]>
+							</isNotEmpty>
+						</isEqual>
+		
+							
+		<![CDATA[					
+						) a
+						LEFT JOIN 
+						(SELECT	*
+						FROM 	ORGAN
+						WHERE 	1 = 1
+		]]>				
+						<isEqual property="searchCondition" compareValue="L">
+							<isNotEmpty property="searchInsttType">
+								<![CDATA[
+								AND INSTT_CL_CODE = #searchInsttType#	/*기관유형*/
+								]]>
+							</isNotEmpty>
+			
+							<isNotEmpty property="searchRegion">
+								<![CDATA[
+								AND BRTC_CODE = #searchRegion#			/*지역*/
+								]]>
+							</isNotEmpty>
+						</isEqual>
+		<![CDATA[					
+						) b
+						ON a.USER_ORG_ID = b.LOASM_CODE
+						
+						LEFT JOIN
+						(SELECT * FROM common_detail_code WHERE CODE_ID LIKE 'RDC'||'%') c 
+						ON c.CODE = (CASE WHEN a.DATA_TYPE = 'dl' THEN 
+										(CASE WHEN a.DATA_TYPE2 = 'OLDP' THEN 'MONO'
+											WHEN a.DATA_TYPE2 = 'PAMP' THEN 'MONO'
+											WHEN a.DATA_TYPE2 = 'KRDB' THEN 'MONO'
+											WHEN a.DATA_TYPE2 = 'KINX' THEN 'AINX'
+											WHEN a.DATA_TYPE2 = 'FINX' THEN 'AINX'
+											WHEN a.DATA_TYPE2 = 'NEWS' THEN 'SERL'
+											WHEN a.DATA_TYPE2 = 'MULT' THEN 'NONB'
+											WHEN a.DATA_TYPE2 = 'MIFO' THEN 'NONB'
+											WHEN a.DATA_TYPE2 = 'MAPI' THEN 'NONB'
+											WHEN a.DATA_TYPE2 = 'ADBK' THEN 'NONB'
+											ELSE a.DATA_TYPE2 END) || '_ALL'
+									WHEN a.DATA_TYPE = 'law' THEN 'LAW'
+									ELSE a.DATA_TYPE2 END)
+						
+					GROUP BY CHARGE_SE_CODE, c.CODE, b.LOASM_TY_CODE, a.CLASS1
+				) data2
+				
+				GROUP BY data2.DATA_TYPE2)
+				
+			) data
+			
+			GROUP BY data.code
+		]]>
+	</select>
+	
+	<!-- 이용자 방문 통계 - 그룹별 ( 기간별 )-->
+	<select id="stmManageDAO.selectGrpUvsList" parameterClass="stmManageDefaultVO" resultClass="uvsLogSummaryVO">
+		<![CDATA[
+			SELECT 
+				data.RASMBLY_NM
+				, NVL(MAX(DECODE(data.PLATFORM || data.SE_CODE, 'PCA', data.cnt)), '0') AS pc_access_cnt    
+				, NVL(MAX(DECODE(data.PLATFORM || data.SE_CODE, 'MobileA', data.cnt)), '0') AS mobile_access_cnt     
+				, NVL(MAX(DECODE(data.PLATFORM || data.SE_CODE, 'PCQ', data.cnt)), '0') AS pc_query_cnt
+				, NVL(MAX(DECODE(data.PLATFORM || data.SE_CODE, 'MobileQ', data.cnt)), '0') AS mobile_query_cnt 
+			FROM
+			(	
+				(SELECT NVL(DL_LIBRARY_NAME, '일반') AS RASMBLY_NM, PLATFORM, 'A' AS SE_CODE, COUNT(*) as cnt
+					, (CASE WHEN NVL(NVL(A.DL_LIBRARY_NAME,A.USER_ORG_NAME), '일반') = '일반' 
+						THEN 99 
+						ELSE (SELECT ORDR FROM COLGOVER WHERE RASMBLY_NM LIKE '%' || NVL(A.DL_LIBRARY_NAME,A.USER_ORG_NAME) || '%')  END) AS ORDR
+				FROM log_session_new A
+				WHERE PLATFORM IS NOT NULL AND LOGIN_DATE BETWEEN #schDt1# AND #schDt2#
+				GROUP BY DL_LIBRARY_NAME, USER_ORG_NAME, PLATFORM)
+				
+				UNION ALL
+				
+				(SELECT NVL(b.RASMBLY_NM, '일반') AS RASMBLY_NM, a.PLATFORM, 'Q' AS SE_CODE, count(*) as cnt
+					, (CASE WHEN NVL(b.RASMBLY_NM, '일반') = '일반' THEN 99 ELSE b.ORDR END) AS ORDR
+				FROM 
+					(SELECT * FROM log_search WHERE PLATFORM IS NOT NULL AND REPLACE(SEARCH_DATE,'-','') BETWEEN REPLACE(#schDt1#,'-','') AND REPLACE(#schDt2#,'-','') ) a
+					LEFT JOIN
+					(SELECT ORGAN.LOASM_CODE AS RASMBLY_ID, ORGAN.LOASM_NM AS RASMBLY_NM, ORGAN.LOASM_TY_CODE AS RASMBLY_TY_CODE, COLGOVER.ORDR
+					FROM (SELECT * FROM COLGOVER WHERE RASMBLY_STTUS_CODE = 'RAS001' AND DELETE_AT = 'N') COLGOVER 
+						LEFT JOIN 
+						ORGAN
+						ON ORGAN.LOASM_CODE = COLGOVER.RASMBLY_ID) b
+					ON a.USER_ORG_ID = b.RASMBLY_ID
+				GROUP BY b.RASMBLY_NM, a.PLATFORM, b.ORDR)
+			) data
+			GROUP BY data.RASMBLY_NM, data.ORDR
+			ORDER BY data.ORDR ASC
+		]]>
+	</select>
+	
+	<!-- 이용자 방문 통계 - 그룹별 ( 월별 )-->
+	<select id="stmManageDAO.selectGrpUvsMonthList" parameterClass="stmManageDefaultVO" resultClass="uvsLogSummaryVO">
+		<![CDATA[
+			SELECT 
+				data.RASMBLY_NM
+				, TARGET_DATE
+				, NVL(MAX(DECODE(data.PLATFORM || data.SE_CODE, 'PCA', data.cnt)), '0') AS pc_access_cnt    
+				, NVL(MAX(DECODE(data.PLATFORM || data.SE_CODE, 'MobileA', data.cnt)), '0') AS mobile_access_cnt     
+				, NVL(MAX(DECODE(data.PLATFORM || data.SE_CODE, 'PCQ', data.cnt)), '0') AS pc_query_cnt
+				, NVL(MAX(DECODE(data.PLATFORM || data.SE_CODE, 'MobileQ', data.cnt)), '0') AS mobile_query_cnt 
+			FROM
+			(	
+				(SELECT NVL(NVL(DL_LIBRARY_NAME,USER_ORG_NAME), '일반') AS RASMBLY_NM, PLATFORM, 'A' AS SE_CODE, COUNT(*) as cnt, SUBSTR(LOGIN_DATE,0,7) AS TARGET_DATE
+					, (CASE WHEN NVL(NVL(A.DL_LIBRARY_NAME,A.USER_ORG_NAME), '일반') = '일반' 
+						THEN 99 
+						ELSE (SELECT ORDR FROM COLGOVER WHERE RASMBLY_NM LIKE '%' || NVL(A.DL_LIBRARY_NAME,A.USER_ORG_NAME) || '%')  END) AS ORDR
+				FROM log_session_new A
+				WHERE PLATFORM IS NOT NULL AND LOGIN_DATE BETWEEN #schDt1# AND #schDt2#
+				GROUP BY DL_LIBRARY_NAME, USER_ORG_NAME, PLATFORM, SUBSTR(LOGIN_DATE,0,7))
+				
+				UNION ALL
+				
+				(SELECT RASMBLY_NM, PLATFORM, SE_CODE, SUM(CNT) AS CNT, SUBSTR(TARGET_DATE,0,7) AS TARGET_DATE, ORDR FROM 
+					(SELECT NVL(b.RASMBLY_NM, '일반') AS RASMBLY_NM, a.PLATFORM, 'Q' AS SE_CODE, COUNT(*) AS CNT, SEARCH_DATE AS TARGET_DATE
+						, (CASE WHEN NVL(b.RASMBLY_NM, '일반') = '일반' THEN 99 ELSE b.ORDR END) AS ORDR
+					FROM 
+						(SELECT * FROM log_search WHERE PLATFORM IS NOT NULL AND REPLACE(SEARCH_DATE,'-','') BETWEEN REPLACE(#schDt1#,'-','') AND REPLACE(#schDt2#,'-','') ) a
+						LEFT JOIN
+						(SELECT ORGAN.LOASM_CODE AS RASMBLY_ID, ORGAN.LOASM_NM AS RASMBLY_NM, ORGAN.LOASM_TY_CODE AS RASMBLY_TY_CODE, COLGOVER.ORDR
+						FROM (SELECT * FROM COLGOVER WHERE RASMBLY_STTUS_CODE = 'RAS001' AND DELETE_AT = 'N') COLGOVER 
+							LEFT JOIN 
+							ORGAN
+							ON ORGAN.LOASM_CODE = COLGOVER.RASMBLY_ID) b
+						ON a.USER_ORG_ID = b.RASMBLY_ID
+					GROUP BY b.RASMBLY_NM, a.PLATFORM, b.ORDR, a.SEARCH_DATE)
+				GROUP BY 
+					RASMBLY_NM, PLATFORM, SE_CODE, SUBSTR(TARGET_DATE,0,7), ORDR)
+			) data
+			GROUP BY data.RASMBLY_NM, data.ORDR, data.TARGET_DATE
+			ORDER BY data.target_date desc, data.ORDR ASC
+		]]>
+	</select>
+	
+	<!-- 이용자 방문 통계 - 월별 (그룹화) -->
+	<select id="stmManageDAO.selectUvsMonGrpList" parameterClass="stmManageDefaultVO" resultClass="uvsLogSummaryVO">
+		<![CDATA[
+			SELECT 
+				TARGET_DATE
+				, NVL(MAX(DECODE(DATA.PLATFORM || DATA.SE_CODE, 'PCA', DATA.CNT)), '0') AS PC_ACCESS_CNT    
+				, NVL(MAX(DECODE(DATA.PLATFORM || DATA.SE_CODE, 'MobileA', DATA.CNT)), '0') AS MOBILE_ACCESS_CNT     
+				, NVL(MAX(DECODE(DATA.PLATFORM || DATA.SE_CODE, 'PCQ', DATA.CNT)), '0') AS PC_QUERY_CNT
+				, NVL(MAX(DECODE(DATA.PLATFORM || DATA.SE_CODE, 'MobileQ', DATA.CNT)), '0') AS MOBILE_QUERY_CNT 
+			FROM
+				(	
+					(
+						SELECT 
+							PLATFORM, 
+							'A' AS SE_CODE, 
+							COUNT(*) AS CNT, 
+							SUBSTR(LOGIN_DATE,0,7) AS TARGET_DATE
+						FROM 
+							LOG_SESSION_NEW A
+						WHERE 
+							PLATFORM IS NOT NULL 
+							AND LOGIN_DATE BETWEEN #schDt1# AND #schDt2#
+						GROUP BY PLATFORM, SUBSTR(LOGIN_DATE,0,7)
+					)
+					
+					UNION ALL
+					
+					(
+						SELECT 
+							PLATFORM, 
+							SE_CODE, 
+							SUM(CNT) AS CNT, 
+							SUBSTR(TARGET_DATE,0,7) AS TARGET_DATE 
+						FROM 
+						(
+							SELECT 
+								PLATFORM, 
+								'Q' AS SE_CODE, 
+								COUNT(*) AS CNT, 
+								SEARCH_DATE AS TARGET_DATE
+							FROM 
+								(
+									SELECT 
+										* 
+									FROM 
+										LOG_SEARCH 
+									WHERE 
+										PLATFORM IS NOT NULL 
+										AND REPLACE(SEARCH_DATE,'-','') BETWEEN REPLACE(#schDt1#,'-','') AND REPLACE(#schDt2#,'-','') 
+								) A
+							GROUP BY 
+								PLATFORM, SEARCH_DATE
+						)
+						GROUP BY 
+							PLATFORM, SE_CODE, SUBSTR(TARGET_DATE,0,7)
+					)
+				) DATA
+			GROUP BY 
+				DATA.TARGET_DATE
+			ORDER BY 
+				DATA.TARGET_DATE ASC
+		]]>
+	</select>
+	
+	<!-- 이용자 방문 통계 - OS별 -->
+	<select id="stmManageDAO.selectOsUvsList" parameterClass="stmManageDefaultVO" resultClass="uvsLogSummaryVO">
+		<![CDATA[
+			SELECT 
+				NVL(PLATFORM, '기타') AS platform
+				, NVL(OS, '기타') AS os
+				, count(*) as access_cnt
+				, (CASE WHEN PLATFORM = 'PC' THEN 0
+					WHEN PLATFORM = 'Mobile' THEN 1
+					ELSE 2 END) AS ordr
+			FROM log_session_new
+			WHERE LOGIN_DATE BETWEEN #schDt1# AND #schDt2#
+			GROUP BY PLATFORM, OS
+			ORDER BY ORDR ASC, OS ASC
+		]]>
+	</select>
+
+	<!-- OS 별 이용 통계 -->
+	<select id="stmManageDAO.selectOSLogList" parameterClass="stmManageDefaultVO" resultClass="osLogSummaryVO">
+		<![CDATA[
+				SELECT		USER_OS			AS	userOs
+					,		SUM(CONECT_CO) 	AS 	conectCo
+				FROM		(	
+					SELECT		USER_OS
+						,		CONECT_CO
+					FROM		(
+						SELECT  	(YEAR || MT || DE) AS DT
+							,		USER_OS
+							,		CONECT_CO 
+						FROM 		log_mobile
+					) A
+					WHERE		DT >= #bgDt# AND DT <= #edDt#
+				) B
+				GROUP BY	USER_OS
+				ORDER BY	USER_OS
+			]]>
+	</select>
+
+
+	<!-- 브라우져 별 이용 통계 -->
+	<select id="stmManageDAO.selectWbsrLogList" parameterClass="stmManageDefaultVO" resultClass="wbsrLogSummaryVO">
+		<![CDATA[
+				SELECT		USER_WBSR		AS	userWbsr
+					,		SUM(CONECT_CO) 	AS 	conectCo
+				FROM		(	
+					SELECT		USER_WBSR
+						,		CONECT_CO
+					FROM		(
+						SELECT  	(YEAR || MT || DE) AS DT
+							,		USER_WBSR
+							,		CONECT_CO 
+						FROM 		logweb_browser
+					) A
+					WHERE		DT >= #bgDt# AND DT <= #edDt#
+				) B
+				GROUP BY	USER_WBSR
+				ORDER BY	USER_WBSR
+			]]>
+	</select>
+
+
+	<!-- 시간 별 이용 통계 -->
+	<select id="stmManageDAO.selectHourLogList" parameterClass="stmManageDefaultVO" resultClass="hourLogSummaryVO">
+		<![CDATA[
+				SELECT		HOUR			AS	hour
+					,		SUM(CONECT_CO) 	AS 	conectCo
+				FROM		(	
+					SELECT		DT
+						,		HOUR
+						,		CONECT_CO
+					FROM		(
+						SELECT  	(YEAR || MT || DE) AS DT
+							,		HOUR
+							,		CONECT_CO 
+						FROM 		log_time_summary
+					) A
+					WHERE		DT >= #bgDt# AND DT <= #edDt#
+				) B
+				GROUP BY	HOUR
+				ORDER BY	HOUR
+			]]>
+	</select>
+
+	<!-- 일 별 이용 통계 -->
+	<select id="stmManageDAO.selectDayLogList" parameterClass="stmManageDefaultVO" resultClass="hourLogSummaryVO">
+		<![CDATA[
+				SELECT		DE				AS	de
+					,		SUM(CONECT_CO) 	AS 	conectCo
+				FROM		(	
+					SELECT		DT
+						,		DE
+						,		CONECT_CO
+					FROM		(
+						SELECT  	(YEAR || MT) AS DT
+							,		DE
+							,		CONECT_CO 
+						FROM 		log_time_summary
+					) A
+					WHERE		DT >= #bgDt# AND DT <= #edDt#
+				) B
+				GROUP BY	DE
+				ORDER BY	DE
+			]]>
+	</select>
+
+	<!-- 월 별 이용 통계 -->
+	<select id="stmManageDAO.selectMonthLogList" parameterClass="stmManageDefaultVO" resultClass="hourLogSummaryVO">
+		<![CDATA[
+				SELECT		MT				AS	mt
+					,		SUM(CONECT_CO) 	AS 	conectCo
+				FROM		(	
+					SELECT		DT
+						,		MT
+						,		CONECT_CO
+					FROM		(
+						SELECT  	(YEAR) AS DT
+							,		MT
+							,		CONECT_CO 
+						FROM 		log_time_summary
+					) A
+					WHERE		DT >= #bgDt# AND DT <= #edDt#
+				) B
+				GROUP BY	MT
+				ORDER BY	MT
+			]]>
+	</select>
+
+
+	<!-- 년 별 이용 통계 -->
+	<select id="stmManageDAO.selectYearLogList" parameterClass="stmManageDefaultVO" resultClass="hourLogSummaryVO">
+		<![CDATA[
+				SELECT		YEAR			AS	year
+					,		SUM(CONECT_CO) 	AS 	conectCo
+				FROM		(	
+					SELECT		DT
+						,		YEAR
+						,		CONECT_CO
+					FROM		(
+						SELECT  	YEAR AS DT
+							,		YEAR
+							,		CONECT_CO 
+						FROM 		log_time_summary
+					) A
+					WHERE		DT >= #bgDt# AND DT <= #edDt#
+				) B
+				GROUP BY	YEAR
+				ORDER BY	YEAR
+		]]>
+	</select>
+
+	<!-- 전일 방문자 수 -->
+	<select id="stmManageDAO.countVisitorDayBefore" parameterClass="String" resultClass="String">
+		<![CDATA[
+			SELECT		COUNT(*) AS CNT
+			FROM 		LOG_SESSION_NEW
+			WHERE		LOGIN_DATE = #DT#
+		]]>
+	</select>
+
+	<!-- 금일 방문자 수 -->
+	<select id="stmManageDAO.countVisitorToday" parameterClass="String" resultClass="String">
+		<![CDATA[
+			SELECT		COUNT(*) AS CNT
+			FROM 		LOG_SESSION_NEW
+			WHERE		LOGIN_DATE = #DT#
+		]]>
+	</select>
+
+	<!-- 플랫폼별 방문자수 -->
+	<select id="stmManageDAO.selectVisitorPlatform" parameterClass="String" resultClass="osLogSummaryVO">
+		<![CDATA[			
+			SELECT 	userOs
+					, sum(conectCo) AS conectCo
+			FROM 
+			(
+				SELECT		CASE WHEN OS ='iPhone' OR OS ='iPad' THEN 'iOS'
+							WHEN INSTR(OS, 'Windows') != 0 THEN 'Windows'
+							ELSE NVL(OS, '기타') END AS userOs
+							, COUNT(*) AS conectCo
+				FROM 		LOG_SESSION_NEW
+				WHERE		LOGIN_DATE = #DT#
+				GROUP BY	OS
+			)
+			GROUP BY	userOs
+		]]>
+	</select>
+
+
+	<!-- 시간대별 방문자수 -->
+	<select id="stmManageDAO.selectVisitorHour" parameterClass="String" resultClass="hourLogSummaryVO">
+		<![CDATA[
+			SELECT		SUBSTR(LOGIN_TIME, 0, 2)		AS 	hour
+						, COUNT(LOGIN_TIME) AS conectCo 
+			FROM 		LOG_SESSION_NEW
+			WHERE		LOGIN_DATE = #DT#
+			GROUP BY 	SUBSTR(LOGIN_TIME, 0, 2)
+			ORDER BY 	SUBSTR(LOGIN_TIME, 0, 2)
+		]]>
+	</select>	
+
+	<!-- 통계정보관리 목록을 조회한다. -->
+	<!-- 20151215 : 현업 변경 요청으로 기존 쿼리 보관 -->
+	<select id="stmManageDAO.selectStmInfoMngListOld" parameterClass="stmInfoMngVO" resultClass="stmInfoMngVO">
+	<![CDATA[	
+		SELECT
+			*
+		FROM
+		(
+			SELECT
+				ROWNUM AS RNUM
+				,AA.TOTCNT
+				,BB.*
+			FROM
+			(
+				SELECT
+					COUNT(CC.LOASM_CODE) AS TOTCNT
+				FROM
+				(
+					SELECT
+						ORGAN.LOASM_NM
+						,ORGAN.LOASM_CODE
+						,STATS_LAMAN.NUMPR AS NUMPR
+						,STATS_LAMAN.HRSMNPD_SN AS HRSMNPD_SN
+						,STATS_LAMAN.HT_SE_STDCD_NM AS HT_SE_STDCD_NM
+						,STATS_LAMAN.HT_SE_STDCD AS HT_SE_STDCD
+						,TO_CHAR(TO_DATE(STATS_LAMAN.BEGIN_DE),'YYYY.MM.DD') AS BEGIN_DE
+						,TO_CHAR(TO_DATE(STATS_LAMAN.END_DE),'YYYY.MM.DD') AS END_DE
+						,CASE WHEN STATS_SCOMMIT.RASMBLY_ID IS NOT NULL THEN '상임위원회 ' END || 
+						CASE WHEN STATS_LAMAN.RASMBLY_ID IS NOT NULL THEN '의원 ' END ||
+						CASE WHEN STATS_BILL.RASMBLY_ID IS NOT NULL THEN '의안 ' END ||
+						CASE WHEN STATS_COLG_MAIN.RASMBLY_ID IS NOT NULL AND NVL(STATS_COLG_MAIN.MINTS_CO,0) > 0 THEN '회의록' END STATS_INFO
+					FROM
+						ORGAN	/*기관*/
+						,COLGOVER/*지방의회*/
+						,STATS_SCOMMIT/*상임위워회*/
+						,STATS_LAMAN/*의원*/
+						,STATS_BILL/*의안*/
+						,STATS_COLG_MAIN/*회의록*/
+						,ORGAN_CLASS ORGAN_CLASS1
+						,ORGAN_CLASS ORGAN_CLASS2
+					WHERE
+						ORGAN.LOASM_CODE = COLGOVER.RASMBLY_ID
+						AND ORGAN_CLASS1.INSTT_CL_CODE = ORGAN.INSTT_CL_CODE
+						AND ORGAN_CLASS1.UPPER_INSTT_CL_CODE = ORGAN_CLASS2.INSTT_CL_CODE
+						AND ORGAN.LOASM_CODE = STATS_LAMAN.RASMBLY_ID
+						AND ORGAN.LOASM_CODE = STATS_BILL.RASMBLY_ID
+						AND STATS_LAMAN.RASMBLY_ID = STATS_COLG_MAIN.RASMBLY_ID(+)
+						AND STATS_LAMAN.NUMPR = STATS_COLG_MAIN.RASMBLY_NUMPR(+)
+						AND STATS_LAMAN.RASMBLY_ID = STATS_SCOMMIT.RASMBLY_ID(+)
+						AND STATS_LAMAN.HRSMNPD_SN = STATS_SCOMMIT.HRSMNPD_SN(+)
+						AND STATS_LAMAN.HT_SE_STDCD = STATS_SCOMMIT.HT_SE_STDCD(+)
+			]]>		
+					<!-- 기관분류 -->
+					<isNotEmpty property="INSTT_CL_CODE">
+					AND ORGAN_CLASS2.INSTT_CL_CODE = #INSTT_CL_CODE#
+					</isNotEmpty>
+					
+					<!-- 기관유형 -->
+					<isNotEmpty property="INSTT_TY_CODE">
+					AND ORGAN.INSTT_CL_CODE = #INSTT_TY_CODE#
+					</isNotEmpty>
+					
+					<!-- 지역 -->
+					<isNotEmpty property="BRTC_CODE">
+					AND ORGAN.BRTC_CODE = #BRTC_CODE#
+					</isNotEmpty>
+					
+					<!-- 의회 -->
+					<isNotEmpty property="LOASM_CODE">
+					AND ORGAN.LOASM_CODE = #LOASM_CODE#
+					</isNotEmpty>
+			<![CDATA[
+					GROUP BY
+						ORGAN.LOASM_NM
+						,ORGAN.LOASM_CODE
+						,STATS_LAMAN.NUMPR
+						,STATS_LAMAN.HRSMNPD_SN
+						,STATS_LAMAN.HT_SE_STDCD_NM
+						,STATS_LAMAN.HT_SE_STDCD
+						,TO_CHAR(TO_DATE(STATS_LAMAN.BEGIN_DE),'YYYY.MM.DD')
+						,TO_CHAR(TO_DATE(STATS_LAMAN.END_DE),'YYYY.MM.DD')
+						,CASE WHEN STATS_SCOMMIT.RASMBLY_ID IS NOT NULL THEN '상임위원회 ' END || 
+						CASE WHEN STATS_LAMAN.RASMBLY_ID IS NOT NULL THEN '의원 ' END ||
+						CASE WHEN STATS_BILL.RASMBLY_ID IS NOT NULL THEN '의안 ' END ||
+						CASE WHEN STATS_COLG_MAIN.RASMBLY_ID IS NOT NULL AND NVL(STATS_COLG_MAIN.MINTS_CO,0) > 0 THEN '회의록' END
+					)CC
+					WHERE
+						CC.STATS_INFO IS NOT NULL
+			)AA,
+			(
+				SELECT
+					ORGAN.LOASM_NM
+					,ORGAN.LOASM_CODE
+					,STATS_LAMAN.NUMPR AS RASMBLY_NUMPR
+					,STATS_LAMAN.HRSMNPD_SN AS HRSMNPD_SN
+					,STATS_LAMAN.HT_SE_STDCD_NM AS HT_SE_STDCD_NM
+					,STATS_LAMAN.HT_SE_STDCD AS HT_SE_STDCD
+					,TO_CHAR(TO_DATE(STATS_LAMAN.BEGIN_DE),'YYYY.MM.DD') AS BEGIN_DE
+					,TO_CHAR(TO_DATE(STATS_LAMAN.END_DE),'YYYY.MM.DD') AS END_DE
+					,CASE WHEN STATS_SCOMMIT.RASMBLY_ID IS NOT NULL THEN '상임위원회 ' END || 
+					CASE WHEN STATS_LAMAN.RASMBLY_ID IS NOT NULL THEN '의원 ' END ||
+					CASE WHEN STATS_BILL.RASMBLY_ID IS NOT NULL THEN '의안 ' END ||
+					CASE WHEN STATS_COLG_MAIN.RASMBLY_ID IS NOT NULL AND NVL(STATS_COLG_MAIN.MINTS_CO,0) > 0 THEN '회의록' END STATS_INFO
+				FROM
+					ORGAN	/*기관*/
+					,COLGOVER/*지방의회*/
+					,STATS_SCOMMIT/*상임위워회*/
+					,STATS_LAMAN/*의원*/
+					,STATS_BILL/*의안*/
+					,STATS_COLG_MAIN/*회의록*/
+					,ORGAN_CLASS ORGAN_CLASS1
+					,ORGAN_CLASS ORGAN_CLASS2
+				WHERE
+					ORGAN.LOASM_CODE = COLGOVER.RASMBLY_ID
+					AND ORGAN_CLASS1.INSTT_CL_CODE = ORGAN.INSTT_CL_CODE
+					AND ORGAN_CLASS1.UPPER_INSTT_CL_CODE = ORGAN_CLASS2.INSTT_CL_CODE
+					AND ORGAN.LOASM_CODE = STATS_LAMAN.RASMBLY_ID
+					AND ORGAN.LOASM_CODE = STATS_BILL.RASMBLY_ID
+					AND STATS_LAMAN.RASMBLY_ID = STATS_COLG_MAIN.RASMBLY_ID(+)
+					AND STATS_LAMAN.NUMPR = STATS_COLG_MAIN.RASMBLY_NUMPR(+)
+					AND STATS_LAMAN.RASMBLY_ID = STATS_SCOMMIT.RASMBLY_ID(+)
+					AND STATS_LAMAN.HRSMNPD_SN = STATS_SCOMMIT.HRSMNPD_SN(+)
+					AND STATS_LAMAN.HT_SE_STDCD = STATS_SCOMMIT.HT_SE_STDCD(+)
+			]]>		
+					<!-- 기관분류 -->
+					<isNotEmpty property="INSTT_CL_CODE">
+					AND ORGAN_CLASS2.INSTT_CL_CODE = #INSTT_CL_CODE#
+					</isNotEmpty>
+					
+					<!-- 기관유형 -->
+					<isNotEmpty property="INSTT_TY_CODE">
+					AND ORGAN.INSTT_CL_CODE = #INSTT_TY_CODE#
+					</isNotEmpty>
+					
+					<!-- 지역 -->
+					<isNotEmpty property="BRTC_CODE">
+					AND ORGAN.BRTC_CODE = #BRTC_CODE#
+					</isNotEmpty>
+					
+					<!-- 의회 -->
+					<isNotEmpty property="LOASM_CODE">
+					AND ORGAN.LOASM_CODE = #LOASM_CODE#
+					</isNotEmpty>
+			<![CDATA[
+				GROUP BY
+					ORGAN.LOASM_NM
+					,ORGAN.LOASM_CODE
+					,STATS_LAMAN.NUMPR
+					,STATS_LAMAN.HRSMNPD_SN
+					,STATS_LAMAN.HT_SE_STDCD_NM
+					,STATS_LAMAN.HT_SE_STDCD
+					,TO_CHAR(TO_DATE(STATS_LAMAN.BEGIN_DE),'YYYY.MM.DD')
+					,TO_CHAR(TO_DATE(STATS_LAMAN.END_DE),'YYYY.MM.DD')
+					,CASE WHEN STATS_SCOMMIT.RASMBLY_ID IS NOT NULL THEN '상임위원회 ' END || 
+						CASE WHEN STATS_LAMAN.RASMBLY_ID IS NOT NULL THEN '의원 ' END ||
+						CASE WHEN STATS_BILL.RASMBLY_ID IS NOT NULL THEN '의안 ' END ||
+						CASE WHEN STATS_COLG_MAIN.RASMBLY_ID IS NOT NULL AND NVL(STATS_COLG_MAIN.MINTS_CO,0) > 0 THEN '회의록' END
+				ORDER BY
+					STATS_LAMAN.NUMPR DESC
+			)BB
+			WHERE
+				BB.STATS_INFO IS NOT NULL
+		)
+		WHERE 
+	       	RNUM > #firstIndex#
+			AND RNUM <= #lastIndex#
+		]]>
+	</select>
+
+	<!-- 통계정보관리 목록을 조회한다. -->
+	<select id="stmManageDAO.selectStmInfoMngList" parameterClass="stmInfoMngVO" resultClass="stmInfoMngVO">
+	<![CDATA[	
+		SELECT
+			*
+		FROM
+		(
+			SELECT
+				ROWNUM AS RNUM
+				,AA.TOTCNT
+				,BB.*
+			FROM
+			(
+				SELECT
+					COUNT(CC.LOASM_CODE) AS TOTCNT
+				FROM
+				(
+					SELECT
+						ORGAN.LOASM_NM
+						,ORGAN.LOASM_CODE
+						,STATS_COLG_MAIN.RASMBLY_NUMPR
+						,STATS_LAMAN.HRSMNPD_SN AS HRSMNPD_SN
+						,STATS_LAMAN.HT_SE_STDCD_NM AS HT_SE_STDCD_NM
+						,STATS_LAMAN.HT_SE_STDCD AS HT_SE_STDCD
+						,TO_CHAR(TO_DATE(STATS_LAMAN.BEGIN_DE),'YYYY.MM.DD') AS BEGIN_DE
+						,TO_CHAR(TO_DATE(STATS_LAMAN.END_DE),'YYYY.MM.DD') AS END_DE
+						,STATS_COLG_MAIN.CMIT_CO
+						,STATS_COLG_MAIN.ASEMBY_CO
+						,STATS_COLG_MAIN.MINTS_CO
+						,STATS_COLG_MAIN.RCEPTER_BI_CO
+					FROM
+						ORGAN	/*기관*/
+						,COLGOVER/*지방의회*/
+						,STATS_LAMAN/*의원*/
+						,STATS_COLG_MAIN/*회의록*/
+						,ORGAN_CLASS ORGAN_CLASS1
+						,ORGAN_CLASS ORGAN_CLASS2
+					WHERE
+						ORGAN.LOASM_CODE = COLGOVER.RASMBLY_ID
+						AND ORGAN_CLASS1.INSTT_CL_CODE = ORGAN.INSTT_CL_CODE
+						AND ORGAN_CLASS1.UPPER_INSTT_CL_CODE = ORGAN_CLASS2.INSTT_CL_CODE
+						AND ORGAN.LOASM_CODE = STATS_LAMAN.RASMBLY_ID
+						AND STATS_LAMAN.RASMBLY_ID = STATS_COLG_MAIN.RASMBLY_ID
+						AND STATS_LAMAN.NUMPR = STATS_COLG_MAIN.RASMBLY_NUMPR
+			]]>		
+					<!-- 기관분류 -->
+					<isNotEmpty property="INSTT_CL_CODE">
+					AND ORGAN_CLASS2.INSTT_CL_CODE = #INSTT_CL_CODE#
+					</isNotEmpty>
+					
+					<!-- 기관유형 -->
+					<isNotEmpty property="INSTT_TY_CODE">
+					AND ORGAN.INSTT_CL_CODE = #INSTT_TY_CODE#
+					</isNotEmpty>
+					
+					<!-- 지역 -->
+					<isNotEmpty property="BRTC_CODE">
+					AND ORGAN.BRTC_CODE = #BRTC_CODE#
+					</isNotEmpty>
+					
+					<!-- 의회 -->
+					<isNotEmpty property="LOASM_CODE">
+					AND ORGAN.LOASM_CODE = #LOASM_CODE#
+					</isNotEmpty>
+			<![CDATA[
+					GROUP BY
+						ORGAN.LOASM_NM
+						,ORGAN.LOASM_CODE
+						,STATS_COLG_MAIN.RASMBLY_NUMPR
+						,STATS_LAMAN.HRSMNPD_SN
+						,STATS_LAMAN.HT_SE_STDCD_NM
+						,STATS_LAMAN.HT_SE_STDCD
+						,TO_CHAR(TO_DATE(STATS_LAMAN.BEGIN_DE),'YYYY.MM.DD')
+						,TO_CHAR(TO_DATE(STATS_LAMAN.END_DE),'YYYY.MM.DD')
+						,STATS_COLG_MAIN.CMIT_CO
+						,STATS_COLG_MAIN.ASEMBY_CO
+						,STATS_COLG_MAIN.MINTS_CO
+						,STATS_COLG_MAIN.RCEPTER_BI_CO
+					)CC
+			)AA,
+			(
+				SELECT
+					ORGAN.LOASM_NM
+					,ORGAN.LOASM_CODE
+					,STATS_COLG_MAIN.RASMBLY_NUMPR
+					,STATS_LAMAN.HRSMNPD_SN AS HRSMNPD_SN
+					,STATS_LAMAN.HT_SE_STDCD_NM AS HT_SE_STDCD_NM
+					,STATS_LAMAN.HT_SE_STDCD AS HT_SE_STDCD
+					,TO_CHAR(TO_DATE(STATS_LAMAN.BEGIN_DE),'YYYY.MM.DD') AS BEGIN_DE
+					,TO_CHAR(TO_DATE(STATS_LAMAN.END_DE),'YYYY.MM.DD') AS END_DE
+					,STATS_COLG_MAIN.CMIT_CO
+					,STATS_COLG_MAIN.ASEMBY_CO
+					,STATS_COLG_MAIN.MINTS_CO
+					,STATS_COLG_MAIN.RCEPTER_BI_CO
+				FROM
+					ORGAN	/*기관*/
+					,COLGOVER/*지방의회*/
+					,STATS_LAMAN/*의원*/
+					,STATS_COLG_MAIN/*회의록*/
+					,ORGAN_CLASS ORGAN_CLASS1
+					,ORGAN_CLASS ORGAN_CLASS2
+				WHERE
+					ORGAN.LOASM_CODE = COLGOVER.RASMBLY_ID
+					AND ORGAN_CLASS1.INSTT_CL_CODE = ORGAN.INSTT_CL_CODE
+					AND ORGAN_CLASS1.UPPER_INSTT_CL_CODE = ORGAN_CLASS2.INSTT_CL_CODE
+					AND ORGAN.LOASM_CODE = STATS_LAMAN.RASMBLY_ID
+					AND STATS_LAMAN.RASMBLY_ID = STATS_COLG_MAIN.RASMBLY_ID
+					AND STATS_LAMAN.NUMPR = STATS_COLG_MAIN.RASMBLY_NUMPR
+
+			]]>		
+					<!-- 기관분류 -->
+					<isNotEmpty property="INSTT_CL_CODE">
+					AND ORGAN_CLASS2.INSTT_CL_CODE = #INSTT_CL_CODE#
+					</isNotEmpty>
+					
+					<!-- 기관유형 -->
+					<isNotEmpty property="INSTT_TY_CODE">
+					AND ORGAN.INSTT_CL_CODE = #INSTT_TY_CODE#
+					</isNotEmpty>
+					
+					<!-- 지역 -->
+					<isNotEmpty property="BRTC_CODE">
+					AND ORGAN.BRTC_CODE = #BRTC_CODE#
+					</isNotEmpty>
+					
+					<!-- 의회 -->
+					<isNotEmpty property="LOASM_CODE">
+					AND ORGAN.LOASM_CODE = #LOASM_CODE#
+					</isNotEmpty>
+			<![CDATA[
+				GROUP BY
+					ORGAN.LOASM_NM
+					,ORGAN.LOASM_CODE
+					,STATS_COLG_MAIN.RASMBLY_NUMPR
+					,STATS_LAMAN.HRSMNPD_SN
+					,STATS_LAMAN.HT_SE_STDCD_NM
+					,STATS_LAMAN.HT_SE_STDCD
+					,TO_CHAR(TO_DATE(STATS_LAMAN.BEGIN_DE),'YYYY.MM.DD')
+					,TO_CHAR(TO_DATE(STATS_LAMAN.END_DE),'YYYY.MM.DD')
+					,STATS_COLG_MAIN.CMIT_CO
+					,STATS_COLG_MAIN.ASEMBY_CO
+					,STATS_COLG_MAIN.MINTS_CO
+					,STATS_COLG_MAIN.RCEPTER_BI_CO
+				ORDER BY
+					STATS_COLG_MAIN.RASMBLY_NUMPR DESC
+			)BB
+		)
+		WHERE 
+	       	RNUM > #firstIndex#
+			AND RNUM <= #lastIndex#
+		]]>
+	</select>
+	
+	<!-- 통계정보 : 상임위원회 정보를 삭제한다. -->
+	<delete id="stmManageDAO.deleteStmInfoScommit" parameterClass="HashMap">
+		DELETE FROM 
+			STATS_SCOMMIT
+		WHERE
+			RASMBLY_ID 		= #RASMBLY_ID#
+			AND HRSMNPD_SN 	= #HRSMNPD_SN#
+			AND HT_SE_STDCD = #HT_SE_STDCD#
+	</delete>
+
+	<!-- 통계정보 : 의원 정보를 삭제한다. -->
+	<delete id="stmManageDAO.deleteStmInfoLaman" parameterClass="HashMap">
+		DELETE FROM 
+			STATS_LAMAN
+		WHERE
+			RASMBLY_ID 		= #RASMBLY_ID#
+			AND HRSMNPD_SN 	= #HRSMNPD_SN#
+			AND HT_SE_STDCD = #HT_SE_STDCD#
+	</delete>
+	
+	<!-- 통계정보 : 의안 정보를 삭제한다. -->
+	<delete id="stmManageDAO.deleteStmInfoBill" parameterClass="HashMap">
+		DELETE FROM 
+			STATS_BILL
+		WHERE
+			RASMBLY_ID 		= #RASMBLY_ID#
+			AND HRSMNPD_SN 	= #HRSMNPD_SN#
+			AND HT_SE_STDCD = #HT_SE_STDCD#
+	</delete>
+	
+	<!-- 통계정보 : 상임위원회 상세 정보를 삭제한다. -->
+	<delete id="stmManageDAO.deleteStmInfoScommitDetail" parameterClass="HashMap">
+		DELETE FROM 
+			STATS_SCOMMIT_DETAIL
+		WHERE
+			RASMBLY_ID 		= #RASMBLY_ID#
+			AND HRSMNPD_SN 	= #HRSMNPD_SN#
+			AND HT_SE_STDCD = #HT_SE_STDCD#
+	</delete>
+
+	<!-- 통계정보 : 의원 정보를 상세 삭제한다. -->
+	<delete id="stmManageDAO.deleteStmInfoLamanDetail" parameterClass="HashMap">
+		DELETE FROM 
+			STATS_LAMAN_DETAIL
+		WHERE
+			RASMBLY_ID 		= #RASMBLY_ID#
+			AND HRSMNPD_SN 	= #HRSMNPD_SN#
+			AND HT_SE_STDCD = #HT_SE_STDCD#
+	</delete>
+	
+	<!-- 통계정보 : 의안 정보를 상세 삭제한다. -->
+	<delete id="stmManageDAO.deleteStmInfoBillDetail" parameterClass="HashMap">
+		DELETE FROM 
+			STATS_BILL_DETAIL
+		WHERE
+			RASMBLY_ID 		= #RASMBLY_ID#
+			AND HRSMNPD_SN 	= #HRSMNPD_SN#
+			AND HT_SE_STDCD = #HT_SE_STDCD#
+	</delete>
+	
+	<!-- 통계정보 : 회의록 정보를 삭제한다. -->
+	<delete id="stmManageDAO.deleteStmInfoMints" parameterClass="HashMap">
+		UPDATE 
+			STATS_COLG_MAIN
+		SET
+			MINTS_CO = 0
+		WHERE
+			RASMBLY_ID 			= #RASMBLY_ID#
+			AND RASMBLY_NUMPR 	= #RASMBLY_NUMPR#
+	</delete>
+
+	<!-- 자료등록 통계정보관리 : 기수기간 목록을 조회한다. -->
+	<select id="stmManageDAO.selectHrsmnpdList" parameterClass="java.util.HashMap" resultClass="clikmng.nanet.go.kr.sts.stm.service.HrsmnpdVO">
+		SELECT
+			HRSMNPD_SN
+			,HRSMNPD_NM
+			,BEGIN_DE
+			,END_DE
+			,TO_CHAR(TO_DATE(FRHFYR_BEGIN_DE),'YYYY.MM.DD') AS FRHFYR_BEGIN_DE
+			,TO_CHAR(TO_DATE(FRHFYR_END_DE),'YYYY.MM.DD') AS FRHFYR_END_DE
+			,TO_CHAR(TO_DATE(SHYY_BEGIN_DE),'YYYY.MM.DD') AS SHYY_BEGIN_DE
+			,TO_CHAR(TO_DATE(SHYY_END_DE),'YYYY.MM.DD') AS SHYY_END_DE
+		FROM
+			cterm
+		WHERE
+			NVL(DELETE_AT,'N') = 'N'
+		ORDER BY 
+			HRSMNPD_SN DESC
+	</select>
+
+	<!-- 자료등록 통계정보관리 : 의회의원 목록을 조회한다. -->
+	<select id="stmManageDAO.selectAsmbyAsembyList" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT
+		B.*
+		FROM
+		(
+			SELECT
+				colgover_party.PPRTY_CODE
+				,colgover_party.PPRTY_NM
+			FROM
+				cterm_party
+				INNER JOIN colgover_party
+				ON colgover_party.PPRTY_CODE = cterm_party.PPRTY_CODE
+			WHERE
+				cterm_party.HRSMNPD_SN = #hrsmnpd_sn#
+				AND cterm_party.HT_SE_STDCD = #ht_se_stdcd#
+				AND NVL(cterm_party.DELETE_AT,'N') = 'N'
+		) A
+		LEFT JOIN
+		(
+			SELECT
+				colgover_party.PPRTY_CODE
+				,colgover_party.PPRTY_NM
+				,NVL(stats_laman.WDR_ASEMBY_AREA_SM,0) AS WDR_ASEMBY_AREA_SM
+				,NVL(stats_laman.WDR_ASEMBY_PRPORT_SM,0) AS WDR_ASEMBY_PRPORT_SM
+				,NVL(stats_laman.EDC_ASEMBY_SM,0) AS EDC_ASEMBY_SM
+				,NVL(stats_laman_detail.AREA_ASEMBY_SM,0) AS AREA_ASEMBY_SM
+				,NVL(stats_laman_detail.PRPORT_ASEMBY_SM,0) AS PRPORT_ASEMBY_SM
+			FROM
+				cterm 
+				INNER JOIN cterm_party 
+					ON cterm_party.HRSMNPD_SN = cterm.HRSMNPD_SN
+					AND NVL(cterm_party.DELETE_AT,'N') = 'N'
+					AND cterm_party.HT_SE_STDCD = #ht_se_stdcd#
+					AND cterm_party.HRSMNPD_SN = #hrsmnpd_sn#
+				INNER JOIN colgover_party ON cterm_party.PPRTY_CODE = colgover_party.PPRTY_CODE
+				LEFT OUTER JOIN stats_laman_detail 
+					ON stats_laman_detail.PPRTY_CODE = colgover_party.PPRTY_CODE
+					AND stats_laman_detail.HT_SE_STDCD = #ht_se_stdcd#
+					AND stats_laman_detail.HRSMNPD_SN = #hrsmnpd_sn#
+					AND stats_laman_detail.RASMBLY_ID = #rasmbly_id#
+				LEFT OUTER JOIN stats_laman 
+					ON stats_laman.HRSMNPD_SN = stats_laman_detail.HRSMNPD_SN
+					AND stats_laman.RASMBLY_ID = #rasmbly_id#
+					AND stats_laman.HT_SE_STDCD = #ht_se_stdcd#
+					AND stats_laman.HRSMNPD_SN = #hrsmnpd_sn#
+			WHERE
+				cterm.HRSMNPD_SN = #hrsmnpd_sn#
+				AND cterm_party.HT_SE_STDCD = #ht_se_stdcd#
+			ORDER BY
+				PPRTY_SN ASC, PPRTY_CODE ASC
+		) B 
+			ON A.PPRTY_CODE = B.PPRTY_CODE
+	</select>
+	
+	<!-- 자료등록 통계정보관리 : 상임위원회 설치내역을 조회한다. -->
+	<select id="stmManageDAO.selectPrmpstCmitList" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT
+			NVL(stats_scommit.PRMPST_CMIT_CO,0) AS PRMPST_CMIT_CO
+			,stats_scommit.HT_SE_STDCD
+			,stats_scommit.HT_SE_STDCD_NM
+			,stats_scommit.RASMBLY_ID
+			,stats_scommit.HRSMNPD_SN
+			,NVL(stats_scommit.ASEMBY_TOTQY,0) AS ASEMBY_TOTQY
+			,NVL(stats_scommit.PRMPST_CMIT_CO,0) AS PRMPST_CMIT_CO
+			,stats_scommit_detail.PRMPST_CMIT_ID
+			,stats_scommit_detail.PRMPST_CMIT_NM
+			,NVL(stats_scommit_detail.PRMPST_ASEMBY_CO,0) AS PRMPST_ASEMBY_CO
+			,stats_scommit.RASMBLY_NM
+			,stats_scommit.NUMPR
+			,TO_CHAR(TO_DATE(stats_scommit.BEGIN_DE),'YYYY.MM.DD') AS BEGIN_DE
+			,TO_CHAR(TO_DATE(stats_scommit.END_DE),'YYYY.MM.DD') AS END_DE
+		FROM
+			stats_scommit
+			,stats_scommit_detail
+		WHERE
+			stats_scommit.HRSMNPD_SN = stats_scommit_detail.HRSMNPD_SN
+			AND stats_scommit.HT_SE_STDCD = stats_scommit_detail.HT_SE_STDCD
+			AND stats_scommit.RASMBLY_ID = stats_scommit_detail.RASMBLY_ID
+			
+		<isNotEmpty property="rasmbly_id">
+			<![CDATA[
+			AND stats_scommit.RASMBLY_ID = #rasmbly_id#
+			]]> 
+		</isNotEmpty>
+		
+		<isNotEmpty property="hrsmnpd_sn">
+			<![CDATA[
+			AND stats_scommit.HRSMNPD_SN = #hrsmnpd_sn#
+			]]> 
+		</isNotEmpty>
+		
+		<isNotEmpty property="ht_se_stdcd">
+			<![CDATA[
+			AND stats_scommit.HT_SE_STDCD = #ht_se_stdcd#
+			]]> 
+		</isNotEmpty>
+		
+		ORDER BY 
+			stats_scommit_detail.PRMPST_CMIT_ID
+			,stats_scommit.HT_SE_STDCD ASC
+			,stats_scommit_detail.PRMPST_CMIT_NM ASC
+	</select>
+	
+	<!-- 자료등록 통계정보관리 : 통계의안정보를 조회한다. -->
+	<select id="stmManageDAO.selectStatsBillList" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT
+			*
+		FROM
+			STATS_BILL
+			,STATS_BILL_DETAIL
+		WHERE
+			STATS_BILL.RASMBLY_ID = STATS_BILL_DETAIL.RASMBLY_ID
+		  	AND STATS_BILL.HRSMNPD_SN = STATS_BILL_DETAIL.HRSMNPD_SN
+		  	AND STATS_BILL.HT_SE_STDCD = STATS_BILL_DETAIL.HT_SE_STDCD
+		  	
+		<isNotEmpty property="rasmbly_id">
+			<![CDATA[
+			AND STATS_BILL.RASMBLY_ID = #rasmbly_id#
+			]]> 
+		</isNotEmpty>
+		
+		<isNotEmpty property="hrsmnpd_sn">
+			<![CDATA[
+			AND STATS_BILL.HRSMNPD_SN = #hrsmnpd_sn#
+			]]> 
+		</isNotEmpty>
+		
+		<isNotEmpty property="ht_se_stdcd">
+			<![CDATA[
+			AND STATS_BILL.HT_SE_STDCD = #ht_se_stdcd#
+			]]> 
+		</isNotEmpty>
+	</select>
+	
+	<!-- 자료등록 통계정보관리 : 회의록 건수를 조회한다. -->
+	<select id="stmManageDAO.selectMinutesCnt" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT
+			NVL(MINTS_CO,0) MINTS_CO
+		FROM
+			STATS_COLG_MAIN
+		WHERE
+			RASMBLY_ID = #rasmbly_id#
+			AND RASMBLY_NUMPR = #rasmbly_numpr#
+	</select>
+
+	<!-- 자료등록 통계정보관리 : 지방의회 대수를 조회한다. -->
+	<select id="stmManageDAO.selectRasmblyNumpr" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT
+			RASMBLY_ID
+			,RASMBLY_NUMPR
+		FROM(
+			SELECT
+				NVL(MAX(gener.RASMBLY_ID),'') RASMBLY_ID
+				,NVL(MAX(gener.RASMBLY_NUMPR),'') RASMBLY_NUMPR
+			FROM
+				cterm
+				,colgover_gener
+				,gener
+			WHERE
+				cterm.HRSMNPD_SN = colgover_gener.HRSMNPD_SN
+				AND colgover_gener.RASMBLY_ID = gener.RASMBLY_ID
+				AND colgover_gener.RASMBLY_NUMPR = gener.RASMBLY_NUMPR
+				AND colgover_gener.HRSMNPD_SN = #hrsmnpd_sn#
+				AND colgover_gener.RASMBLY_ID = #rasmbly_id#
+			UNION ALL		
+			SELECT
+				RASMBLY_ID
+				,NUMPR AS RASMBLY_NUMPR
+			FROM
+				stats_laman
+			WHERE
+				HRSMNPD_SN = #hrsmnpd_sn#
+				AND RASMBLY_ID = #rasmbly_id#
+				AND HT_SE_STDCD = #ht_se_stdcd#
+		)
+		WHERE
+			RASMBLY_ID IS NOT NULL
+		GROUP BY 
+			RASMBLY_ID
+			,RASMBLY_NUMPR	
+			
+	</select>
+
+	<!-- 자료등록 통계정보관리 : 통계의회의원 정보를 등록한다. -->
+	<insert id="stmManageDAO.insertStatsAsmblyAsemby" parameterClass="clikmng.nanet.go.kr.sts.stm.service.StatsAsmblyAsemby">
+		INSERT INTO stats_laman
+			(WDR_ASEMBY_AREA_SM ,WDR_ASEMBY_PRPORT_SM ,EDC_ASEMBY_SM ,HRSMNPD_SN ,HT_SE_STDCD
+			,RASMBLY_ID ,HRSMNPD_NM ,BEGIN_DE ,END_DE ,RASMBLY_NM 
+			,WDR_ASEMBY_SM ,ASEMBY_SM ,LOASM_TY_CODE ,HT_SE_STDCD_NM ,NUMPR)
+		VALUES
+			(#wdr_asemby_area_sm# ,#wdr_asemby_prport_sm# ,#edc_asemby_sm# ,#hrsmnpd_sn# ,#ht_se_stdcd#
+			,#rasmbly_id# ,#hrsmnpd_nm# ,#begin_de# ,#end_de# ,#rasmbly_nm# 
+			,#wdr_asemby_sm# ,#asemby_sm# ,#loasm_ty_code# ,#ht_se_stdcd_nm# ,#numpr#)
+	</insert>
+	
+	<!-- 자료등록 통계정보관리 : 통계의회의원 정보를 수정한다. -->
+	<update id="stmManageDAO.updateStatsAsmblyAsemby" parameterClass="clikmng.nanet.go.kr.sts.stm.service.StatsAsmblyAsemby">
+		UPDATE
+			stats_laman
+		SET
+			WDR_ASEMBY_AREA_SM		= #wdr_asemby_area_sm#
+			,WDR_ASEMBY_PRPORT_SM	= #wdr_asemby_prport_sm#
+			,EDC_ASEMBY_SM			= #edc_asemby_sm#
+			,HRSMNPD_NM				= #hrsmnpd_nm#
+			,BEGIN_DE				= #begin_de#
+			,END_DE					= #end_de#
+			,RASMBLY_NM				= #rasmbly_nm#
+			,WDR_ASEMBY_SM			= #wdr_asemby_sm#
+			,ASEMBY_SM				= #asemby_sm#
+			,LOASM_TY_CODE			= #loasm_ty_code#
+			,HT_SE_STDCD_NM			= #ht_se_stdcd_nm#
+			,NUMPR					= #numpr#
+		WHERE
+			HRSMNPD_SN				= #hrsmnpd_sn#
+			AND RASMBLY_ID			= #rasmbly_id#
+			AND HT_SE_STDCD			= #ht_se_stdcd#
+	</update>
+	
+	<!-- 자료등록 통계정보관리 : 통계의회의원 상세정보를 등록한다. -->
+	<insert id="stmManageDAO.insertStatsAsmblyAsembyDetail" parameterClass="clikmng.nanet.go.kr.sts.stm.service.StatsAsmblyAsembyDetail">
+		INSERT INTO stats_laman_detail
+			(AREA_ASEMBY_SM ,PRPORT_ASEMBY_SM ,HRSMNPD_SN ,HT_SE_STDCD ,RASMBLY_ID ,PPRTY_CODE)
+		VALUES
+			(#area_asemby_sm# ,#prport_asemby_sm# ,#hrsmnpd_sn# ,#ht_se_stdcd# ,#rasmbly_id# ,#pprty_code#)
+	</insert>
+	
+	<!-- 자료등록 통계정보관리 : 통계의회의원 상세정보를 수정한다. -->
+	<update id="stmManageDAO.updateStatsAsmblyAsembyDetail" parameterClass="clikmng.nanet.go.kr.sts.stm.service.StatsAsmblyAsembyDetail">
+		UPDATE 
+			stats_laman_detail
+		SET
+			AREA_ASEMBY_SM		= #area_asemby_sm#
+			,PRPORT_ASEMBY_SM	= #prport_asemby_sm#
+		WHERE
+			HRSMNPD_SN				= #hrsmnpd_sn#
+			AND RASMBLY_ID		= #rasmbly_id#
+			AND PPRTY_CODE		= #pprty_code#
+			AND HT_SE_STDCD		= #ht_se_stdcd#
+	</update>
+	
+	<!-- 자료등록 통계정보관리 : 통계상임위원회 정보를 등록한다. -->
+	<insert id="stmManageDAO.insertStatsPrmpstCmit" parameterClass="clikmng.nanet.go.kr.sts.stm.service.StatsPrmpstCmit">
+		INSERT INTO stats_scommit
+			(PRMPST_CMIT_CO ,HT_SE_STDCD ,RASMBLY_ID ,HRSMNPD_SN ,ASEMBY_TOTQY
+			,HRSMNPD_NM ,BEGIN_DE ,END_DE ,RASMBLY_NM ,HT_SE_STDCD_NM ,NUMPR)
+		VALUES
+			(#prmpst_cmit_co# ,#ht_se_stdcd# ,#rasmbly_id# ,#hrsmnpd_sn# ,#asemby_totqy#
+			,#hrsmnpd_nm# ,#begin_de# ,#end_de# ,#rasmbly_nm# ,#ht_se_stdcd_nm# ,#numpr#)
+	</insert>
+	
+	<!-- 자료등록 통계정보관리 : 통계상임위원회 정보를 수정한다. -->
+	<update id="stmManageDAO.updateStatsPrmpstCmit" parameterClass="clikmng.nanet.go.kr.sts.stm.service.StatsPrmpstCmit">
+		UPDATE
+			stats_scommit
+		SET
+			PRMPST_CMIT_CO	= #prmpst_cmit_co#
+			,ASEMBY_TOTQY		= #asemby_totqy#
+			,HRSMNPD_NM		= #hrsmnpd_nm#
+			,BEGIN_DE				= #begin_de#
+			,END_DE				= #end_de#
+			,RASMBLY_NM			= #rasmbly_nm#
+			,HT_SE_STDCD_NM	= #ht_se_stdcd_nm#
+			,NUMPR					= #numpr#
+		WHERE
+			HT_SE_STDCD			= #ht_se_stdcd#
+			AND RASMBLY_ID	= #rasmbly_id#
+			AND HRSMNPD_SN	= #hrsmnpd_sn#
+	</update>
+	
+	<!-- 자료등록 통계정보관리 : 통계상임위원회 상세정보를 등록한다. -->
+	<insert id="stmManageDAO.insertStatsPrmpstCmitDetail" parameterClass="clikmng.nanet.go.kr.sts.stm.service.StatsPrmpstCmitDetail">
+		INSERT INTO stats_scommit_detail
+			(PRMPST_CMIT_NM ,PRMPST_ASEMBY_CO ,PRMPST_CMIT_ID ,HRSMNPD_SN ,HT_SE_STDCD ,RASMBLY_ID)
+		VALUES
+			(#prmpst_cmit_nm# ,#prmpst_asemby_co# ,#prmpst_cmit_id# ,#hrsmnpd_sn# ,#ht_se_stdcd# ,#rasmbly_id#)
+	</insert>
+	
+	<!-- 자료등록 통계정보관리 : 통계상임위원회 상세정보를 삭제한다. -->
+	<update id="stmManageDAO.deleteStatsPrmpstCmitDetail" parameterClass="clikmng.nanet.go.kr.sts.stm.service.StatsPrmpstCmitDetail">
+		DELETE FROM 
+			stats_scommit_detail
+		WHERE
+			RASMBLY_ID		= #rasmbly_id#
+			AND HT_SE_STDCD	= #ht_se_stdcd#
+			AND HRSMNPD_SN	= #hrsmnpd_sn#
+	</update>
+
+	<!-- 의회 정보를 조회한다. -->
+	<select id="stmManageDAO.selectRasmblyInfo" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT
+			ORGAN_CLASS.INSTT_CL_CODE
+			,ORGAN_CLASS.UPPER_INSTT_CL_CODE
+			,ORGAN.INSTT_TY_CODE
+			,ORGAN.BRTC_CODE
+			,ORGAN.LOASM_TY_CODE
+			,COLGOVER.RASMBLY_ID
+		FROM
+			COLGOVER
+			,ORGAN
+			,ORGAN_CLASS
+		WHERE
+			COLGOVER.RASMBLY_ID = ORGAN.LOASM_CODE
+			AND ORGAN_CLASS.INSTT_CL_CODE = ORGAN.INSTT_CL_CODE
+			AND COLGOVER.RASMBLY_ID = #RASMBLY_ID#
+	</select>
+
+	<!-- 통계정보관리 : 의안통계정보를 등록한다. -->
+	<insert id="stmManageDAO.insertStatsBill" parameterClass="java.util.HashMap">
+		INSERT INTO STATS_BILL
+		(
+			HRSMNPD_SN
+			,RASMBLY_ID
+			,HT_SE_STDCD
+			,NUMPR
+			,HRSMNPD_NM
+			,HT_SE_STDCD_NM
+			,RASMBLY_NM
+			,FRST_REGISTER_ID
+			,FRST_REGIST_PNTTM
+		)
+		VALUES
+		(
+			#HRSMNPD_SN#
+			,#RASMBLY_ID#
+			,#HT_SE_STDCD#
+			,#NUMPR#
+			,#HRSMNPD_NM#
+			,#HT_SE_STDCD_NM#
+			,#RASMBLY_NM#
+			,#FRST_REGISTER_ID#
+			,SYSDATE
+		)
+	</insert>
+
+	<!-- 통계정보관리 : 의안통계정보를 수정한다. -->
+	<update id="stmManageDAO.updateStatsBill" parameterClass="java.util.HashMap">
+		UPDATE
+			STATS_BILL
+		SET
+			NUMPR 				= #NUMPR#
+			,HRSMNPD_NM 		= #HRSMNPD_NM#
+			,HT_SE_STDCD_NM 	= #HT_SE_STDCD_NM#
+			,RASMBLY_NM 		= #RASMBLY_NM#
+			,LAST_UPDUSR_ID 	= #FRST_REGISTER_ID#
+			,LAST_UPDT_PNTTM	= SYSDATE
+		WHERE
+			HRSMNPD_SN 		= #HRSMNPD_SN#
+			AND RASMBLY_ID 	= #RASMBLY_ID#
+			AND HT_SE_STDCD = #HT_SE_STDCD#
+	</update>
+	
+	<!-- 통계정보관리 : 의안통계 상세정보를 등록한다. -->
+	<insert id="stmManageDAO.insertStatsBillDetail" parameterClass="java.util.HashMap">
+		INSERT INTO STATS_BILL_DETAIL
+		(
+			STTUS1_CO
+			,STTUS2_CO
+			,STTUS3_CO
+			,STTUS4_CO
+			,STTUS5_CO
+			,STTUS6_CO
+			,STTUS7_CO
+			,STTUS8_CO
+			,HRSMNPD_SN
+			,RASMBLY_ID
+			,HT_SE_STDCD
+			,BI_KND_NM
+			,STATS_BI_DTLS
+		)
+		VALUES
+		(
+			#STTUS1_CO#
+			,#STTUS2_CO#
+			,#STTUS3_CO#
+			,#STTUS4_CO#
+			,#STTUS5_CO#
+			,#STTUS6_CO#
+			,#STTUS7_CO#
+			,#STTUS8_CO#
+			,#HRSMNPD_SN#
+			,#RASMBLY_ID#
+			,#HT_SE_STDCD#
+			,#BI_KND_NM#
+			,#STATS_BI_DTLS#
+		)
+	</insert>
+
+	<!-- 통계정보관리 : 의안통계 상세정보를 수정한다. -->
+	<update id="stmManageDAO.updateStatsBillDetail" parameterClass="java.util.HashMap">
+		UPDATE 
+			STATS_BILL_DETAIL
+		SET
+			STTUS1_CO = #STTUS1_CO#
+			,STTUS2_CO = #STTUS2_CO#
+			,STTUS3_CO = #STTUS3_CO#
+			,STTUS4_CO = #STTUS4_CO#
+			,STTUS5_CO = #STTUS5_CO#
+			,STTUS6_CO = #STTUS6_CO#
+			,STTUS7_CO = #STTUS7_CO#
+			,STTUS8_CO = #STTUS8_CO#
+			,BI_KND_NM = #BI_KND_NM#
+		WHERE
+			HRSMNPD_SN = #HRSMNPD_SN#
+			AND RASMBLY_ID = #RASMBLY_ID#
+			AND HT_SE_STDCD = #HT_SE_STDCD#
+			AND STATS_BI_DTLS = #STATS_BI_DTLS#
+	</update>
+
+	<!-- 통계정보관리 : 회의록 통계정보를 등록한다. -->
+	<insert id="stmManageDAO.insertStatsMints" parameterClass="java.util.HashMap">
+		INSERT INTO STATS_COLG_MAIN
+		(
+			RASMBLY_ID
+			,RASMBLY_NM
+			,ASEMBY_CO
+			,CMIT_CO
+			,MINTS_CO
+			,LGSLT_PRVNTC_CO
+			,PROCESS_BI_CO
+			,PETIT_CO
+			,RCEPTER_BI_CO
+			,MRNG_BI_CO
+			,BATCH_EXC_DT
+			,RASMBLY_NUMPR
+		)
+		VALUES
+		(
+			#RASMBLY_ID#
+			,#RASMBLY_NM#
+			,#ASEMBY_CO#
+			,#CMIT_CO#
+			,#MINTS_CO#
+			,#LGSLT_PRVNTC_CO#
+			,#PROCESS_BI_CO#
+			,#PETIT_CO#
+			,#RCEPTER_BI_CO#
+			,#MRNG_BI_CO#
+			,SYSDATE
+			,#NUMPR#
+		)
+	</insert>
+
+	<!-- 통계정보관리 : 회의록 통계정보를 수정한다. -->
+	<update id="stmManageDAO.updateStatsMints" parameterClass="java.util.HashMap">
+		UPDATE
+			STATS_COLG_MAIN
+		SET
+			ASEMBY_CO		= #ASEMBY_CO#
+			,CMIT_CO		= #CMIT_CO#
+			,MINTS_CO		= #MINTS_CO#
+			,PROCESS_BI_CO	= #PROCESS_BI_CO#
+			,RCEPTER_BI_CO	= #RCEPTER_BI_CO#
+			,MRNG_BI_CO		= #MRNG_BI_CO#
+			,BATCH_EXC_DT 	= SYSDATE
+		WHERE
+			RASMBLY_ID 			= #RASMBLY_ID#
+			AND RASMBLY_NUMPR 	= #NUMPR#
+	</update>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<!-- 테스트데이터 입력 -->
+	<insert id="stmManagerDAO.insertOSLogSummary" parameterClass="osLogSummaryVO">
+		<![CDATA[
+				INSERT INTO		log_mobile (
+								OS_SUMRY_ID
+						,		YEAR
+						,		MT
+						,		DE
+						,		CONECT_CO
+						,		USER_OS
+				) VALUES (
+								#osSumryId#
+						,		#year#
+						,		#mt#
+						,		#de#
+						,		#conectCo#
+						,		#userOs#
+				)
+		]]>
+	</insert>
+
+
+	<!-- 테스트데이터 입력 -->
+	<insert id="stmManagerDAO.insertWbsrLogSummary" parameterClass="wbsrLogSummaryVO">
+		<![CDATA[
+				INSERT INTO		logweb_browser (
+								WBSR_SUMRY_ID
+						,		YEAR
+						,		MT
+						,		DE
+						,		CONECT_CO
+						,		USER_WBSR
+				) VALUES (
+								#wbsrSumryId#
+						,		#year#
+						,		#mt#
+						,		#de#
+						,		#conectCo#
+						,		#userWbsr#
+				)
+		]]>
+	</insert>
+
+	<!-- 테스트데이터 입력 -->
+	<insert id="stmManagerDAO.insertHourLogSummary" parameterClass="hourLogSummaryVO">
+		<![CDATA[
+				INSERT INTO		log_time_summary (
+								HOUR_SUMRY_ID
+						,		YEAR
+						,		MT
+						,		DE
+						,		CONECT_CO
+						,		HOUR
+				) VALUES (
+								#hourSumryId#
+						,		#year#
+						,		#mt#
+						,		#de#
+						,		#conectCo#
+						,		#hour#
+				)
+		]]>
+	</insert>
+
+
+
+	<!-- 테스트데이터 입력 -->
+	<insert id="stmManagerDAO.insertDtaUseLogSummary" parameterClass="dtaUseLogSummaryVO">
+		<![CDATA[
+				INSERT INTO		log_datalog (
+								DTA_USE_LOG_SUMRY_ID
+						,		YEAR
+						,		MT
+						,		DE
+						,		USE_CO
+						,		RASMBLY_DTA_SE_CODE
+						,		LOG_SE_CODE
+				) VALUES (
+								#dtaUseLogSumryId#
+						,		#year#
+						,		#mt#
+						,		#de#
+						,		#useCo#
+						,		#rasmblyDtaSeCode#
+						,		#logSeCode#
+				)
+		]]>
+	</insert>
+	
+</sqlMap>

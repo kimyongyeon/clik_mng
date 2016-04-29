@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="TopManage">
+
+	<typeAlias alias="TopManageVO" type="clikmng.nanet.go.kr.cmm.top.service.TopManageVO"/>
+
+	<select id="TopManageDAO.selectMenuList" resultClass="TopManageVO">
+		<![CDATA[ 
+			SELECT ROWNUM AS RNUM, AA.*
+				FROM (
+					SELECT *
+					FROM (
+						SELECT
+						DISTINCT(A.MENU_NO) AS menuNo
+						, A.MENU_NM AS menuNm
+						, CASE WHEN A.UPPER_MENU_NO = 0 THEN -1 ELSE  A.UPPER_MENU_NO END AS upperMenuNo
+						, A.PROGRM_FILE_NM AS progrmFileNm
+						, A.MENU_ORDR AS menuOrdr
+						, LEVEL AS menuLevel
+						FROM		menu_info A, group_menu B
+						WHERE		A. MENU_NO = B.MENU_NO
+						AND		A.MENU_CL_CODE = 'MNG' 
+						AND		A.USE_AT = 'Y'
+						AND		B.AUTHOR_CODE = #authorCode#
+						START		WITH A.UPPER_MENU_NO = 0
+						CONNECT		BY PRIOR A.MENU_NO = A.UPPER_MENU_NO
+						ORDER 		BY LEVEL ASC, A.MENU_ORDR ASC
+					)
+					ORDER BY menuLevel ASC, upperMenuNo ASC, menuOrdr ASC
+				) AA   			   
+		]]>
+	</select>
+</sqlMap>             

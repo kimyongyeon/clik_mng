@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<!-- 지역 현안 소식 크롤링  -->
+<!--  	<bean id="newsCrawling" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean"> -->
+<!-- 		<property name="targetObject" ref="MdmNewsScheduling" /> -->
+<!-- 		<property name="targetMethod" value="NewsCrawling" /> -->
+<!-- 		<property name="concurrent" value="false" /> -->
+<!-- 	</bean> -->
+
+	<!-- 지역 현안 소식 크롤링 트리거-->
+<!-- 	<bean id="newsCrawlingTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean"> -->
+<!-- 	    <property name="jobDetail" ref="newsCrawling"/> -->
+<!-- 	    <property name="cronExpression" value="0 0 * ? * *"/> -->
+<!-- 	</bean> -->
+	
+	<!-- 지역 현안 소식 크롤링 스케줄러 -->
+<!--  	<bean id="newsCrawlingScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean"> -->
+<!-- 		<property name="triggers"> -->
+<!-- 			<list> -->
+<!-- 				<ref bean="newsCrawlingTrigger" /> -->
+<!-- 			</list> -->
+<!-- 		</property> -->
+<!-- 	</bean> -->
+	
+</beans>

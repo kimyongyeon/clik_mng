@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+
+    <bean id="securedObjectService" class="clikmng.nanet.go.kr.sec.security.securedobject.impl.SecuredObjectServiceImpl">
+        <property name="securedObjectDAO" ref="securedObjectDAO"/>
+    </bean>
+
+    <bean id="securedObjectDAO" class="clikmng.nanet.go.kr.sec.security.securedobject.impl.SecuredObjectDAO" >
+        <property name="dataSource" ref="egov.dataSource"/>
+    </bean>
+       
+    <!--  url  -->
+    <bean id="requestMap" class="clikmng.nanet.go.kr.cmm.auth.AuthMapFactoryBean" init-method="init">
+        <property name="securedObjectService" ref="securedObjectService"/>
+        <!-- <b:property name="resourceType" value="url"/> -->
+    </bean>
+    
+    <bean id="databaseAuthDefinitionSource" class="clikmng.nanet.go.kr.cmm.auth.AuthRollInfo">
+<!--         <b:constructor-arg ref="regexUrlPathMatcher" /> -->
+        <constructor-arg ref="requestMap" />
+        <property name="securedObjectService" ref="securedObjectService"/>
+    </bean>
+    
+        
+        
+	<!-- IP 정보 기록 -->
+	<bean id="IpObtainInterceptor" class="clikmng.nanet.go.kr.cmm.interceptor.IpObtainInterceptor" />
+
+	<!-- 로그인 체크 인터셉터 -->
+	<bean id="authenticInterceptor" class="clikmng.nanet.go.kr.cmm.interceptor.AuthenticInterceptor">
+		
+		<property name="databaseAuthDefinitionSource" ref="databaseAuthDefinitionSource" />
+		
+		<!-- 인증 체크가 필요 없는 URL 리스트  -->		
+ 		<property name="permittedURL">
+			<set>
+				<value>/uat/uia/[a-zA-Z]+\.do</value>
+				<value>/EgovLeft.do</value>
+				<value>/uat/uia/actionLogin.do</value>
+			</set>
+		</property>
+	</bean>
+	
+	<!--  웹로그 인터셉터 -->
+ 	<bean id="egovWebLogInterceptor" class="clikmng.nanet.go.kr.sym.log.wlg.web.EgovWebLogInterceptor">
+ 		<property name="skipURL">
+			<set>
+				<value>/cmm/fms/getImage.do</value>
+				<value>/WEB-INF/jsp/clikMng/sit/spc/SpcList.jsp</value>
+				<value>/WEB-INF/jsp/clikMng/sit/bnr/BannerImgMngList.jsp</value>
+			</set>
+		</property>
+ 	</bean>
+
+	<bean id="webLogMapping" class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
+		<property name="interceptors">
+			<list>
+				<ref bean="IpObtainInterceptor" />
+				<ref bean="authenticInterceptor" />			
+				<ref bean="egovWebLogInterceptor" />
+			</list>
+		</property>
+	</bean>
+	<!--  웹로그 인터셉터 End -->
+
+<!-- 	<bean id="authMapping" class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
+		<property name="interceptors">
+			<list>
+				<ref bean="authInterceptor" />
+			</list>
+		</property>
+	</bean>  -->
+	<!--  권한체크 인터셉터 End -->
+</beans>

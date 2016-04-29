@@ -1,0 +1,1362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="MdmManage">
+	<typeAlias  alias="mdmBillVO" 		     	  type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyBiVO"/>
+	<typeAlias  alias="mdmBillFileVO" 	     	  type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyBiFileVO"/>
+	<typeAlias  alias="mdmDetailCodeVO"      	  type="clikmng.nanet.go.kr.mdm.model.MdmDetailCodeVO"/>
+	<typeAlias  alias="mdmIsViewVO" 	     	  type="clikmng.nanet.go.kr.mdm.model.MdmIsViewVO"/>
+	<typeAlias  alias="mdmTnsrAsmblyItncAsembyVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyItncAsembyVO"/>
+	
+	<resultMap class="clikmng.nanet.go.kr.mdm.model.MdmFileVO" id="billFileCmmn">
+		<result property="atchFileId"    column="BI_FILE_ID" />
+		<result property="orignlFileNm"  column="BI_FILE_NM" />
+		<result property="fileStreCours" column="BI_FILE_PATH" />
+		<result property="streFileNm" 	 column="BI_PDF_FILE_PATH" />
+		<result property="fileSn" 		 column="DOC_CNVR_STTU_CODE" />
+		<result property="fileCn" 		 column="DOC_CNVR_RESULT_MSSAGE" />
+		<result property="fileExtsn" 	 column="FILEEXT" />
+	</resultMap>
+	
+    <select id="MdmTnsrAsmblyBiDAO.selectMdmBillSeq" resultClass="int">
+        <![CDATA[
+			SELECT 
+				TNSRASMBLYBISEQ.NEXTVAL AS SEQ 
+			FROM 
+				DUAL
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyBiDAO.selectMdmBillFileSeq" resultClass="int">
+        <![CDATA[
+			SELECT 
+				TNSRASMBLYBIFILESEQ.NEXTVAL AS SEQ 
+			FROM 
+				DUAL
+		]]>
+    </select>
+    
+   	<select id="MdmTnsrAsmblyBiDAO.selectMdmBillFileDownPathByBiCn" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				TRIM(BI_FILE_PATH) AS DOWNPATH
+			FROM 
+				bill_attach 
+			WHERE 
+				TRIM(BI_CN) = '$DOWNID$'
+				AND ROWNUM = 1
+		]]>
+    </select>
+
+   	<select id="MdmTnsrAsmblyBiDAO.selectMdmBillFileDownPathByBiFileId" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				TRIM(BI_FILE_PATH) AS DOWNPATH
+			FROM 
+				bill_attach 
+			WHERE 
+				TRIM(BI_FILE_ID) = '$DOWNID$'
+				AND ROWNUM = 1
+		]]>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmTnsrAsmblyBiDAO.selectMdmBillMaxRegDate" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				SUBSTR(MAX(FRST_REGIST_DT), 0, 8) AS REGDATE 
+			FROM 
+				bill 
+			WHERE
+				FRST_REGIST_DT <= REPLACE(#TODAY#, '-', '') || '999999'
+		]]>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmTnsrAsmblyBiDAO.selectMdmBillDfltListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				bill 
+		]]>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmTnsrAsmblyBiDAO.selectMdmBillDfltList" parameterClass="mdmSearchVO" resultClass="mdmBillVO">
+        <![CDATA[
+			SELECT 	
+				M.*  
+			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+					SELECT
+						B.BI_ID, B.RASMBLY_ID, B.RASMBLY_NUMPR, B.BI_NO, B.BI_SJ, B.PROPSR, B.ITNC_DE, B.JRSD_CMIT_ID, B.FRST_REGIST_DT, TRIM(B.BI_CN) AS BI_CN, B.ISVIEW, B.CUD_CODE
+						,( SELECT CODE_NM FROM common_detail_code WHERE CODE_ID = 'RKS002' AND CODE = SUBSTRING(B.RASMBLY_ID, 0, 3) AND ROWNUM = 1 ) RASMBLY_NM
+						,( SELECT MTGNM FROM scommit WHERE RASMBLY_ID = B.RASMBLY_ID AND RASMBLY_NUMPR = B.RASMBLY_NUMPR AND MTGNM_ID = B.JRSD_CMIT_ID AND ROWNUM = 1 ) AS MTGNM 
+						,( SELECT COUNT(*) AS FILECNT FROM bill_attach WHERE TRIM(BI_CN) = TRIM(B.BI_CN) AND CUD_CODE != 'D' ) FILECNT
+                        ,( SELECT COUNT(*) AS FILECNT FROM bill_attach WHERE TRIM(BI_CN) = TRIM(B.BI_CN) AND CUD_CODE != 'D' AND (DOC_CNVR_STTU_CODE = '1' OR DOC_CNVR_STTU_CODE = '3') ) FILESUCCCNT 
+                        ,( SELECT COUNT(*) AS FILECNT FROM bill_attach WHERE TRIM(BI_CN) = TRIM(B.BI_CN) AND CUD_CODE != 'D' AND DOC_CNVR_STTU_CODE = '2' ) FILEFLRCNT 
+						,( 
+							SELECT 
+								COUNT(*) 
+							FROM 
+								bill D 
+							WHERE 
+								D.RASMBLY_ID = B.RASMBLY_ID 
+								AND D.RASMBLY_NUMPR = B.RASMBLY_NUMPR 
+								AND D.BI_NO = B.BI_NO 
+								AND D.JRSD_CMIT_ID = B.JRSD_CMIT_ID 
+								AND CUD_CODE != 'D' 
+						) DUPCNT
+					FROM
+						bill B
+					ORDER BY 
+						B.ITNC_DE DESC, B.RASMBLY_ID ASC
+				) A 
+			) M
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+		]]>
+    </select>
+
+	<!-- 지방의회 의안 정보 카운트를 조회한다 -->
+    <select id="MdmTnsrAsmblyBiDAO.selectMdmBillListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				bill B
+				, COLGOVER
+		]]>
+			<!-- 첨부파일 유무  -->
+			<isNotEmpty property="schFile">
+				<![CDATA[ 
+				  ,
+			       (
+					SELECT COUNT(BA.BI_CN) AS CNT, BA.BI_CN
+					  FROM BILL B
+					       , BILL_ATTACH BA
+					 WHERE B.BI_CN = BA.BI_CN
+				]]>
+			
+					AND (
+						<!-- 수집일자 -->
+						<isNotEmpty property="schDt1">
+							<![CDATA[ ( B.FRST_REGIST_DT >= REPLACE(#schDt1#, '-', '') || 000000 AND ]]>
+						</isNotEmpty>
+						<isEmpty property="schDt1">
+						    <isNotEmpty property="schDt2">
+							( 1=1 AND
+							</isNotEmpty>
+						</isEmpty>
+						    
+						<isNotEmpty property="schDt2">
+							<![CDATA[ B.FRST_REGIST_DT <= REPLACE(#schDt2#, '-', '') || 235959 ) ]]>
+						</isNotEmpty>
+						<isEmpty property="schDt2">
+						    <isNotEmpty property="schDt1">
+							1=1 )
+							</isNotEmpty>
+						</isEmpty> 
+						
+						<isEqual property="schDtConditionOperators" compareValue="Y">
+						    OR
+						</isEqual>
+						
+						<!-- 등록일자 -->
+						<isNotEmpty property="schDt3">
+							<![CDATA[ ( B.ITNC_DE >= REPLACE(#schDt3#, '-', '') AND ]]>
+						</isNotEmpty>
+						<isEmpty property="schDt3">
+						    <isNotEmpty property="schDt4">
+							( 1=1 AND
+							</isNotEmpty>
+						</isEmpty>
+						
+						<isNotEmpty property="schDt4">
+							<![CDATA[ B.ITNC_DE <= REPLACE(#schDt4#, '-', '') )]]>
+						</isNotEmpty>
+						<isEmpty property="schDt4">
+						    <isNotEmpty property="schDt3">
+							1=1 )
+							</isNotEmpty>
+						</isEmpty>
+					)
+							
+				<![CDATA[
+					   AND BA.CUD_CODE != 'D'
+					 GROUP BY BA.BI_CN       
+			       ) BT 
+				]]>
+			</isNotEmpty>			
+		
+			<isNotEmpty property="schDuplication">
+			<![CDATA[
+				,(
+					SELECT 
+						RASMBLY_ID, RASMBLY_NUMPR, BI_NO, COUNT(*) 
+					FROM 
+						bill 
+					GROUP BY 
+						RASMBLY_ID, RASMBLY_NUMPR, BI_NO
+					]]>
+					<isEqual property="schDuplication" compareValue="Y">
+						<![CDATA[ HAVING COUNT(*) > 1 ]]>
+					</isEqual>
+					<isEqual property="schDuplication" compareValue="N">
+						<![CDATA[ HAVING COUNT(*) < 2 ]]>
+					</isEqual>
+				) C						 
+			</isNotEmpty>
+			
+			<!-- 기관유형별 - 지방의회 검색  -->			
+			<isNotEmpty property="schOrgCodeStep2">
+				<isEqual property="schOrgCodeStep2" compareValue="004">
+				<![CDATA[
+			  	, (
+					SELECT LOASM_CODE, WS.SITEID
+			  		  FROM ORGAN OG
+			  	           , ORGAN_CLASS OC
+			  	           , WEBROBOT_SITE WS
+			  	     WHERE OG.INSTT_CL_CODE = OC.INSTT_CL_CODE
+			   		   AND OC.UPPER_INSTT_CL_CODE = 'INTSTTCL_000012'
+                       AND OG.BRTC_CODE = WS.REGION
+				]]>                       
+	   			<isNotEmpty property="schOrgCodeStep3">
+            	<![CDATA[   AND WS.ORG_3 = #schOrgCodeStep3# ]]>
+            	</isNotEmpty>
+            	<isNotEmpty property="schOrgCodeStep4">
+            	<![CDATA[   AND WS.SITEID = #schOrgCodeStep4# ]]>
+            	</isNotEmpty>
+            	<![CDATA[   
+				) BT
+				]]>
+				</isEqual>
+			</isNotEmpty>
+						
+			<![CDATA[				
+			
+			WHERE 1 = 1
+				AND COLGOVER.RASMBLY_ID = B.RASMBLY_ID
+			]]>
+			
+			<isNotEmpty property="schDtConditionOperators">
+			AND (
+				<!-- 수집일자 -->
+				<isNotEmpty property="schDt1">
+					<![CDATA[ ( B.FRST_REGIST_DT >= REPLACE(#schDt1#, '-', '') || 000000 AND ]]>
+				</isNotEmpty>
+				<isEmpty property="schDt1">
+				    <isNotEmpty property="schDt2">
+					( 1=1 AND
+					</isNotEmpty>
+				</isEmpty>
+				    
+				<isNotEmpty property="schDt2">
+					<![CDATA[ B.FRST_REGIST_DT <= REPLACE(#schDt2#, '-', '') || 235959 ) ]]>
+				</isNotEmpty>
+				<isEmpty property="schDt2">
+				    <isNotEmpty property="schDt1">
+					1=1 )
+					</isNotEmpty>
+				</isEmpty> 
+				
+				<isEqual property="schDtConditionOperators" compareValue="Y">
+				    OR
+				</isEqual>
+				
+				<!-- 등록일자 -->
+				<isNotEmpty property="schDt3">
+					<![CDATA[ ( B.ITNC_DE >= REPLACE(#schDt3#, '-', '') AND ]]>
+				</isNotEmpty>
+				<isEmpty property="schDt3">
+				    <isNotEmpty property="schDt4">
+					( 1=1 AND
+					</isNotEmpty>
+				</isEmpty>
+				
+				<isNotEmpty property="schDt4">
+					<![CDATA[ B.ITNC_DE <= REPLACE(#schDt4#, '-', '') )]]>
+				</isNotEmpty>
+				<isEmpty property="schDt4">
+				    <isNotEmpty property="schDt3">
+					1=1 )
+					</isNotEmpty>
+				</isEmpty>
+			)
+			</isNotEmpty>
+					
+			<!-- 기관유형별 - 지방의회 검색  -->			
+			<isNotEmpty property="schOrgCodeStep2">
+				<isEqual property="schOrgCodeStep2" compareValue="004">
+				<![CDATA[
+				AND B.RASMBLY_ID = BT.LOASM_CODE
+				]]>
+			    </isEqual>
+			</isNotEmpty>			
+			<isNotEmpty property="schDuplication">
+			<![CDATA[
+				AND B.RASMBLY_ID = C.RASMBLY_ID 
+				AND B.RASMBLY_NUMPR = C.RASMBLY_NUMPR
+				AND B.BI_NO = C.BI_NO
+			]]>
+			</isNotEmpty>
+			
+			<!-- 게시여부 -->
+			<isNotEmpty prepend="AND" property="schIsView">
+				<isEqual property="schIsView" compareValue="N">
+				    B.ISVIEW = 'N'
+				</isEqual>
+				<isEqual property="schIsView" compareValue="Y">
+				    NVL(B.ISVIEW,'Y') = 'Y'
+				</isEqual>				  
+			</isNotEmpty>
+			
+			<!-- 삭제여부 -->
+			<isNotEmpty prepend="AND" property="schDel">				  
+				<isEqual property="schDel" compareValue="D">
+				    B.CUD_CODE = 'D'
+				</isEqual>
+				<isEqual property="schDel" compareValue="Y">
+				    B.CUD_CODE != 'D'
+				</isEqual>
+			</isNotEmpty>			
+			
+			
+			<isNotEmpty property="schLoAsmTyCode">
+				<isEmpty property="schRegion">
+			AND B.RASMBLY_ID
+				<iterate prepend="IN" property="schLoAsmTyCodeList" open="(" close=")" conjunction=","> 
+      					#schLoAsmTyCodeList[]# 
+    			</iterate>
+    				</isEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="schRegion">
+			AND B.RASMBLY_ID
+				<iterate prepend="IN" property="schRegionList" open="(" close=")" conjunction=","> 
+      					#schRegionList[]# 
+    			</iterate>				
+			</isNotEmpty>
+			
+			<!-- 검색어  -->			
+			<isNotEmpty prepend="AND" property="schKw">
+				<isEqual property="schKey" compareValue="schTitle">
+					<![CDATA[ B.BI_SJ like '%' || #schKw# || '%' ]]>
+				</isEqual>
+				<isEqual property="schKey" compareValue="cnId">
+					<![CDATA[ B.BI_CN IN ( $schKw$ ) ]]>
+				</isEqual>
+				<isEqual property="schKey" compareValue="schContent">
+					<![CDATA[ B.BI_OUTLINE LIKE '%' || #schKw# || '%' ]]>
+				</isEqual>				  
+			</isNotEmpty>				
+			
+			<isNotEmpty prepend="AND" property="schRks022">				  
+			    B.CNTC_INPUT_SE_CODE = #schRks022#
+			</isNotEmpty>
+
+			<isNotEmpty prepend="AND" property="schBiKndStdCd">				  
+			    B.BI_KND_STDCD = #schBiKndStdCd#
+			</isNotEmpty>
+
+			<isNotEmpty prepend="AND" property="schLastResultClStdCd">				  
+			    B.LAST_RESULT_CL_STDCD = #schLastResultClStdCd#
+			</isNotEmpty>
+
+			<isNotEmpty property="schJrsdCmitIdList">				  
+				<iterate prepend="AND" property="schJrsdCmitIdList" open="(" close=")" conjunction="OR">
+					B.JRSD_CMIT_ID = #schJrsdCmitIdList[]#
+				</iterate>	
+			</isNotEmpty>
+    </select>
+
+	<!-- 지방의회 의안 목록을 조회한다 -->
+	<select id="MdmTnsrAsmblyBiDAO.selectMdmBillList" parameterClass="mdmSearchVO" resultClass="mdmBillVO">
+        <![CDATA[
+		SELECT 
+			RET.RNUM, RET.BI_ID, RET.RASMBLY_ID, RET.RASMBLY_NUMPR, RET.BI_NO, RET.BI_SJ, RET.PROPSR, RET.ITNC_DE
+			, RET.JRSD_CMIT_ID, RET.FRST_REGIST_DT, RET.BI_CN, RET.ISVIEW, RET.CUD_CODE
+			, RET.SESN_SE_STDCD, RET.RASMBLY_NM, RET.MTGNM
+		FROM (
+		
+			SELECT 	
+				M.*  
+			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+				SELECT *
+					FROM (
+					SELECT
+						B.BI_ID, 
+						B.RASMBLY_ID, 
+						B.RASMBLY_NUMPR, 
+						B.BI_NO, 
+						B.BI_SJ, 
+						B.PROPSR, 
+						B.ITNC_DE, 
+						B.JRSD_CMIT_ID, 
+						B.FRST_REGIST_DT, 
+						TRIM(B.BI_CN) AS BI_CN, 
+						B.ISVIEW, 
+						B.CUD_CODE,
+						B.SESN_SE_STDCD
+						,COLGOVER.RASMBLY_NM
+						,( SELECT MTGNM FROM scommit WHERE RASMBLY_ID = B.RASMBLY_ID AND RASMBLY_NUMPR = B.RASMBLY_NUMPR AND MTGNM_ID = B.JRSD_CMIT_ID AND ROWNUM = 1 ) AS MTGNM 
+		]]>                       
+                        <isNotEmpty property="schDuplication">
+        <![CDATA[		,C.DUPCNT	]]>
+                        </isNotEmpty> 
+		<![CDATA[                        
+					FROM
+						bill B
+						, COLGOVER
+		]]>
+		
+					<isNotEmpty property="schDuplication">
+					<![CDATA[
+						,(
+							SELECT 
+								RASMBLY_ID, RASMBLY_NUMPR, BI_NO, COUNT(*) AS DUPCNT 
+							FROM 
+								bill 
+							GROUP BY 
+								RASMBLY_ID, RASMBLY_NUMPR, BI_NO
+							]]>
+							<isEqual property="schDuplication" compareValue="Y">
+								<![CDATA[ HAVING COUNT(*) > 1 ]]>
+							</isEqual>
+							<isEqual property="schDuplication" compareValue="N">
+								<![CDATA[ HAVING COUNT(*) < 2 ]]>
+							</isEqual>
+						) C						 
+					</isNotEmpty>
+					
+					<isNotEmpty property="schOrgCodeStep2">
+						<isEqual property="schOrgCodeStep2" compareValue="004">
+						<![CDATA[
+					  	, (
+							SELECT LOASM_CODE, WS.SITEID
+					  		  FROM ORGAN OG
+					  	           , ORGAN_CLASS OC
+					  	           , WEBROBOT_SITE WS
+					  	     WHERE OG.INSTT_CL_CODE = OC.INSTT_CL_CODE
+					   		   AND OC.UPPER_INSTT_CL_CODE = 'INTSTTCL_000012'
+		                       AND OG.BRTC_CODE = WS.REGION
+						]]>                       
+			   			<isNotEmpty property="schOrgCodeStep3">
+		            	<![CDATA[   AND WS.ORG_3 = #schOrgCodeStep3# ]]>
+		            	</isNotEmpty>
+		            	<isNotEmpty property="schOrgCodeStep4">
+		            	<![CDATA[   AND WS.SITEID = #schOrgCodeStep4# ]]>
+		            	</isNotEmpty>
+		            	<![CDATA[   
+						) BT
+						]]>
+						</isEqual>
+					</isNotEmpty>					
+					
+					<![CDATA[				
+					WHERE 1 = 1
+						AND COLGOVER.RASMBLY_ID = B.RASMBLY_ID
+					]]>
+					
+					<isNotEmpty property="schDtConditionOperators">    
+					AND (
+					
+						<!-- 수집일자 -->
+						<isNotEmpty property="schDt1">
+							<![CDATA[ ( B.FRST_REGIST_DT >= REPLACE(#schDt1#, '-', '') || 000000 AND ]]>
+						</isNotEmpty>
+						<isEmpty property="schDt1">
+						    <isNotEmpty property="schDt2">
+							( 1=1 AND
+							</isNotEmpty>
+						</isEmpty>
+						    
+						<isNotEmpty property="schDt2">
+							<![CDATA[ B.FRST_REGIST_DT <= REPLACE(#schDt2#, '-', '') || 235959 ) ]]>
+						</isNotEmpty>
+						<isEmpty property="schDt2">
+						    <isNotEmpty property="schDt1">
+							1=1 )
+							</isNotEmpty>
+						</isEmpty> 
+						
+						<isEqual property="schDtConditionOperators" compareValue="Y">
+						    OR
+						</isEqual>
+						
+						<!-- 등록일자 -->
+						<isNotEmpty property="schDt3">
+							<![CDATA[ ( B.ITNC_DE >= REPLACE(#schDt3#, '-', '') AND ]]>
+						</isNotEmpty>
+						<isEmpty property="schDt3">
+						    <isNotEmpty property="schDt4">
+							( 1=1 AND
+							</isNotEmpty>
+						</isEmpty>
+						
+						<isNotEmpty property="schDt4">
+							<![CDATA[ B.ITNC_DE <= REPLACE(#schDt4#, '-', '') )]]>
+						</isNotEmpty>
+						<isEmpty property="schDt4">
+						    <isNotEmpty property="schDt3">
+							1=1 )
+							</isNotEmpty>
+						</isEmpty>
+					)
+					</isNotEmpty>
+					
+					<!-- 기관유형별 - 지방의회 검색  -->
+					<isNotEmpty property="schOrgCodeStep2">
+						<isEqual property="schOrgCodeStep2" compareValue="004">
+						<![CDATA[
+						AND B.RASMBLY_ID = BT.LOASM_CODE
+						]]>
+					    </isEqual>
+					</isNotEmpty>		        	
+		        	
+					<isNotEmpty property="schDuplication">
+					<![CDATA[
+						AND B.RASMBLY_ID = C.RASMBLY_ID 
+						AND B.RASMBLY_NUMPR = C.RASMBLY_NUMPR
+						AND B.BI_NO = C.BI_NO
+					]]>
+					</isNotEmpty>
+					<isNotEmpty property="schConversion">
+					<![CDATA[
+						AND TRIM(B.BI_CN) IN (
+							SELECT 
+								TRIM(BI_CN) AS BI_CN 
+							FROM 
+								bill_attach 
+							WHERE 
+								TRIM(BI_CN) = TRIM(B.BI_CN) 
+					]]>
+								<isEqual prepend="AND" property="schConversion" compareValue="1">
+									<![CDATA[ (DOC_CNVR_STTU_CODE = '1' OR DOC_CNVR_STTU_CODE = '3') ]]>
+								</isEqual>
+								<isEqual prepend="AND" property="schConversion" compareValue="2">
+									<![CDATA[ DOC_CNVR_STTU_CODE = '2' ]]>
+								</isEqual>
+							GROUP BY 
+								BI_CN
+						)
+					</isNotEmpty>		        	
+
+					<!-- 2015.04.16(추가) START -->			
+					<isNotEmpty prepend="AND" property="schIsView">
+						<isEqual property="schIsView" compareValue="N">
+						    B.ISVIEW = 'N'
+						</isEqual>
+						<isEqual property="schIsView" compareValue="Y">
+						    NVL(B.ISVIEW,'Y') = 'Y'
+						</isEqual>				  
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schDel">				  
+						<isEqual property="schDel" compareValue="D">
+						    B.CUD_CODE = 'D'
+						</isEqual>
+						<isEqual property="schDel" compareValue="Y">
+						    B.CUD_CODE != 'D'
+						</isEqual>
+					</isNotEmpty>			
+					
+					<isNotEmpty property="schLoAsmTyCode">
+						<isEmpty property="schRegion">
+					AND B.RASMBLY_ID
+						<iterate prepend="IN" property="schLoAsmTyCodeList" open="(" close=")" conjunction=","> 
+		      					#schLoAsmTyCodeList[]# 
+		    			</iterate>
+		    				</isEmpty>
+					</isNotEmpty>
+					<isNotEmpty property="schRegion">
+					AND B.RASMBLY_ID
+						<iterate prepend="IN" property="schRegionList" open="(" close=")" conjunction=","> 
+		      					#schRegionList[]# 
+		    			</iterate>				
+					</isNotEmpty>
+					
+					<!-- 검색어  -->					
+					<isNotEmpty prepend="AND" property="schKw">
+						<isEqual property="schKey" compareValue="schTitle">
+							<![CDATA[ B.BI_SJ like '%' || #schKw# || '%' ]]>
+						</isEqual>
+						<isEqual property="schKey" compareValue="cnId">
+							<![CDATA[ B.BI_CN IN ( $schKw$ ) ]]>
+						</isEqual>
+						<isEqual property="schKey" compareValue="schContent">
+							<![CDATA[ B.BI_OUTLINE LIKE '%' || #schKw# || '%' ]]>
+						</isEqual>				  
+					</isNotEmpty>				
+					<!-- 2015.04.16(추가) END -->		        	
+		        	
+					<isNotEmpty prepend="AND" property="schRks022">				  
+					    B.CNTC_INPUT_SE_CODE = #schRks022#
+					</isNotEmpty>
+
+					<isNotEmpty prepend="AND" property="schBiKndStdCd">				  
+					    B.BI_KND_STDCD = #schBiKndStdCd#
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="schLastResultClStdCd">				  
+					    B.LAST_RESULT_CL_STDCD = #schLastResultClStdCd#
+					</isNotEmpty>
+					
+					<isNotEmpty property="schJrsdCmitIdList">
+						<iterate prepend="AND" property="schJrsdCmitIdList" open="(" close=")" conjunction="OR">
+							B.JRSD_CMIT_ID = #schJrsdCmitIdList[]#
+						</iterate>	
+					</isNotEmpty>
+				) AA 
+				ORDER BY 
+				<isEmpty property="sort">
+					AA.ITNC_DE DESC, AA.RASMBLY_ID ASC
+				</isEmpty>
+					
+				<isNotEmpty property="sort">
+				    AA.$sort$
+				</isNotEmpty>
+				) A 
+			) M
+			WHERE 
+			<![CDATA[
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+				
+			) RET 
+				LEFT OUTER JOIN bill_attach ATT
+					ON ATT.BI_CN = RET.BI_CN
+			GROUP BY RET.RNUM, RET.BI_ID, RET.RASMBLY_ID, RET.RASMBLY_NUMPR, RET.BI_NO, RET.BI_SJ, RET.PROPSR, RET.ITNC_DE
+				, RET.JRSD_CMIT_ID, RET.FRST_REGIST_DT, RET.BI_CN, RET.ISVIEW, RET.CUD_CODE
+				, RET.SESN_SE_STDCD, RET.RASMBLY_NM, RET.MTGNM
+			ORDER BY RET.RNUM ASC
+			]]>
+    </select>
+    
+<!-- 사용안함 -->
+    <select id="MdmTnsrAsmblyBiDAO.selectMdmBillCnvrsListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+         <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				bill B
+			WHERE
+				B.ITNC_DE >= REPLACE(#schDt1#, '-', '')
+				AND B.ITNC_DE <= REPLACE(#schDt2#, '-', '')
+				AND TRIM(B.BI_CN) IN (
+					SELECT 
+						TRIM(BI_CN) AS BI_CN 
+					FROM 
+						bill_attach 
+					WHERE 
+						TRIM(BI_CN) = TRIM(B.BI_CN) 
+						]]>
+						<isEqual prepend="AND" property="schConversion" compareValue="1">
+							<![CDATA[ (DOC_CNVR_STTU_CODE = '1' OR DOC_CNVR_STTU_CODE = '3') ]]>
+						</isEqual>
+						<isEqual prepend="AND" property="schConversion" compareValue="2">
+							<![CDATA[ DOC_CNVR_STTU_CODE = '2' ]]>
+						</isEqual>
+					GROUP BY 
+						BI_CN
+				)
+				<isNotEmpty prepend="AND" property="schRks022">				  
+				    B.CNTC_INPUT_SE_CODE = #schRks022#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+				    B.RASMBLY_ID = #schLoAsmCode#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schRasmblyNumpr">				  
+				    B.RASMBLY_NUMPR = #schRasmblyNumpr#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schBiKndStdCd">				  
+				    B.BI_KND_STDCD = #schBiKndStdCd#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schLastResultClStdCd">				  
+				    B.LAST_RESULT_CL_STDCD = #schLastResultClStdCd#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schBiSj">				  
+				    <![CDATA[ B.BI_SJ like '%' || #schBiSj# || '%' ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schPropsr">				  
+				    <![CDATA[ B.PROPSR like '%' || #schPropsr# || '%' ]]>
+				</isNotEmpty>
+				<isNotEmpty property="schJrsdCmitIdList">				  
+					<iterate prepend="AND" property="schJrsdCmitIdList" open="(" close=")" conjunction="OR">
+						B.JRSD_CMIT_ID = #schJrsdCmitIdList[]#
+					</iterate>	
+				</isNotEmpty>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmTnsrAsmblyBiDAO.selectMdmBillCnvrsList" parameterClass="mdmSearchVO" resultClass="mdmBillVO">
+ 		<![CDATA[
+			SELECT 	
+				M.*  
+			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+					SELECT
+						B.BI_ID, B.RASMBLY_ID, B.RASMBLY_NUMPR, B.BI_NO, B.BI_SJ, B.PROPSR, B.ITNC_DE, B.JRSD_CMIT_ID, B.FRST_REGIST_DT, TRIM(B.BI_CN) AS BI_CN, B.ISVIEW, B.CUD_CODE
+						,( SELECT CODE_NM FROM common_detail_code WHERE CODE_ID = 'RKS002' AND CODE = SUBSTRING(B.RASMBLY_ID, 0, 3) AND ROWNUM = 1 ) RASMBLY_NM
+						,( SELECT MTGNM FROM scommit WHERE RASMBLY_ID = B.RASMBLY_ID AND RASMBLY_NUMPR = B.RASMBLY_NUMPR AND MTGNM_ID = B.JRSD_CMIT_ID AND ROWNUM = 1 ) AS MTGNM 
+						,( SELECT COUNT(*) AS FILECNT FROM bill_attach WHERE TRIM(BI_CN) = TRIM(B.BI_CN) AND CUD_CODE != 'D' ) FILECNT
+                        ,( SELECT COUNT(*) AS FILECNT FROM bill_attach WHERE TRIM(BI_CN) = TRIM(B.BI_CN) AND CUD_CODE != 'D' AND (DOC_CNVR_STTU_CODE = '1' OR DOC_CNVR_STTU_CODE = '3') ) FILESUCCCNT 
+                        ,( SELECT COUNT(*) AS FILECNT FROM bill_attach WHERE TRIM(BI_CN) = TRIM(B.BI_CN) AND CUD_CODE != 'D' AND DOC_CNVR_STTU_CODE = '2' ) FILEFLRCNT 
+					FROM
+						bill B
+					WHERE
+						B.ITNC_DE >= REPLACE(#schDt1#, '-', '')
+						AND B.ITNC_DE <= REPLACE(#schDt2#, '-', '')
+						AND TRIM(B.BI_CN) IN (
+							SELECT 
+								TRIM(BI_CN) AS BI_CN 
+							FROM 
+								bill_attach 
+							WHERE 
+								TRIM(BI_CN) = TRIM(B.BI_CN) 
+								]]>
+								<isEqual prepend="AND" property="schConversion" compareValue="1">
+									<![CDATA[ (DOC_CNVR_STTU_CODE = '1' OR DOC_CNVR_STTU_CODE = '3') ]]>
+								</isEqual>
+								<isEqual prepend="AND" property="schConversion" compareValue="2">
+									<![CDATA[ DOC_CNVR_STTU_CODE = '2' ]]>
+								</isEqual>
+							GROUP BY 
+								BI_CN
+						)
+						<isNotEmpty prepend="AND" property="schRks022">				  
+						    B.CNTC_INPUT_SE_CODE = #schRks022#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+						    B.RASMBLY_ID = #schLoAsmCode#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schRasmblyNumpr">				  
+						    B.RASMBLY_NUMPR = #schRasmblyNumpr#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schBiKndStdCd">				  
+						    B.BI_KND_STDCD = #schBiKndStdCd#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schLastResultClStdCd">				  
+						    B.LAST_RESULT_CL_STDCD = #schLastResultClStdCd#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schBiSj">				  
+						    <![CDATA[ B.BI_SJ like '%' || #schBiSj# || '%' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schPropsr">				  
+						    <![CDATA[ B.PROPSR like '%' || #schPropsr# || '%' ]]>
+						</isNotEmpty>
+						<isNotEmpty property="schJrsdCmitIdList">				  
+							<iterate prepend="AND" property="schJrsdCmitIdList" open="(" close=")" conjunction="OR">
+								B.JRSD_CMIT_ID = #schJrsdCmitIdList[]#
+							</iterate>	
+						</isNotEmpty>
+					ORDER BY 
+						B.ITNC_DE DESC, B.RASMBLY_ID ASC
+				) A 
+			) M
+			WHERE 
+			<![CDATA[
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+			]]>
+	</select>
+<!-- 사용안함 -->	
+    <select id="MdmTnsrAsmblyBiDAO.selectMdmBillDplctListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+         <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				bill B
+				,(
+					SELECT 
+						RASMBLY_ID, RASMBLY_NUMPR, BI_NO, COUNT(*) 
+					FROM 
+						bill 
+					GROUP BY 
+						RASMBLY_ID, RASMBLY_NUMPR, BI_NO 
+					]]>
+					<isEqual property="schDuplication" compareValue="Y">
+						<![CDATA[ HAVING COUNT(*) > 1 ]]>
+					</isEqual>
+					<isEqual property="schDuplication" compareValue="N">
+						<![CDATA[ HAVING COUNT(*) < 2 ]]>
+					</isEqual>
+				) C
+			WHERE
+				<![CDATA[
+				B.ITNC_DE >= REPLACE(#schDt1#, '-', '')
+				AND B.ITNC_DE <= REPLACE(#schDt2#, '-', '')
+				AND B.RASMBLY_ID = C.RASMBLY_ID 
+				AND B.RASMBLY_NUMPR = C.RASMBLY_NUMPR
+				AND B.BI_NO = C.BI_NO
+				]]>
+				<isNotEmpty prepend="AND" property="schRks022">				  
+				    B.CNTC_INPUT_SE_CODE = #schRks022#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+				    B.RASMBLY_ID = #schLoAsmCode#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schRasmblyNumpr">				  
+				    B.RASMBLY_NUMPR = #schRasmblyNumpr#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schBiKndStdCd">				  
+				    B.BI_KND_STDCD = #schBiKndStdCd#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schLastResultClStdCd">				  
+				    B.LAST_RESULT_CL_STDCD = #schLastResultClStdCd#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schBiSj">				  
+				    <![CDATA[ B.BI_SJ like '%' || #schBiSj# || '%' ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schPropsr">				  
+				    <![CDATA[ B.PROPSR like '%' || #schPropsr# || '%' ]]>
+				</isNotEmpty>
+				<isNotEmpty property="schJrsdCmitIdList">				  
+					<iterate prepend="AND" property="schJrsdCmitIdList" open="(" close=")" conjunction="OR">
+						B.JRSD_CMIT_ID = #schJrsdCmitIdList[]#
+					</iterate>	
+				</isNotEmpty>
+    </select>
+ <!-- 사용안함 -->   
+    <select id="MdmTnsrAsmblyBiDAO.selectMdmBillDplctList" parameterClass="mdmSearchVO" resultClass="mdmBillVO">
+ 		<![CDATA[
+			SELECT 	
+				M.*  
+			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+					SELECT
+						B.BI_ID, B.RASMBLY_ID, B.RASMBLY_NUMPR, B.BI_NO, B.BI_SJ, B.PROPSR, B.ITNC_DE, B.JRSD_CMIT_ID, B.FRST_REGIST_DT, TRIM(B.BI_CN) AS BI_CN, B.ISVIEW, B.CUD_CODE
+						,( SELECT CODE_NM FROM common_detail_code WHERE CODE_ID = 'RKS002' AND CODE = SUBSTRING(B.RASMBLY_ID, 0, 3) AND ROWNUM = 1 ) RASMBLY_NM
+						,( SELECT MTGNM FROM scommit WHERE RASMBLY_ID = B.RASMBLY_ID AND RASMBLY_NUMPR = B.RASMBLY_NUMPR AND MTGNM_ID = B.JRSD_CMIT_ID AND ROWNUM = 1 ) AS MTGNM 
+						,( SELECT COUNT(*) AS FILECNT FROM bill_attach WHERE TRIM(BI_CN) = TRIM(B.BI_CN) AND CUD_CODE != 'D' ) FILECNT
+                        ,( SELECT COUNT(*) AS FILECNT FROM bill_attach WHERE TRIM(BI_CN) = TRIM(B.BI_CN) AND CUD_CODE != 'D' AND (DOC_CNVR_STTU_CODE = '1' OR DOC_CNVR_STTU_CODE = '3') ) FILESUCCCNT 
+                        ,( SELECT COUNT(*) AS FILECNT FROM bill_attach WHERE TRIM(BI_CN) = TRIM(B.BI_CN) AND CUD_CODE != 'D' AND DOC_CNVR_STTU_CODE = '2' ) FILEFLRCNT 
+						,C.DUPCNT
+					FROM
+						bill B
+						,(
+							SELECT 
+								RASMBLY_ID, RASMBLY_NUMPR, BI_NO, COUNT(*) AS DUPCNT
+							FROM 
+								bill 
+							GROUP BY 
+								RASMBLY_ID, RASMBLY_NUMPR, BI_NO, JRSD_CMIT_ID
+							]]>
+							<isEqual property="schDuplication" compareValue="Y">
+								<![CDATA[ HAVING COUNT(*) > 1 ]]>
+							</isEqual>
+							<isEqual property="schDuplication" compareValue="N">
+								<![CDATA[ HAVING COUNT(*) < 2 ]]>
+							</isEqual>
+						) C
+					WHERE
+						<![CDATA[
+						B.RASMBLY_ID = C.RASMBLY_ID 
+						AND B.RASMBLY_NUMPR = C.RASMBLY_NUMPR
+						AND B.BI_NO = C.BI_NO
+						]]>
+						<!-- 수집일자 -->
+						<isNotEmpty prepend="AND" property="schDt1">				  
+							<![CDATA[ B.FRST_REGIST_DT >= REPLACE(#schDt1#, '-', '') || 000000 ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt2">				  
+							<![CDATA[ B.FRST_REGIST_DT <= REPLACE(#schDt2#, '-', '') || 235959 ]]>
+						</isNotEmpty>
+						
+						<!-- 등록일자 -->
+						<isNotEmpty prepend="AND" property="schDt3">				  
+							<![CDATA[ B.ITNC_DE >= REPLACE(#schDt3#, '-', '') ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt4">				  
+							<![CDATA[ B.ITNC_DE <= REPLACE(#schDt4#, '-', '') ]]>
+						</isNotEmpty>
+						
+						<isNotEmpty prepend="AND" property="schRks022">				  
+						    B.CNTC_INPUT_SE_CODE = #schRks022#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+						    B.RASMBLY_ID = #schLoAsmCode#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schRasmblyNumpr">				  
+						    B.RASMBLY_NUMPR = #schRasmblyNumpr#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schBiKndStdCd">				  
+						    B.BI_KND_STDCD = #schBiKndStdCd#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schLastResultClStdCd">				  
+						    B.LAST_RESULT_CL_STDCD = #schLastResultClStdCd#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schBiSj">				  
+						    <![CDATA[ B.BI_SJ like '%' || #schBiSj# || '%' ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schPropsr">				  
+						    <![CDATA[ B.PROPSR like '%' || #schPropsr# || '%' ]]>
+						</isNotEmpty>
+						<isNotEmpty property="schJrsdCmitIdList">				  
+							<iterate prepend="AND" property="schJrsdCmitIdList" open="(" close=")" conjunction="OR">
+								B.JRSD_CMIT_ID = #schJrsdCmitIdList[]#
+							</iterate>	
+						</isNotEmpty>
+					ORDER BY 
+						B.ITNC_DE DESC, B.RASMBLY_ID ASC
+				) A 
+			) M
+			WHERE 
+			<![CDATA[
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+			]]>
+    </select>
+
+  	<select id="MdmTnsrAsmblyBiDAO.selectMdmBillView" parameterClass="mdmSearchVO" resultClass="mdmBillVO">
+        <![CDATA[
+			SELECT
+				COLGOVER.RASMBLY_NM
+				,BILL.BI_ID
+				,BILL.RASMBLY_NUMPR
+				,BILL.LAST_RESULT_CL_STDCD
+				,BILL.BI_KND_STDCD
+				,BILL.RASMBLY_ID
+				,BILL.RASMBLY_SESN
+				,BILL.BI_NO
+				,BILL.BI_SJ
+				,BILL.ITNC_YEAR
+				,BILL.PROPSR
+				,BILL.ITNC_DE
+				,BILL.JRSD_CMIT_ID
+				,BILL.FRWRD_DE
+				,BILL.CMIT_REPORT_DE
+				,BILL.CMIT_SBMISN_DE
+				,BILL.CMIT_PROCESS_DE
+				,BILL.CMIT_RESULT
+				,BILL.PLNMT_REPORT_DE
+				,BILL.PLNMT_SBMISN_DE
+				,BILL.PLNMT_PROCESS_DE
+				,BILL.PLNMT_RESULT
+				,BILL.TRNSF_DE
+				,BILL.PRMLGT_DE
+				,BILL.PRMLGT_NO
+				,BILL.BI_KND_NM
+				,BILL.FRST_REGIST_DT
+				,BILL.LAST_UPDT_DT
+				,BILL.DELETE_DT
+				,BILL.CUD_CODE
+				,BILL.SESN_SE_STDCD
+				,BILL.PROPSR_KND_STDCD
+				,BILL.CMIT_RESULT_STDCD
+				,BILL.PLNMT_RESULT_STDCD
+				,BILL.BI_CN
+				,BILL.BI_OUTLINE
+				,BILL.LAST_UPDUSR_ID
+				,BILL.COLCT_AT
+			FROM
+				BILL
+				,COLGOVER
+			WHERE
+			COLGOVER.RASMBLY_ID = BILL.RASMBLY_ID
+			AND TRIM(BILL.BI_CN) = #cnId# 
+        ]]>
+    </select>
+
+   	<select id="MdmTnsrAsmblyBiDAO.selectMdmBillDplctListCmmn" parameterClass="mdmBillVO" resultClass="mdmBillVO">
+        <![CDATA[
+			SELECT 
+				B.BI_ID, B.RASMBLY_ID, B.RASMBLY_NUMPR, B.BI_NO, B.BI_SJ, B.PROPSR, B.ITNC_DE, TRIM(B.BI_CN) AS BI_CN, B.ISVIEW
+				,( SELECT CODE_NM FROM common_detail_code WHERE CODE_ID = 'RKS002' AND CODE = SUBSTRING(B.RASMBLY_ID, 0, 3) AND ROWNUM = 1 ) RASMBLY_NM
+				,( SELECT MTGNM FROM scommit WHERE RASMBLY_ID = B.RASMBLY_ID AND RASMBLY_NUMPR = B.RASMBLY_NUMPR AND MTGNM_ID = B.JRSD_CMIT_ID AND ROWNUM = 1 ) AS MTGNM 
+			FROM 
+				bill B
+			WHERE 
+				B.RASMBLY_ID = #RASMBLY_ID#
+				AND B.RASMBLY_NUMPR = #RASMBLY_NUMPR#
+				AND B.BI_NO = #BI_NO#
+				AND B.JRSD_CMIT_ID = #JRSD_CMIT_ID#
+				AND B.CUD_CODE != 'D'
+			ORDER BY 
+				B.RASMBLY_NUMPR DESC, B.BI_NO DESC
+        ]]>
+    </select>
+
+   	<select id="MdmTnsrAsmblyBiDAO.selectMdmBillFileList" parameterClass="mdmSearchVO" resultClass="mdmBillFileVO">
+        <![CDATA[
+			SELECT 
+				RASMBLY_ID
+				,BI_ID
+				,BI_FILE_ID
+				,BI_FILE_NM
+				,BI_FILE_URL
+				,BI_FILE_LAST_UPDT_TM
+				,FRST_REGIST_DT
+				,LAST_UPDT_DT
+				,DELETE_DT
+				,CUD_CODE
+				,BI_FILE_HASH
+				,BI_FILE_PATH
+				,BI_PDF_FILE_PATH
+				,CNTC_INPUT_SE_CODE
+				,DOC_CNVR_STTU_CODE
+				,DOC_CNVR_RESULT_MSSAGE
+				,BI_CN
+				,BI_PDF_FILE_NM
+				,DOC_CNVR_DT
+				,CASE WHEN INSTR(BI_FILE_PATH, '.', -1) > 1 THEN LOWER(SUBSTR(BI_FILE_PATH, (INSTR(BI_FILE_PATH, '.', -1) + 1)))
+					  ELSE ''
+				END FILEEXT
+			FROM 
+				bill_attach 
+			WHERE 
+				TRIM(BI_CN) = #cnId#
+				AND CUD_CODE != 'D'
+			ORDER BY 
+				BI_FILE_ID ASC
+        ]]>
+    </select>
+
+   	<select id="MdmTnsrAsmblyBiDAO.selectMdmBillFileListCmmn" parameterClass="string" resultMap="billFileCmmn">
+        <![CDATA[
+			SELECT 
+				BI_FILE_ID
+				,BI_FILE_NM
+				,BI_FILE_PATH
+				,BI_PDF_FILE_PATH
+				,DOC_CNVR_STTU_CODE
+				,DOC_CNVR_RESULT_MSSAGE 
+				,CASE WHEN INSTR(BI_FILE_PATH, '.', -1) > 1 THEN LOWER(SUBSTR(BI_FILE_PATH, (INSTR(BI_FILE_PATH, '.', -1) + 1)))
+					ELSE ''
+				END FILEEXT
+			FROM 
+				bill_attach 
+			WHERE 
+				TRIM(BI_CN) = #BI_CN#
+				AND CUD_CODE != 'D'
+			ORDER BY 
+				BI_FILE_ID ASC
+        ]]>
+    </select>
+<!-- 사용안함 -->
+   	<select id="MdmTnsrAsmblyBiDAO.selectMdmBillFileExt" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				CASE 
+					WHEN INSTR(BI_PDF_FILE_PATH, '.', -1) > 1 THEN 'pdf'
+					ELSE 
+						CASE 
+							WHEN INSTR(BI_FILE_PATH, '.', -1) > 1 THEN LOWER(SUBSTR(BI_FILE_PATH, (INSTR(BI_FILE_PATH, '.', -1) + 1)))
+							ELSE ''
+						END
+				END EXT
+			FROM 
+				bill_attach 
+			WHERE 
+				TRIM(BI_CN) = #BI_CN#
+				AND CUD_CODE != 'D'
+				AND ROWNUM = 1
+			ORDER BY 
+				BI_FILE_ID ASC
+        ]]>
+    </select>
+
+	<select id="MdmTnsrAsmblyBiDAO.selectMdmBillItncAsembyList" parameterClass="string" resultClass="mdmTnsrAsmblyItncAsembyVO">
+        <![CDATA[
+			SELECT 
+				A.ASEMBY_ID
+				,B.ASEMBY_NM
+			FROM 
+				bill_propo_aman A, laman B
+			WHERE 
+				A.RASMBLY_ID = B.RASMBLY_ID
+				AND A.ASEMBY_ID = B.ASEMBY_ID
+				AND A.CUD_CODE != 'D' 
+				AND TRIM(A.BI_CN) = #cnId#
+			ORDER BY
+				B.ASEMBY_NM ASC	
+        ]]>
+    </select>
+<!-- 사용안함 -->
+    <insert id="MdmTnsrAsmblyBiDAO.insertMdmBill" parameterClass="mdmBillVO">
+        <![CDATA[
+			INSERT 
+				INTO 
+			bill (
+				BI_ID
+				,RASMBLY_NUMPR
+				,LAST_RESULT_CL_STDCD
+				,BI_KND_STDCD
+				,RASMBLY_ID
+				,RASMBLY_SESN
+				,BI_NO
+				,BI_SJ
+				,ITNC_YEAR
+				,PROPSR
+				,ITNC_DE
+				,JRSD_CMIT_ID
+				,FRWRD_DE
+				,CMIT_REPORT_DE
+				,CMIT_SBMISN_DE
+				,CMIT_PROCESS_DE
+				,CMIT_RESULT
+				,CMIT_UPDT_OUTLINE
+				,PLNMT_REPORT_DE
+				,PLNMT_SBMISN_DE
+				,PLNMT_PROCESS_DE
+				,PLNMT_RESULT
+				,TRNSF_DE
+				,PRMLGT_DE
+				,PRMLGT_NO
+				,BI_KND_NM
+				,FRST_REGIST_DT
+				,LAST_UPDT_DT
+				,DELETE_DT
+				,CUD_CODE
+				,SESN_SE_STDCD
+				,PROPSR_KND_STDCD
+				,AGREE_ASEMBY
+				,RASMBLY_BI_ID
+				,BI_OUTLINE
+				,CNTC_INPUT_SE_CODE
+				,BI_CN
+				,ISVIEW
+				,PROPSR_ASEMBY
+				,CMIT_RESULT_STDCD
+				,PLNMT_RESULT_STDCD
+				,COLCT_AT
+			) VALUES (
+				#BI_ID#
+				,#RASMBLY_NUMPR#
+				,#LAST_RESULT_CL_STDCD#
+				,#BI_KND_STDCD#
+				,#RASMBLY_ID#
+				,#RASMBLY_SESN#
+				,#BI_NO#
+				,#BI_SJ#
+				,#ITNC_YEAR#
+				,#PROPSR#
+				,#ITNC_DE#
+				,#JRSD_CMIT_ID#
+				,#FRWRD_DE#
+				,#CMIT_REPORT_DE#
+				,#CMIT_SBMISN_DE#
+				,#CMIT_PROCESS_DE#
+				,#CMIT_RESULT#
+				,#CMIT_UPDT_OUTLINE:CLOB#
+				,#PLNMT_REPORT_DE#
+				,#PLNMT_SBMISN_DE#
+				,#PLNMT_PROCESS_DE#
+				,#PLNMT_RESULT#
+				,#TRNSF_DE#
+				,#PRMLGT_DE#
+				,#PRMLGT_NO#
+				,#BI_KND_NM#
+				,#FRST_REGIST_DT#
+				,#LAST_UPDT_DT#
+				,#DELETE_DT#
+				,'C'
+				,'SES100'
+				,#PROPSR_KND_STDCD#
+				,#AGREE_ASEMBY#
+				,#RASMBLY_BI_ID#
+				,#BI_OUTLINE:CLOB#
+				,'MANUAL'
+				,#BI_CN#
+				,'Y'
+				,#PROPSR_ASEMBY#
+				,#CMIT_RESULT_STDCD#
+				,#PLNMT_RESULT_STDCD#
+				,'N'
+			)
+		]]>
+    </insert>
+<!-- 사용안함 -->
+    <insert id="MdmTnsrAsmblyBiDAO.insertMdmBillFile" parameterClass="mdmBillFileVO">
+        <![CDATA[
+			INSERT 
+				INTO 
+			bill_attach (
+				RASMBLY_ID
+				,BI_ID
+				,BI_FILE_ID
+				,BI_FILE_NM
+				,BI_FILE_URL
+				,BI_FILE_LAST_UPDT_TM
+				,FRST_REGIST_DT
+				,LAST_UPDT_DT
+				,DELETE_DT
+				,CUD_CODE
+				,BI_FILE_HASH
+				,BI_FILE_PATH
+				,BI_PDF_FILE_PATH
+				,CNTC_INPUT_SE_CODE
+				,DOC_CNVR_STTU_CODE
+				,DOC_CNVR_RESULT_MSSAGE
+				,BI_CN
+			) VALUES (
+				#RASMBLY_ID#
+				,#BI_ID#
+				,#BI_FILE_ID#
+				,#BI_FILE_NM#
+				,#BI_FILE_URL#
+				,#BI_FILE_LAST_UPDT_TM#
+				,#FRST_REGIST_DT#
+				,#LAST_UPDT_DT#
+				,#DELETE_DT#
+				,'C'
+				,#BI_FILE_HASH#
+				,#BI_FILE_PATH#
+				,#BI_PDF_FILE_PATH#
+				,'MANUAL'
+				,'0'
+				,#DOC_CNVR_RESULT_MSSAGE#
+				,#BI_CN#
+			)
+		]]>
+    </insert>
+<!-- 사용안함 -->
+    <insert id="MdmTnsrAsmblyBiDAO.insertMdmBillCm" parameterClass="java.util.List">
+		INSERT ALL
+		<dynamic>
+			<iterate conjunction=" ">
+				INTO bill_propo_aman (
+					ASEMBY_ID
+					,RASMBLY_ID
+					,BI_ID
+					,FRST_REGIST_DT
+					,LAST_UPDT_DT
+					,DELETE_DT
+					,CUD_CODE
+					,CNTC_INPUT_SE_CODE
+					,BI_CN
+					,RASMBLY_NUMPR
+				) VALUES (
+					#[].ASEMBY_ID#
+					,#[].RASMBLY_ID#
+					,#[].BI_ID#
+					,#[].FRST_REGIST_DT#
+					,#[].LAST_UPDT_DT#
+					,#[].DELETE_DT#
+					,'C'
+					,'MANUAL'
+					,#[].BI_CN#
+					,#[].RASMBLY_NUMPR#
+				)
+			</iterate>	
+		</dynamic>	
+		SELECT * FROM DUAL	
+    </insert>
+
+    <update id="MdmTnsrAsmblyBiDAO.updateMdmBill" parameterClass="mdmBillVO">
+        <![CDATA[
+			UPDATE 
+				bill 
+			SET
+				RASMBLY_NUMPR 		= #RASMBLY_NUMPR#
+				,BI_KND_STDCD 		= #BI_KND_STDCD#
+				,SESN_SE_STDCD		= #SESN_SE_STDCD#
+				,PROPSR 			= #PROPSR#
+				,PROPSR_ASEMBY 		= #PROPSR_ASEMBY#
+				,ITNC_DE			= #ITNC_DE#
+				,BI_NO 				= #BI_NO#
+				,JRSD_CMIT_ID 		= #JRSD_CMIT_ID#
+				,RASMBLY_SESN 		= #RASMBLY_SESN#
+				,CMIT_REPORT_DE 	= #CMIT_REPORT_DE#
+				,CMIT_SBMISN_DE 	= #CMIT_SBMISN_DE#
+				,CMIT_PROCESS_DE 	= #CMIT_PROCESS_DE#
+				,CMIT_RESULT 		= #CMIT_RESULT#
+				,CMIT_RESULT_STDCD 	= #CMIT_RESULT_STDCD#
+				,PLNMT_REPORT_DE 	= #PLNMT_REPORT_DE#
+				,PLNMT_SBMISN_DE 	= #PLNMT_SBMISN_DE#
+				,PLNMT_PROCESS_DE 	= #PLNMT_PROCESS_DE#
+				,PLNMT_RESULT 		= #PLNMT_RESULT#
+				,PLNMT_RESULT_STDCD = #PLNMT_RESULT_STDCD#
+				,PRMLGT_NO 			= #PRMLGT_NO#
+				,LAST_UPDT_DT 		= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				,LAST_UPDUSR_ID 	= #LAST_UPDUSR_ID#
+				,COLCT_AT			= #COLCT_AT#
+			WHERE
+				TRIM(BI_CN) = #BI_CN#
+		]]>
+    </update>
+
+    <update id="MdmTnsrAsmblyBiDAO.updateMdmBillIsView" parameterClass="mdmIsViewVO">
+        <![CDATA[
+			UPDATE 
+				bill 
+			SET
+				ISVIEW = #isview#
+				,LAST_UPDT_DT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			WHERE 
+				TRIM(BI_CN) = #uid#
+		]]>
+    </update>
+    
+    <update id="MdmTnsrAsmblyBiDAO.updateMdmBillFileListReCnvrs" parameterClass="string">
+        <![CDATA[
+			UPDATE 
+				bill_attach 
+			SET
+				DOC_CNVR_STTU_CODE = '0'
+			WHERE 
+				BI_FILE_ID = #DOWNID#
+		]]>
+    </update>
+
+    <update id="MdmTnsrAsmblyBiDAO.deleteMdmBillChk" parameterClass="mdmIsViewVO">
+        <![CDATA[
+			UPDATE 
+				bill 
+			SET
+				CUD_CODE = #isview#
+				,DELETE_DT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				,LAST_UPDUSR_ID = #LAST_UPDUSR_ID#
+			WHERE 
+				TRIM(BI_CN) = #uid#
+		]]>
+    </update>
+
+    <update id="MdmTnsrAsmblyBiDAO.deleteMdmBill" parameterClass="mdmBillVO">
+        <![CDATA[
+			UPDATE 
+				bill 
+			SET
+				CUD_CODE 		= 'D'
+				,DELETE_DT 		= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				,LAST_UPDUSR_ID = #LAST_UPDUSR_ID#
+			WHERE 
+				TRIM(BI_CN) 	= TRIM(#BI_CN#)
+		]]>
+    </update>
+
+    <update id="MdmTnsrAsmblyBiDAO.deleteMdmBillFile" parameterClass="string">
+        <![CDATA[
+			UPDATE 
+				bill_attach 
+			SET
+				CUD_CODE = 'D'
+			WHERE 
+				BI_FILE_ID = #DOWNID#
+		]]>
+    </update>
+<!-- 사용안함 -->
+    <update id="MdmTnsrAsmblyBiDAO.deleteMdmBillItncAsemby" parameterClass="string">
+        <![CDATA[
+			UPDATE 
+				bill_propo_aman 
+			SET
+				CUD_CODE = 'D'
+			WHERE 
+				TRIM(BI_CN) = TRIM(#BI_CN#)
+		]]>
+    </update>
+
+</sqlMap>

@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="MngManager">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="comDefaultVO" type="clikmng.nanet.go.kr.cmm.ComDefaultVO"/>
+	<typeAlias  alias="mngVO" type="clikmng.nanet.go.kr.uss.mng.service.MngManage" />
+
+    <resultMap id="mngDetail" class="clikmng.nanet.go.kr.uss.mng.service.MngManage">
+        <result property="mngrId" 		column="mngrId" 			columnIndex="1"/>
+        <result property="mngrPw" 		column="mngrPw" 			columnIndex="2"/>
+        <result property="mngrSeCode"	column="mngrSeCode" 		columnIndex="3"/>
+        <result property="mngrNm" 		column="mngrNm" 			columnIndex="4"/>
+        <result property="mngrEmail" 	column="mngrEmail" 			columnIndex="5"/>
+        <result property="mngrDept" 	column="mngrDept" 			columnIndex="6"/>
+        <result property="authorCode" 	column="authorCode" 		columnIndex="7"/>
+        <result property="regDate" 		column="regDate" 			columnIndex="8"/>
+    </resultMap>
+    
+	<resultMap id="localMngDetail" 	class="clikmng.nanet.go.kr.uss.mng.service.MngVO">
+        <result property="unityId" 					column="unityId" 					columnIndex="1"/>
+        <result property="authorCode" 				column="authorCode" 			columnIndex="2"/>
+        <result property="psitnCode" 				column="psitnCode" 				columnIndex="3"/>
+        <result property="chargerSeCode" 		column="chargerSeCode" 		columnIndex="4"/>
+        <result property="chargerNm" 				column="chargerNm" 			columnIndex="5"/>
+        <result property="chargerEmail" 			column="chargerEmail" 		columnIndex="6"/>
+        <result property="chargerTelno" 			column="chargerTelno" 		columnIndex="7"/>
+        <result property="intrstRasmblyId1" 	column="intrstRasmblyId1" 	columnIndex="8"/>
+        <result property="intrstRasmblyId2" 	column="intrstRasmblyId2" 	columnIndex="9"/>
+        <result property="intrstRasmblyId3" 	column="intrstRasmblyId3" 	columnIndex="10"/>
+        <result property="trtyEngnAt" 				column="trtyEngnAt" 			columnIndex="11"/>
+        <result property="confmSttusAt" 			column="confmSttusAt" 		columnIndex="12"/>
+        <result property="confmPnttm" 			column="confmPnttm" 			columnIndex="13"/>
+        <result property="confmerId" 				column="confmerId" 			columnIndex="14"/>
+        <result property="frstRegisterPnttm" 	column="frstRegisterPnttm" 	columnIndex="15"/>
+        <result property="chrg" 						column="chrg" 						columnIndex="16"/>
+        <result property="insttClCode" 				column="insttClCode" 			columnIndex="17"/>
+        <result property="insttClCodeNm" 		column="insttClCodeNm" 		columnIndex="18"/>
+        <result property="fInsttClCode" 			column="fInsttClCode" 			columnIndex="19"/>
+        <result property="fInsttClCodeNm" 		column="fInsttClCodeNm" 	columnIndex="20"/>
+        <result property="brtcCode" 					column="brtcCode" 				columnIndex="21"/>
+        <result property="loasmCode" 				column="loasmCode" 			columnIndex="22"/>
+        <result property="intRasmblyInsttClCode1" 				column="intRasmblyInsttClCode1" 			columnIndex="23"/>
+        <result property="intRasmblyInsttClCode2" 				column="intRasmblyInsttClCode2" 			columnIndex="24"/>
+        <result property="intRasmblyInsttClCode3" 				column="intRasmblyInsttClCode3" 			columnIndex="25"/>
+        <result property="intRasmblyBrtc1" 				column="intRasmblyBrtc1" 			columnIndex="26"/>
+        <result property="intRasmblyBrtc2" 				column="intRasmblyBrtc2" 			columnIndex="27"/>
+        <result property="intRasmblyBrtc3" 				column="intRasmblyBrtc3" 			columnIndex="28"/>
+    </resultMap>	    	
+    
+	<!-- 관리자 정보 조회::목록조회 게시물정보 -->
+	<select id="MngManager.selectMngList" parameterClass="mngVO" resultClass="mngVO">
+	<![CDATA[
+	SELECT *
+	FROM (
+	SELECT T0.*, ROWNUM RNUM
+		FROM (
+	]]>
+	<![CDATA[
+		/* SELECT PKG_OBFUS.DECRYPT(MNGR_ID,'NAEODOCZ') AS mngrId */
+		SELECT MNGR_ID AS mngrId
+				, A.MNGR_SE_CODE AS mngrSeCode
+				, A.MNGR_NM AS mngrNm
+				, A.MNGR_DEPT AS mngrDept
+				, A.AUTHOR_CODE as authorCode
+				, TO_CHAR(TO_DATE(A.FRST_REGIST_PNTTM,'YYYY/MM/DD'), 'YYYY.MM.DD') AS regDate
+				, B.AUTHOR_NM AS authorNm
+		  FROM manag_user A, group_authority B
+         WHERE A.AUTHOR_CODE = B.AUTHOR_CODE	
+	]]>
+	<isNotEmpty property="selMngrOpt">
+		<isEqual property="selMngrOpt" compareValue="1">
+			AND A.MNGR_SE_CODE = '1'
+		</isEqual>
+		<isEqual property="selMngrOpt" compareValue="2">
+			AND A.MNGR_SE_CODE = '2'
+		</isEqual>
+	</isNotEmpty>
+	<isNotEmpty property="searchKeyword">
+		<isNotEqual property="searchKeyword" compareValue="">
+			<isEqual property="searchCondition" compareValue="selMngrDept">
+				AND A.MNGR_DEPT LIKE '%' || #searchKeyword# || '%'
+			</isEqual>
+			<isEqual property="searchCondition" compareValue="selMngrAuthor">
+				AND B.AUTHOR_NM LIKE '%' || #searchKeyword# || '%'
+			</isEqual>			
+			<isEqual property="searchCondition" compareValue="selMngrNm">
+				AND A.MNGR_NM LIKE '%' || #searchKeyword# || '%'
+			</isEqual>			
+		</isNotEqual>
+	</isNotEmpty>
+	<isNotEmpty property="sortOrder">
+		<isEqual property="sortOrder" compareValue="mngrNm_DESC">
+		<![CDATA[	ORDER BY 	A.MNGR_NM DESC		]]>
+		</isEqual>
+		<isEqual property="sortOrder" compareValue="mngrNm_ASC">
+		<![CDATA[	ORDER BY 	A.MNGR_NM ASC		]]>
+		</isEqual>
+		<isEqual property="sortOrder" compareValue="mngrDept_DESC">
+		<![CDATA[	ORDER BY 	A.MNGR_DEPT DESC		]]>
+		</isEqual>
+		<isEqual property="sortOrder" compareValue="mngrDept_ASC">
+		<![CDATA[	ORDER BY 	A.MNGR_DEPT ASC		]]>
+		</isEqual>
+		<isEqual property="sortOrder" compareValue="authorNm_DESC">
+		<![CDATA[	ORDER BY 	B.AUTHOR_NM DESC		]]>
+		</isEqual>
+		<isEqual property="sortOrder" compareValue="authorNm_ASC">
+		<![CDATA[	ORDER BY 	B.AUTHOR_NM ASC		]]>
+		</isEqual>
+		<isEqual property="sortOrder" compareValue="regDate_DESC">
+		<![CDATA[	ORDER BY 	A.FRST_REGIST_PNTTM DESC		]]>
+		</isEqual>
+		<isEqual property="sortOrder" compareValue="regDate_ASC">
+		<![CDATA[	ORDER BY 	A.FRST_REGIST_PNTTM ASC		]]>
+		</isEqual>
+	</isNotEmpty>
+	<isEmpty property="sortOrder">
+        <![CDATA[   ORDER BY FRST_REGIST_PNTTM DESC         ]]>
+	</isEmpty>	
+	<![CDATA[
+		) T0
+	)		
+		WHERE RNUM BETWEEN #firstIndex# + 1 AND #firstIndex# + #recordCountPerPage#
+	]]>
+	</select>
+
+
+	
+	<!-- 관리자 정보 조회::목록조회 게시물정보 총갯수  -->
+	<select id="MngManager.selectMngListCnt" parameterClass="mngVO" resultClass="int">
+	<![CDATA[
+		SELECT COUNT(*) CNT
+		  FROM manag_user A, group_authority B
+         WHERE A.AUTHOR_CODE = B.AUTHOR_CODE	
+	 ]]>
+	<isNotEmpty property="selMngrOpt">
+		<isEqual property="selMngrOpt" compareValue="1">
+			AND A.MNGR_SE_CODE = '1'
+		</isEqual>
+		<isEqual property="selMngrOpt" compareValue="2">
+			AND A.MNGR_SE_CODE = '2'
+		</isEqual>
+	</isNotEmpty>
+	<isNotEmpty property="searchKeyword">
+		<isNotEqual property="searchKeyword" compareValue="">
+			<isEqual property="searchCondition" compareValue="selMngrDept">
+				AND A.MNGR_DEPT LIKE '%' || #searchKeyword# || '%'
+			</isEqual>
+			<isEqual property="searchCondition" compareValue="selMngrAuthor">
+				AND B.AUTHOR_NM LIKE '%' || #searchKeyword# || '%'
+			</isEqual>			
+			<isEqual property="searchCondition" compareValue="selMngrNm">
+				AND A.MNGR_NM LIKE '%' || #searchKeyword# || '%'
+			</isEqual>			
+		</isNotEqual>
+	</isNotEmpty>
+	</select>
+	
+	<!-- 관리자 및 지방의회/지자체 관리자 권한 리스트 -->
+	<select id="MngManager.selectAuthorList" parameterClass="mngVO" resultClass="mngVO">
+	<![CDATA[
+		SELECT AUTHOR_CODE AS authorCode
+				, AUTHOR_NM AS authorNm
+				, AUTHOR_CL_CODE AS authorClCode
+		  FROM group_authority
+	]]>		  
+	 <isNotEmpty property="authorClCode">
+		 WHERE AUTHOR_CL_CODE = #authorClCode#
+	 </isNotEmpty>		 
+ 	<![CDATA[
+ 		 ORDER BY AUTHOR_CODE DESC
+	]]>
+	</select>	
+	
+	<!-- 관리자 등록::아이디 체크 -->
+	<select id="MngManager.selectMngId" parameterClass="mngVO" resultClass="int">
+	<![CDATA[
+		SELECT COUNT(*)
+		  FROM MANAG_USER
+		 /* WHERE MNGR_ID = PKG_OBFUS.ENCRYPT(mngrId,'NAEODOCZ') */
+		 WHERE MNGR_ID = #mngrId#
+	]]>
+	</select>
+	
+	<!-- 관리자 등록::입력  -->
+	<insert id="MngManager.insertMngManage" parameterClass="mngVO">
+<![CDATA[
+	INSERT INTO manag_user (
+		MNGR_SE_CODE,
+		MNGR_ID,
+		MNGR_NM,
+		MNGR_DEPT,
+		AUTHOR_CODE,
+		MNGR_EMAIL,
+		FRST_REGISTER_ID,
+		FRST_REGIST_PNTTM,
+		LAST_UPDUSR_ID,
+		LAST_UPDT_PNTTM,
+		PASSWORD
+	)VALUES(
+		#selMngrOpt#,
+		/* PKG_OBFUS.ENCRYPT(mngrId,'NAEODOCZ'), */
+		#mngrId#,
+		#mngrNm#,
+		#mngrDept#,
+		#authorCode#,
+		#mngrEmail#,
+		/* PKG_OBFUS.ENCRYPT(frstRegisterId,'NAEODOCZ'), */
+		#frstRegisterId#,
+		sysdate,
+		/* PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ'), */
+		#lastUpdusrId#,
+		sysdate,
+	 	PKG_OBFUS.ENCRYPT(#mngrPw#,'NAEODOCZ') 
+	)
+]]>
+</insert>	
+	
+	<!-- 관리자 등록::입력  -->
+<!-- 	
+	<insert id="MngManager.insertMngMappingManage" parameterClass="mngVO">
+	 <![CDATA[
+		INSERT INTO TNPEMPLYRSCRTYESTBS (
+			SCRTY_DTRMN_TRGET_ID,
+			AUTHOR_CODE
+		)VALUES(
+			(SELECT MNGR_ID FROM manag_user WHERE MNGR_ID = PKG_OBFUS.ENCRYPT(#mngrId#,'NAEODOCZ')),
+			#authorCode#
+		)
+	 ]]>
+	</insert>		
+ -->
+ 
+	<!-- 관리자 상세보기 -->
+	<select id="MngManager.selectMngDetail" parameterClass="mngVO" resultMap="mngDetail">
+<![CDATA[
+		/* SELECT PKG_OBFUS.DECRYPT(MNGR_ID,'NAEODOCZ') AS mngrId */
+		SELECT MNGR_ID AS mngrId		
+				, PASSWORD AS mngrPw
+				, MNGR_SE_CODE AS mngrSeCode
+				, MNGR_NM AS mngrNm
+				, MNGR_EMAIL AS mngrEmail
+				, MNGR_DEPT AS mngrDept
+				, AUTHOR_CODE as authorCode
+				, TO_CHAR(TO_DATE(FRST_REGIST_PNTTM,'YYYY/MM/DD'), 'YYYY.MM.DD') AS regDate
+		  FROM manag_user
+		 /* WHERE MNGR_ID = PKG_OBFUS.ENCRYPT(mngrId,'NAEODOCZ') */
+		 WHERE MNGR_ID = #mngrId#
+	]]>
+</select>
+	
+	<!-- 관리자 내용 수정  -->
+	<update id="MngManager.editMngDetail" parameterClass="mngVO">
+	<![CDATA[
+		UPDATE manag_user
+		   SET   AUTHOR_CODE = #authorCode#
+			   , LAST_UPDUSR_ID = #lastUpdusrId#
+			   , LAST_UPDT_PNTTM = sysdate
+	]]>
+		<isEqual property="mngrSeCode" compareValue="2">
+		<![CDATA[
+				,	MNGR_NM = #mngrNm#
+				,	MNGR_EMAIL = #mngrEmail#
+				,	MNGR_DEPT = #mngrDept#
+		]]>
+			<isNotEmpty property="mngrPw">
+			<![CDATA[	,	PASSWORD = PKG_OBFUS.ENCRYPT(#mngrPw#,'NAEODOCZ')		]]>
+			</isNotEmpty>
+		</isEqual>
+	<![CDATA[
+		 /* WHERE MNGR_ID = PKG_OBFUS.ENCRYPT(mngrId,'NAEODOCZ') */
+		 WHERE MNGR_ID = #mngrId#
+	 ]]>
+</update> 		
+
+	<!-- 관리자 내용 수정  - 보안테이블 수정 -->
+<!-- 	
+	<update id="MngManager.editAuthorDetail" parameterClass="mngVO">
+	 <![CDATA[
+		UPDATE TNPEMPLYRSCRTYESTBS
+		   SET AUTHOR_CODE = #authorCode#
+		 WHERE SCRTY_DTRMN_TRGET_ID = PKG_OBFUS.ENCRYPT(#mngrId#,'NAEODOCZ')
+	 ]]>
+	</update> 
+ -->
+	
+	<!-- 관리자 내용 삭제  - 보안테이블 삭제 -->
+<!-- 	
+	<delete id="MngManager.delMngMappingManage" parameterClass="mngVO">
+	 <![CDATA[
+		DELETE TNPEMPLYRSCRTYESTBS
+		 WHERE SCRTY_DTRMN_TRGET_ID = PKG_OBFUS.ENCRYPT(#mngrId#,'NAEODOCZ')
+	 ]]>
+	</delete> 
+ -->
+	<!-- 관리자 내용 삭제  -->
+	<delete id="MngManager.delMngManage" parameterClass="mngVO">
+	 <![CDATA[
+		DELETE FROM manag_user
+		 /* WHERE MNGR_ID = PKG_OBFUS.ENCRYPT(mngrId,'NAEODOCZ') */
+		 WHERE MNGR_ID = #mngrId#
+	 ]]>
+	</delete> 		
+
+<!-- :::::::::::::::지방의회/지자체 관리자 시작 ::::::::::::::: -->
+	<!-- 지방의회/지자체 관리자 정보 조회::목록조회 게시물정보 -->
+	<select id="MngManager.selectLocalMngList"  parameterClass="mngVO" resultClass="mngVO">
+	<![CDATA[
+	SELECT *
+	FROM (
+	SELECT T0.*, ROWNUM RNUM
+		FROM (
+	]]>
+	 <![CDATA[
+		SELECT UNITY_ID AS unityId
+				, A.AUTHOR_CODE AS authorCode
+				, A.PSITN_CODE AS psitnCode
+				, B.LOASM_NM AS loasmNm
+				, A.CHARGER_SE_CODE AS chargerSeCode
+				, A.CHARGER_NM AS chargerNm
+				, A.CHARGER_EMAIL AS chargerEmail
+				, A.CHARGER_TELNO AS chargerTelno
+				, A.INTRST_RASMBLY_ID_1 AS intrstRasmblyId1
+				, C.LOASM_NM AS intRasmblyInsttClCodeNm1
+				, A.CONFM_STTUS_AT AS confmSttusAt
+				, CASE WHEN A.CONFM_STTUS_AT = 'Y' THEN '승인'
+            				ELSE '미승인'
+       				END AS confmSttusNm
+				, TO_CHAR(TO_DATE(A.FRST_REGIST_PNTTM, 'YYYY/MM/DD'), 'YYYY.MM.DD') AS frstRegisterPnttm
+		  FROM colgover_user A
+		  INNER JOIN organ B
+		     ON A.PSITN_CODE = B.LOASM_CODE
+		  INNER JOIN organ C
+		     ON C.LOASM_CODE = A.INTRST_RASMBLY_ID_1
+		  INNER JOIN ORGAN_CLASS D
+		  	ON B.INSTT_CL_CODE = D.INSTT_CL_CODE
+		  INNER JOIN ORGAN_CLASS E
+		  	ON D.UPPER_INSTT_CL_CODE = E.INSTT_CL_CODE
+		 WHERE 1 = 1		
+	 ]]>
+	
+	<!-- 관리자여부 -->
+	<isNotEmpty property="selChargerSeCode">
+	<![CDATA[	AND A.CHARGER_SE_CODE = #selChargerSeCode#	]]>
+	</isNotEmpty>
+	
+	<!-- 승인여부 -->
+	<isNotEmpty property="selConfmSttusAt">
+	<![CDATA[	AND A.CONFM_STTUS_AT = #selConfmSttusAt#	]]>
+	</isNotEmpty>
+	
+	<isNotEmpty property="searchKeyword">
+		<isNotEqual property="searchKeyword" compareValue="">
+			<!-- 아이디 -->
+			<isEqual property="searchCondition" compareValue="selUnityId">
+				AND A.UNITY_ID LIKE '%' || #searchKeyword# || '%'
+			</isEqual>
+			<!-- 이름 -->
+			<isEqual property="searchCondition" compareValue="selChargerNm">
+				AND A.CHARGER_NM LIKE '%' || #searchKeyword# || '%'
+			</isEqual>
+			<!-- 소속 -->
+			<isEqual property="searchCondition" compareValue="selPstnCode">
+				AND B.LOASM_NM LIKE '%' || #searchKeyword# || '%'
+			</isEqual>
+			<!-- 이메일 -->		
+			<isEqual property="searchCondition" compareValue="selEmail">
+				AND A.CHARGER_EMAIL LIKE '%' || #searchKeyword# || '%'
+			</isEqual>		
+		</isNotEqual>
+	</isNotEmpty>
+	
+	<!-- 기관유형 1 -->
+	<isNotEmpty property="fInsttClCode">
+		AND E.INSTT_CL_CODE = #fInsttClCode#
+	</isNotEmpty>
+	
+	<!-- 기관유형 2 -->
+	<isNotEmpty property="insttClCode">
+		AND D.INSTT_CL_CODE = #insttClCode#
+	</isNotEmpty>
+	
+	<!-- 기관유형 3 -->
+	<isNotEmpty property="brtcCode">
+		AND B.BRTC_CODE = #brtcCode#
+	</isNotEmpty>
+	
+	<!-- 기관유형 4 -->
+	<isNotEmpty property="loasmCode">
+		AND A.PSITN_CODE = #loasmCode#
+	</isNotEmpty>
+	 
+	<!-- 정렬 -->
+	<isNotEmpty property="sortOrder">
+		<isEqual property="sortOrder" compareValue="unityId_DESC">
+		<![CDATA[	ORDER BY 	A.UNITY_ID DESC		]]>
+		</isEqual>
+		<isEqual property="sortOrder" compareValue="unityId_ASC">
+		<![CDATA[	ORDER BY 	A.UNITY_ID ASC		]]>
+		</isEqual>
+		<isEqual property="sortOrder" compareValue="chargerNm_DESC">
+		<![CDATA[	ORDER BY 	A.CHARGER_NM DESC		]]>
+		</isEqual>
+		<isEqual property="sortOrder" compareValue="chargerNm_ASC">
+		<![CDATA[	ORDER BY 	A.CHARGER_NM ASC		]]>
+		</isEqual>
+		<isEqual property="sortOrder" compareValue="loasmNm_DESC">
+		<![CDATA[	ORDER BY 	B.LOASM_NM DESC		]]>
+		</isEqual>
+		<isEqual property="sortOrder" compareValue="loasmNm_ASC">
+		<![CDATA[	ORDER BY 	B.LOASM_NM ASC		]]>
+		</isEqual>
+		<isEqual property="sortOrder" compareValue="chargerEmail_DESC">
+		<![CDATA[	ORDER BY 	A.CHARGER_EMAIL DESC		]]>
+		</isEqual>
+		<isEqual property="sortOrder" compareValue="chargerEmail_ASC">
+		<![CDATA[	ORDER BY 	A.CHARGER_EMAIL ASC		]]>
+		</isEqual>
+		<isEqual property="sortOrder" compareValue="confmDate_DESC">
+		<![CDATA[	ORDER BY 	A.CONFM_PNTTM DESC		]]>
+		</isEqual>
+		<isEqual property="sortOrder" compareValue="confmDate_ASC">
+		<![CDATA[	ORDER BY 	A.CONFM_PNTTM ASC		]]>
+		</isEqual>
+	</isNotEmpty>
+	<isEmpty property="sortOrder">
+        <![CDATA[   ORDER BY A.FRST_REGIST_PNTTM DESC         ]]>
+	</isEmpty>	 
+	<![CDATA[
+		) T0
+	)		
+		WHERE RNUM BETWEEN #firstIndex# + 1 AND #firstIndex# + #recordCountPerPage#
+	]]>
+	</select>
+
+	<!-- 지방의회/지자체 관리자 정보 조회::목록조회 게시물정보 총갯수  -->
+	<select id="MngManager.selectLocalMngListCnt"  parameterClass="mngVO" resultClass="int">
+	<![CDATA[
+		SELECT COUNT(*) totCnt
+		  FROM colgover_user A
+		  INNER JOIN organ B
+		     ON A.PSITN_CODE = B.LOASM_CODE
+		  INNER JOIN organ C
+		     ON C.LOASM_CODE = A.INTRST_RASMBLY_ID_1
+		  INNER JOIN ORGAN_CLASS D
+		  	ON B.INSTT_CL_CODE = D.INSTT_CL_CODE
+		  INNER JOIN ORGAN_CLASS E
+		  	ON D.UPPER_INSTT_CL_CODE = E.INSTT_CL_CODE
+	 ]]>
+	<isNotEmpty property="selChargerSeCode">
+	<![CDATA[	AND A.CHARGER_SE_CODE = #selChargerSeCode#	]]>
+	</isNotEmpty>
+	<isNotEmpty property="selConfmSttusAt">
+	<![CDATA[	AND A.CONFM_STTUS_AT = #selConfmSttusAt#	]]>
+	</isNotEmpty>
+	 <isNotEmpty property="searchKeyword">
+	 	<isNotEqual property="searchKeyword" compareValue="">
+			<isEqual property="searchCondition" compareValue="selUnityId">
+				AND A.UNITY_ID LIKE '%' || #searchKeyword# || '%'
+			</isEqual>
+			<isEqual property="searchCondition" compareValue="selchargerNm">
+				AND A.CHARGER_NM LIKE '%' || #searchKeyword# || '%'
+			</isEqual>
+			<isEqual property="searchCondition" compareValue="selPstnCode">
+				AND C.LOASM_NM LIKE '%' || #searchKeyword# || '%'
+			</isEqual>		
+			<isEqual property="searchCondition" compareValue="selEmail">
+				AND A.CHARGER_EMAIL LIKE '%' || #searchKeyword# || '%'
+			</isEqual>		
+ 	 	</isNotEqual>
+	 </isNotEmpty>
+	 <!-- 기관유형 1 -->
+	<isNotEmpty property="fInsttClCode">
+		AND E.INSTT_CL_CODE = #fInsttClCode#
+	</isNotEmpty>
+	
+	<!-- 기관유형 2 -->
+	<isNotEmpty property="insttClCode">
+		AND D.INSTT_CL_CODE = #insttClCode#
+	</isNotEmpty>
+	
+	<!-- 기관유형 3 -->
+	<isNotEmpty property="brtcCode">
+		AND B.BRTC_CODE = #brtcCode#
+	</isNotEmpty>
+	
+	<!-- 기관유형 4 -->
+	<isNotEmpty property="loasmCode">
+		AND A.PSITN_CODE = #loasmCode#
+	</isNotEmpty>
+	</select>
+
+	<!-- 지방의회/지자체 관리자 정보 상세보기 -->
+	<select id="MngManager.selectLocalMngDetail" parameterClass="mngVO" resultMap="localMngDetail">
+	<![CDATA[
+		SELECT A.UNITY_ID AS unityId
+				, A.AUTHOR_CODE AS authorCode
+				, A.PSITN_CODE AS psitnCode
+				, A.CHARGER_SE_CODE AS chargerSeCode
+				, A.CHARGER_NM AS chargerNm
+				, A.CHARGER_EMAIL AS chargerEmail
+				, A.CHARGER_TELNO AS chargerTelno
+				, A.INTRST_RASMBLY_ID_1 AS intrstRasmblyId1
+				, A.INTRST_RASMBLY_ID_2 AS intrstRasmblyId2
+				, A.INTRST_RASMBLY_ID_3 AS intrstRasmblyId3
+				, (SELECT INSTT_CL_CODE FROM organ WHERE LOASM_CODE = A.INTRST_RASMBLY_ID_1) AS intRasmblyInsttClCode1
+				, (SELECT INSTT_CL_CODE FROM organ WHERE LOASM_CODE = A.INTRST_RASMBLY_ID_2) AS intRasmblyInsttClCode2
+				, (SELECT INSTT_CL_CODE FROM organ WHERE LOASM_CODE = A.INTRST_RASMBLY_ID_3) AS intRasmblyInsttClCode3								
+				, (SELECT BRTC_CODE FROM organ WHERE LOASM_CODE = A.INTRST_RASMBLY_ID_1) AS intRasmblyBrtc1
+				, (SELECT BRTC_CODE FROM organ WHERE LOASM_CODE = A.INTRST_RASMBLY_ID_2) AS intRasmblyBrtc2
+				, (SELECT BRTC_CODE FROM organ WHERE LOASM_CODE = A.INTRST_RASMBLY_ID_3) AS intRasmblyBrtc3				
+				, A.CHRG AS chrg
+				, A.TRTY_ENGN_AT AS trtyEngnAt
+				, A.CONFM_STTUS_AT AS confmSttusAt
+				, TO_CHAR(TO_DATE(A.CONFM_PNTTM, 'YYYY/MM/DD'), 'YYYY.MM.DD') AS confmPnttm
+				/* , PKG_OBFUS.DECRYPT(A.CONFMER_ID,'NAEODOCZ') AS confmerId */
+				, A.CONFMER_ID AS confmerId
+				, TO_CHAR(TO_DATE(A.FRST_REGIST_PNTTM, 'YYYY/MM/DD'), 'YYYY.MM.DD') AS frstRegisterPnttm
+				, B.BRTC_CODE AS brtcCode
+				, B.LOASM_CODE AS loasmCode		
+				, C.INSTT_CL_CODE AS insttClCode
+				, C.INSTT_CL_NM AS insttClCodeNm
+				, D.INSTT_CL_CODE AS fInsttClCode
+				, D.INSTT_CL_Nm AS fInsttClCodeNm
+		  FROM colgover_user A
+		  LEFT OUTER JOIN organ B
+		    ON A.PSITN_CODE = B.LOASM_CODE
+		  LEFT OUTER JOIN organ_class C
+		    ON B.INSTT_CL_CODE = C.INSTT_CL_CODE
+		   JOIN organ_class D
+		    ON C.UPPER_INSTT_CL_CODE = D.INSTT_CL_CODE
+		 WHERE UNITY_ID = #unityId#
+	]]>
+	</select>
+	
+	<!-- 지방의회 /  지자체 관리자 승인  -->
+	<update id="MngManager.updateApprovalLocalMng" parameterClass="mngVO">
+	 <![CDATA[
+		UPDATE colgover_user
+		   	  SET CONFM_STTUS_AT = #confmSttusAt#
+		   	  		/* , CONFMER_ID = PKG_OBFUS.ENCRYPT(confmerId,'NAEODOCZ') */
+		   	  		, CONFMER_ID = #confmerId#
+		   	  		, CONFM_PNTTM = SYSDATE
+			  		/* , LAST_UPDUSR_ID = PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ') */
+			  		, LAST_UPDUSR_ID = #lastUpdusrId#
+			  		, LAST_UPDT_PNTTM = SYSDATE
+		 WHERE UNITY_ID = #unityId# 
+	 ]]>
+	</update> 	
+	
+	<!-- 지방의회 /  지자체 관리자 수정  -->
+	<update id="MngManager.updateLocalMngDetail" parameterClass="mngVO">
+	 <![CDATA[
+		UPDATE colgover_user
+		   	  SET PSITN_CODE = #psitnCode#
+		   	  		, INTRST_RASMBLY_ID_1 = #intrstRasmblyId1#
+		   	  		, INTRST_RASMBLY_ID_2 = #intrstRasmblyId2#
+		   	  		, INTRST_RASMBLY_ID_3 = #intrstRasmblyId3#
+		   	  		, CHRG = #chrg#
+		   	  		, CHARGER_SE_CODE = #chargerSeCode#
+			  		/* , LAST_UPDUSR_ID = PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ') */
+			  		, LAST_UPDUSR_ID = #lastUpdusrId#
+			  		, LAST_UPDT_PNTTM = SYSDATE
+		 WHERE UNITY_ID = #unityId# 
+	 ]]>
+	</update> 
+	
+	<!-- 지방의회 /  지자체 관리자 삭제  -->
+	<update id="MngManager.deleteLocalMngDetail" parameterClass="mngVO">
+	 <![CDATA[
+		DELETE colgover_user
+		 WHERE UNITY_ID = #unityId# 
+	 ]]>
+	</update> 	
+
+		
+<update id="MngManager.editMngDetailWithPassword">
+<![CDATA[
+		UPDATE manag_user
+		   SET MNGR_DEPT = #mngrDept#
+		   		, AUTHOR_CODE = #authorCode#
+			   , LAST_UPDUSR_ID = #lastUpdusrId#
+			   , LAST_UPDT_PNTTM = sysdate
+			   , PASSWORD = PKG_OBFUS.ENCRYPT(#mngrPw#,'NAEODOCZ') 
+		 /* WHERE MNGR_ID = PKG_OBFUS.ENCRYPT(mngrId,'NAEODOCZ') */
+		 WHERE MNGR_ID = #mngrId#
+	 ]]>
+</update>
+</sqlMap>

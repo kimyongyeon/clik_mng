@@ -1,0 +1,585 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="MdmManage">
+
+	<typeAlias  alias="mdmDetailCodeVO" 		  type="clikmng.nanet.go.kr.mdm.model.MdmDetailCodeVO"/>
+	<typeAlias  alias="mdmSearchVO" 			  type="clikmng.nanet.go.kr.mdm.model.MdmSearchVO"/>
+	<typeAlias  alias="mdmTnsrAsmblyMtgNmVO" 	  type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyMtgNmVO"/>
+	<typeAlias  alias="mdmTnmPprtyVO" 			  type="clikmng.nanet.go.kr.mdm.model.MdmTnmPprtyVO"/>
+	<typeAlias  alias="mdmTnpInsttCodeEstbsVO" 	  type="clikmng.nanet.go.kr.mdm.model.MdmTnpInsttCodeEstbsVO"/>
+	<typeAlias  alias="mdmTnsrAsembyOfCpsStdCdVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsembyOfCpsStdCdVO"/>
+	<typeAlias  alias="mdmTnpInsttclVO" 		  type="clikmng.nanet.go.kr.mdm.model.MdmTnpInsttclVO"/>
+	<typeAlias  alias="mdmOrgCodeVO" 		  	  type="clikmng.nanet.go.kr.mdm.model.MdmOrgCodeVO"/>
+	<typeAlias  alias="mdmOutSiteVO" 		  	  type="clikmng.nanet.go.kr.mdm.model.MdmOutSiteVO"/>
+	<typeAlias  alias="mdmOutSeedVO" 		  	  type="clikmng.nanet.go.kr.mdm.model.MdmOutSeedVO"/>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCode" parameterClass="string"  resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE_ID, CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = #CODE_ID# 
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmMtgIdList" parameterClass="mdmSearchVO" resultClass="string">
+        <![CDATA[
+			SELECT 
+				MTGNM_ID
+			FROM 
+				scommit 
+			WHERE 
+				MTGNM LIKE '%' || #schKw# || '%'
+				]]>
+				<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+				    RASMBLY_ID = #schLoAsmCode#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schRasmblyNumpr">				  
+				    RASMBLY_NUMPR = #schRasmblyNumpr#
+				</isNotEmpty>
+    </select>
+    
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmJrsdCmitId" parameterClass="mdmSearchVO" resultClass="mdmTnsrAsmblyMtgNmVO">
+        <![CDATA[
+			SELECT 
+				MTGNM_ID, MTGNM
+			FROM 
+				scommit 
+			WHERE 
+				RASMBLY_ID = #rasmblyId#
+				AND RASMBLY_NUMPR = #rasmblyNumpr#
+			ORDER BY
+				MTGNM_ID ASC
+        ]]>
+    </select>
+    
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmJrsdCmitIdList" parameterClass="mdmTnsrAsmblyMtgNmVO" resultClass="mdmTnsrAsmblyMtgNmVO">
+        <![CDATA[
+			SELECT 
+				MTGNM_ID, MTGNM
+			FROM 
+				scommit
+			WHERE
+				RASMBLY_ID = #RASMBLY_ID#
+				AND RASMBLY_NUMPR = #RASMBLY_NUMPR#
+				AND (MTGNM_KND_STDCD = 'MNK001' OR MTGNM_KND_STDCD = 'MNK002' OR MTGNM_KND_STDCD = 'MNK003')
+			ORDER BY
+				MTGNM_ID ASC
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnmPprty" parameterClass="string" resultClass="mdmTnmPprtyVO">
+        <![CDATA[
+			SELECT 
+			 PPRTY_CODE, PPRTY_NM
+			FROM 
+				colgover_party
+			WHERE
+				DELETE_AT = 'N'
+			ORDER BY
+				PPRTY_NM ASC
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnpInsttCodeEstbs" parameterClass="mdmSearchVO" resultClass="mdmTnpInsttCodeEstbsVO">
+        <![CDATA[
+			SELECT 
+				LOASM_CODE, LOASM_TY_CODE, LOASM_NM, BRTC_CODE
+			FROM 
+				organ 
+				,COLGOVER
+			WHERE 
+				organ.loasm_code = COLGOVER.RASMBLY_ID
+				AND INSTT_TY_CODE = 'C'
+				AND BRTC_CODE = #schRegion#
+				]]>
+				<isNotEmpty property="schLoAsmTyCode">				  
+				    AND LOASM_TY_CODE = #schLoAsmTyCode#
+				</isNotEmpty>
+				<![CDATA[								
+			ORDER BY
+				LOASM_CODE ASC
+        ]]>
+    </select>
+    
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnpInsttCodeEstbsList" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				EST_ID
+			FROM 
+				colgover_edistrict 
+			WHERE 
+				EST_NM LIKE '%' || #estNm# || '%'
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRIS018" resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE_ID, CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RIS018' 
+        ]]>
+    </select>
+    
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRIS018ByCode" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				CODE 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RIS018'
+				AND CODE = #CODE#
+				AND ROWNUM = 1
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRIS020" resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE_ID, CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RIS020' 
+        ]]>
+    </select>
+    
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRIS020ByCode" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				CODE 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RIS020' 
+				AND CODE = #CODE#
+				AND ROWNUM = 1
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRIS020ByNm" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RIS020' 
+				AND CODE = #CODE#
+				AND ROWNUM = 1
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRKS002" resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RKS002'
+			ORDER BY
+				CODE ASC
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRKS021" parameterClass="mdmTnsrasmblyMintsVO" resultClass="string">
+        <![CDATA[
+			SELECT 
+				CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RKS021' 
+				AND CODE = #CODE_ID#
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRKS021All" resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE_ID, CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RKS021' 
+			ORDER BY
+				CODE ASC
+        ]]>
+    </select>
+    
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRKS022" resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE_ID, CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RKS022' 
+			ORDER BY
+				CODE ASC
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRKS025ByCodeNm" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RKS025'
+				AND CODE = #CODE#
+				AND ROWNUM = 1
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRKS025" resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE_ID, CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RKS025' 
+			ORDER BY
+				CODE ASC
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRKS026ByCodeNm" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RKS026' 
+				AND CODE = #CODE#
+				AND ROWNUM = 1
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmDetailCodeRKS026" resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE_ID, CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = 'RKS026' 
+			ORDER BY
+				CODE ASC
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmSchCode" parameterClass="mdmSearchVO"  resultClass="mdmDetailCodeVO">
+        <![CDATA[
+			SELECT 
+				CODE, CODE_NM 
+			FROM 
+				common_detail_code 
+			WHERE 
+				CODE_ID = #schLoAsmCode#
+			ORDER BY
+				CODE ASC
+        ]]>
+    </select>
+
+   <select id="MdmTnsrAsmblyCodeDAO.selectMdmAsembyCode" parameterClass="mdmSearchVO"  resultClass="string">
+        <![CDATA[
+			SELECT 
+				A.ASEMBY_ID
+			FROM 
+				laman A, laman_activity B
+			WHERE 
+				A.RASMBLY_ID = #schLoAsmCode#
+				AND A.RASMBLY_ID = B.RASMBLY_ID
+				AND A.ASEMBY_ID = B.ASEMBY_ID
+				AND B.RASMBLY_NUMPR = #schRasmblyNumpr#
+				AND A.ASEMBY_NM = #schKw#
+				AND ROWNUM = 1
+		]]>	
+    </select>
+
+    <select id="MdmTnsrAsmblyAsembyDAO.selectMdmAsembyOfCpsStdCd" parameterClass="mdmSearchVO"  resultClass="mdmTnsrAsembyOfCpsStdCdVO">
+        <![CDATA[
+			SELECT 
+				S.HT_SE_STDCD, S.ASEMBY_OFCPS_STDCD, S.MTGNM_ID, S.ASEMBY_ID, S.RASMBLY_ID, S.RASMBLY_NUMPR
+				,( 
+					SELECT 
+						MTGNM 
+					FROM 
+						scommit D 
+					WHERE 
+						D.RASMBLY_ID = S.RASMBLY_ID 
+						AND D.RASMBLY_NUMPR = S.RASMBLY_NUMPR 
+						AND D.MTGNM_ID = S.MTGNM_ID 
+						AND ROWNUM = 1 
+				) AS MTGNM_NM
+				,(
+					SELECT 
+						CODE_NM 
+					FROM 
+						common_detail_code 
+					WHERE 
+						CODE_ID = 'RIS012'
+						AND CODE = S.HT_SE_STDCD
+						AND ROWNUM = 1
+				) HT_SE_STDNM
+				,(
+					SELECT 
+						CODE_NM 
+					FROM 
+						common_detail_code 
+					WHERE 
+						CODE_ID = 'RIS011'
+						AND CODE = S.ASEMBY_OFCPS_STDCD
+						AND ROWNUM = 1
+				) ASEMBY_OFCPS_STDNM
+			FROM 
+				position S
+			WHERE 
+				S.RASMBLY_ID = #rasmblyId#
+				AND S.ASEMBY_ID = #asembyId#
+				AND S.RASMBLY_NUMPR = #rasmblyNumpr#
+			ORDER BY
+				S.HT_SE_STDCD ASC
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnsrAsmblyEstCode" parameterClass="mdmSearchVO" resultClass="string">
+        <![CDATA[
+			SELECT 
+				EST_ID 
+			FROM 
+				colgover_edistrict
+			WHERE
+				EST_NM LIKE '%' || #schKw# || '%' 
+			    ]]>
+				<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+					RASMBLY_ID = #rasmblyId# 
+				</isNotEmpty>
+		      	<![CDATA[
+				AND ROWNUM = 1 
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnsrAsmblyEstCodeList" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				EST_ID 
+			FROM 
+				colgover_edistrict
+			WHERE
+				EST_NM LIKE '%' || #estNm# || '%' 
+			GROUP BY
+				EST_ID
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnsrAsmblyJrsdCmitIdList" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				MTGNM_ID 
+			FROM 
+				scommit
+			WHERE
+				MTGNM LIKE '%' || #cmitNm# || '%' 
+			GROUP BY
+				MTGNM_ID
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnpInsttcl1" resultClass="mdmTnpInsttclVO">
+        <![CDATA[
+			SELECT
+				SUBSTR(INSTT_CL_CODE, -3) AS INSTT_CL_CODE, INSTT_CL_NM, UPPER_INSTT_CL_CODE
+			FROM 
+				organ_class 
+			WHERE 
+				INSTT_LEVEL = '0'
+			ORDER BY
+				INSTT_ORDR ASC
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnpInsttcl2" parameterClass="string" resultClass="mdmTnpInsttclVO">
+        <![CDATA[
+			SELECT
+				SUBSTR(INSTT_CL_CODE, -3) AS INSTT_CL_CODE, INSTT_CL_NM, UPPER_INSTT_CL_CODE
+			FROM 
+				organ_class 
+			WHERE 
+				INSTT_LEVEL = '1'
+				AND SUBSTR(UPPER_INSTT_CL_CODE, -3) = #schInsttClCode2#
+			ORDER BY
+				INSTT_ORDR ASC
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmTnpInsttcl3" parameterClass="string" resultClass="mdmTnpInsttclVO">
+        <![CDATA[
+			SELECT
+				SUBSTR(INSTT_CL_CODE, -3) AS INSTT_CL_CODE, INSTT_CL_NM, UPPER_INSTT_CL_CODE
+			FROM 
+				organ_class 
+			WHERE 
+				INSTT_LEVEL = '2'
+				AND SUBSTR(UPPER_INSTT_CL_CODE, -3) = #schInsttClCode3#
+			ORDER BY
+				INSTT_ORDR ASC
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmSiteId" parameterClass="mdmSearchVO" resultClass="mdmTnpInsttclVO">
+        <![CDATA[
+			SELECT
+				SITEID
+			FROM 
+				webrobot_site 
+			]]>
+			<dynamic prepend="WHERE">
+				<isNotEmpty prepend="AND" property="schInsttClCode1">				  
+					ORG_1 = #schInsttClCode1#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schInsttClCode2">				  
+					ORG_2 = #schInsttClCode2#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schInsttClCode3">				  
+					ORG_3 = #schInsttClCode3#
+				</isNotEmpty>
+				AND ROWNUM = 1
+			</dynamic>
+    </select>
+ 
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmOrgCodeStep1List" parameterClass="string" resultClass="mdmOrgCodeVO">
+        <![CDATA[
+			SELECT
+				ORGCODE, ORGNM
+			FROM 
+				OUTORGCODESTEP1
+			ORDER BY
+				ORGCODE ASC
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmOrgCodeStep2List" parameterClass="string" resultClass="mdmOrgCodeVO">
+        <![CDATA[
+			SELECT
+				ORGCODE, ORGNM
+			FROM 
+				OUTORGCODESTEP2
+			WHERE
+				ORGUPPERCODE = #ORGCODE#
+			ORDER BY
+				ORGCODE ASC
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmOrgCodeStep3List" parameterClass="string" resultClass="mdmOrgCodeVO">
+        <![CDATA[
+			SELECT
+				ORGCODE, ORGNM
+			FROM 
+				OUTORGCODESTEP3
+			WHERE
+				ORGUPPERCODE = #ORGCODE#
+			ORDER BY
+				ORGCODE ASC
+		]]>
+    </select>
+    
+    <!-- 기관유형 항목에 기관명 추가 -->
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmOrgSiteList" parameterClass="mdmSearchVO" resultClass="mdmOrgCodeVO">
+        <![CDATA[
+			SELECT	SITEID, SITENM
+			  FROM	WEBROBOT_SITE
+			 WHERE	ORG_1 = #schOrgCodeStep1#
+			   AND	ORG_2 = #schOrgCodeStep2#
+		]]>
+		<isNotEmpty prepend="AND" property="schOrgCodeStep3">				  
+					ORG_3 = #schOrgCodeStep3#
+		</isNotEmpty>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmFileExt" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				CASE 
+					WHEN INSTR(DOWNPATH, '.', -1) > 1 THEN LOWER(SUBSTR(DOWNPATH, (INSTR(DOWNPATH, '.', -1) + 1)))
+					ELSE ''
+				END EXT
+			FROM 
+				webrobot_attach 
+			WHERE 
+				TRIM(EXTID) = '$EXTID$'
+				AND CUD_CODE != 'D'
+				AND ROWNUM = 1
+			ORDER BY
+				EXTID ASC
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmSiteList" parameterClass="string" resultClass="mdmOutSiteVO">
+        <![CDATA[
+			SELECT
+				SITEID, SITENM
+			FROM 
+				WEBROBOT_SITE
+			WHERE
+				REGION = #REGION#
+			ORDER BY
+				SITENM ASC
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectMdmSeedList" parameterClass="mdmOutSeedVO" resultClass="mdmOutSeedVO">
+        <![CDATA[
+			SELECT
+				SEEDID, SEEDNM
+			FROM 
+				WEBROBOT_SEED
+			WHERE
+				REGION = #REGION#
+				AND SITEID = #SITEID#
+			ORDER BY
+				SEEDNM ASC
+		]]>
+    </select>
+
+	<!-- 2015.04.15 :: 의회 및 지역 선택 리스트 -->
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectLoAsmTyCodeList" parameterClass="mdmSearchVO" resultClass="string">
+        <![CDATA[
+			SELECT LOASM_CODE
+			  FROM ORGAN
+			 WHERE INSTT_TY_CODE = 'C'
+			   AND LOASM_TY_CODE = #schLoAsmTyCode#
+		]]>
+    </select>
+
+
+    <select id="MdmTnsrAsmblyCodeDAO.selectRegionList" parameterClass="mdmSearchVO" resultClass="string">
+        <![CDATA[
+			SELECT LOASM_CODE
+			  FROM ORGAN
+			 WHERE INSTT_TY_CODE = 'C'
+		]]>
+				<isNotEmpty prepend="AND" property="schLoAsmTyCode">				  
+				    LOASM_TY_CODE = #schLoAsmTyCode#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schRegion">				  
+				    BRTC_CODE = #schRegion#
+				</isNotEmpty>
+    </select>
+
+	<!-- 2015.04.15 :: 의회 및 지역 선택 리스트 -->
+</sqlMap>

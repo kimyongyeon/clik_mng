@@ -1,0 +1,1460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="RlmManage">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="RlmManageSearchVO" type="clikmng.nanet.go.kr.rlm.service.RlmManageDefaultVO"/>
+	<typeAlias  alias="RasmblyVO" type="clikmng.nanet.go.kr.rlm.service.RasmblyVO"/>
+	<typeAlias  alias="HrsmnpdVO" type="clikmng.nanet.go.kr.rlm.service.HrsmnpdVO"/>
+	<typeAlias  alias="RasmblyNumprPdVO" type="clikmng.nanet.go.kr.rlm.service.RasmblyNumprPdVO"/>
+	<typeAlias  alias="HrsmnpdPprtyVO" type="clikmng.nanet.go.kr.rlm.service.HrsmnpdPprtyVO"/>
+	<typeAlias  alias="PprtyVO" type="clikmng.nanet.go.kr.rlm.service.PprtyVO"/>
+	<typeAlias  alias="RlmManageVO" type="clikmng.nanet.go.kr.rlm.service.RlmManageVO"/>
+	
+	
+
+	<!-- 테이블의 다음PK 값을 가져온다. -->
+	<select id="RcmManage.getNextPKValue" resultClass="java.lang.String" parameterClass="java.lang.String">
+		SELECT NEXT_ID FROM cn_serial WHERE TABLE_NAME = #tableName#
+	</select>
+	
+	<!-- 테이블의 다음 PK값을 변경해 준다. -->
+	<update id="RcmManage.updateNextPK" parameterClass="java.lang.String">
+		UPDATE cn_serial SET NEXT_ID = NEXT_ID + 1 WHERE TABLE_NAME = #tableName#
+	</update>
+	
+	<!-- 공통코드 목록을 조회한다. -->
+	<select id="RcmManage.getCommCodeList" parameterClass="java.lang.String" resultClass="clikmng.nanet.go.kr.rlm.service.CodeVO">
+		SELECT
+			CODE_ID
+			,CODE
+			,CODE_NM
+			,CODE_DC
+			,USE_AT
+			,FRST_REGIST_PNTTM
+			,FRST_REGISTER_ID
+			,LAST_UPDT_PNTTM
+			,LAST_UPDUSR_ID
+			,CODE_ORDR
+		FROM
+			common_detail_code
+		WHERE
+			NVL(USE_AT,'N') = 'Y'
+			AND CODE_ID = '$code_id$'
+	</select>
+
+
+	<!-- 지방의회 수집 API Key 목록을 조회한다. -->
+	<select id="RcmManage.selectRasmblyApiKeyList" parameterClass="RlmManageSearchVO" resultClass="RasmblyVO">
+	<![CDATA[
+		SELECT * FROM ( SELECT rownum rn, TB.* FROM (
+			SELECT	colgover.RASMBLY_ID
+				,colgover.RASMBLY_NM
+				,colgover.RASMBLY_SITE_URL
+				,colgover.RASMBLY_STTUS_CODE
+				,common_detail_code.CODE_NM AS RASMBLY_STTUS_NM
+				,TO_CHAR(TO_DATE(SUBSTR(colgover.FRST_REGIST_DT, 1, 8), 'YYYYMMDD'), 'YYYY.MM.DD') AS FRST_REGIST_DT
+				,colgover.LAST_UPDT_DT
+				,colgover.DELETE_DT
+				,colgover.DELETE_AT
+				,colgover.PASSWORD
+				,colgover.SERVER_IP
+				,colgover.API_CRTFC_KEY
+				,colgover.RASMBLY_AREA_CODE
+				,colgover.MINTS_OTHBC_AT
+				,colgover.BI_OTHBC_AT
+				,colgover.ASEMBY_OTHBC_AT
+			FROM
+				colgover
+				,common_detail_code
+			WHERE 
+				colgover.RASMBLY_STTUS_CODE = common_detail_code.CODE
+				AND common_detail_code.CODE_ID = 'RIS023'
+				AND colgover.DELETE_AT = 'N'
+	]]>
+			<isNotEmpty property="searchCondition">
+				<isEqual property="searchCondition" compareValue="name">
+				AND colgover.RASMBLY_NM LIKE '%' || #searchKeyword# || '%'
+				</isEqual>
+				<isEqual property="searchCondition" compareValue="url">
+				AND colgover.RASMBLY_SITE_URL LIKE '%' || #searchKeyword# || '%'
+				</isEqual>
+				<isEqual property="searchCondition" compareValue="id">
+				AND colgover.RASMBLY_ID LIKE '%' || #searchKeyword# || '%'
+				</isEqual>
+				<isEqual property="searchCondition" compareValue="key">
+				AND colgover.API_CRTFC_KEY LIKE '%' || #searchKeyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="searchKeyword">
+				<isEmpty property="searchCondition">
+					AND (colgover.RASMBLY_NM LIKE '%' || #searchKeyword# || '%'
+						OR colgover.RASMBLY_SITE_URL LIKE '%' || #searchKeyword# || '%'
+						OR colgover.RASMBLY_ID LIKE '%' || #searchKeyword# || '%'
+						OR colgover.API_CRTFC_KEY LIKE '%' || #searchKeyword# || '%')
+				</isEmpty>
+			</isNotEmpty>
+			
+			<isNotEmpty property="selectStatus">
+				AND colgover.RASMBLY_STTUS_CODE = #selectStatus#
+			</isNotEmpty>
+			
+			<isNotEmpty property="schDt1">
+				<isNotEmpty property="schDt2">
+				 AND SUBSTR(colgover.FRST_REGIST_DT, 1, 8) BETWEEN #schDt1# AND #schDt2#
+				</isNotEmpty>	
+			</isNotEmpty>
+			
+			<isNotEmpty property="sortOrder">
+				<isEqual property="sortOrder" compareValue="rasmblyId_DESC">
+				<![CDATA[	ORDER BY 	colgover.RASMBLY_ID DESC		]]>
+				</isEqual>
+				<isEqual property="sortOrder" compareValue="rasmblyId_ASC">
+				<![CDATA[	ORDER BY 	colgover.RASMBLY_ID ASC		]]>
+				</isEqual>
+				<isEqual property="sortOrder" compareValue="rasmblyNm_DESC">
+				<![CDATA[	ORDER BY 	colgover.RASMBLY_NM DESC		]]>
+				</isEqual>
+				<isEqual property="sortOrder" compareValue="rasmblyNm_ASC">
+				<![CDATA[	ORDER BY 	colgover.RASMBLY_NM ASC		]]>
+				</isEqual>
+				<isEqual property="sortOrder" compareValue="frstRegistDt_DESC">
+				<![CDATA[	ORDER BY 	colgover.FRST_REGIST_DT DESC		]]>
+				</isEqual>
+				<isEqual property="sortOrder" compareValue="frstRegistDt_ASC">
+				<![CDATA[	ORDER BY 	colgover.FRST_REGIST_DT ASC		]]>
+				</isEqual>
+			</isNotEmpty>
+			<isEmpty property="sortOrder">
+		        <![CDATA[   ORDER BY colgover.FRST_REGIST_DT DESC         ]]>
+			</isEmpty>
+	<![CDATA[   
+		) TB )  WHERE rn BETWEEN #firstIndex# + 1 AND #firstIndex# + #recordCountPerPage#
+	]]>					
+	        
+</select>
+
+	<!-- 지방의회 수집 API Key 목록을 조회한다. -->
+	<select id="RcmManage.selectRasmblyApiKeyListCnt" parameterClass="RlmManageSearchVO" resultClass="Integer">
+			SELECT	count(*) AS toCnt
+			FROM
+				colgover
+				,common_detail_code
+			WHERE 
+				colgover.RASMBLY_STTUS_CODE = common_detail_code.CODE
+				AND common_detail_code.CODE_ID = 'RIS023'
+				AND colgover.DELETE_AT = 'N'
+			<isNotEmpty property="searchCondition">
+				<isEqual property="searchCondition" compareValue="name">
+				AND colgover.RASMBLY_NM LIKE '%' || #searchKeyword# || '%'
+				</isEqual>
+				<isEqual property="searchCondition" compareValue="url">
+				AND colgover.RASMBLY_SITE_URL LIKE '%' || #searchKeyword# || '%'
+				</isEqual>
+				<isEqual property="searchCondition" compareValue="id">
+				AND colgover.RASMBLY_ID LIKE '%' || #searchKeyword# || '%'
+				</isEqual>
+				<isEqual property="searchCondition" compareValue="key">
+				AND colgover.API_CRTFC_KEY LIKE '%' || #searchKeyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="selectStatus">
+				AND colgover.RASMBLY_STTUS_CODE = #selectStatus#
+			</isNotEmpty>
+			<isNotEmpty property="schDt1">
+				<isNotEmpty property="schDt2">
+				 AND SUBSTR(colgover.FRST_REGIST_DT, 1, 8) BETWEEN #schDt1# AND #schDt2#
+				</isNotEmpty>
+			</isNotEmpty>
+</select>
+
+	<!-- 지방의회 수집 API Key를 삭제한다. -->
+	<update id="RcmManage.deleteRasmblyApiKey" parameterClass="java.lang.String">
+		UPDATE  
+			colgover
+		SET
+			DELETE_DT	= SYSDATE
+			,DELETE_AT	= 'Y'
+		WHERE
+			 RASMBLY_ID = '$rasmlby_id$'
+</update>
+	
+	<!-- 지방의회 수집 API Key를 수정한다. -->
+	<update id="RcmManage.updateRasmblyApiKey" parameterClass="RasmblyVO">
+		UPDATE
+			colgover
+		SET
+			RASMBLY_NM					= #rasmbly_nm#
+			,RASMBLY_SITE_URL			= #rasmbly_site_url#
+			,LAST_UPDT_DT				= TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+			,PASSWORD					= #password#
+			,SERVER_IP					= #server_ip#
+			,RASMBLY_AREA_CODE			= #rasmbly_area_code#
+			,RASMBLY_SITE_MINTS_URL		= #rasmbly_site_mints_url#
+			,RASMBLY_SITE_BILL_URL		= #rasmbly_site_bill_url#
+			,RASMBLY_SITE_ASEMBY_URL	= #rasmbly_site_asemby_url#
+			,RASMBLY_STTUS_CODE			= #rasmbly_sttus_code#
+			,MINTS_OTHBC_AT				= #mints_othbc_at#
+			,BI_OTHBC_AT				= #bi_othbc_at#
+			,ASEMBY_OTHBC_AT			= #asemby_othbc_at#
+			,ISVIEW						= #isview#
+		WHERE
+			RASMBLY_ID = '$rasmbly_id$'
+	</update>
+	
+	<!-- 지방의회 수집 API Key를 등록한다. -->
+	<insert id="RcmManage.insertRasmblyApiKey" parameterClass="RasmblyVO">
+		INSERT INTO colgover
+			(RASMBLY_ID ,RASMBLY_NM ,RASMBLY_SITE_URL ,RASMBLY_STTUS_CODE ,FRST_REGIST_DT
+			,LAST_UPDT_DT ,DELETE_DT ,DELETE_AT ,PASSWORD ,SERVER_IP ,API_CRTFC_KEY ,RASMBLY_AREA_CODE
+			,RASMBLY_SITE_MINTS_URL,RASMBLY_SITE_BILL_URL,RASMBLY_SITE_ASEMBY_URL,ISVIEW
+			,MINTS_OTHBC_AT ,BI_OTHBC_AT ,ASEMBY_OTHBC_AT)
+		VALUES
+			(#rasmbly_id# ,#rasmbly_nm# ,#rasmbly_site_url# ,#rasmbly_sttus_code# ,TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+			,#last_updt_dt# ,#delete_dt# ,'N' ,#password# ,#server_ip# ,#api_crtfc_key# ,#rasmbly_area_code#
+			,#rasmbly_site_mints_url# ,#rasmbly_site_bill_url# ,#rasmbly_site_asemby_url#,#isview#
+			,#mints_othbc_at# ,#bi_othbc_at# ,#asemby_othbc_at#)
+</insert>
+	
+	<!-- 지방의호 수집 API Key를 조회한다. -->
+	<select id="RcmManage.selectRasmblyApiKey" parameterClass="RasmblyVO" resultClass="RasmblyVO">
+		SELECT
+			A.RASMBLY_ID
+			,A.RASMBLY_NM
+			,A.RASMBLY_SITE_URL
+			,A.RASMBLY_STTUS_CODE
+			,A.FRST_REGIST_DT
+			,A.LAST_UPDT_DT
+			,A.DELETE_DT
+			,A.DELETE_AT
+			,A.PASSWORD
+			,A.SERVER_IP
+			,A.API_CRTFC_KEY
+			,A.RASMBLY_AREA_CODE
+			,A.RASMBLY_SITE_MINTS_URL
+			,A.RASMBLY_SITE_BILL_URL
+			,A.RASMBLY_SITE_ASEMBY_URL
+			,A.ISVIEW
+			,NVL(A.MINTS_OTHBC_AT,'N') AS MINTS_OTHBC_AT
+			,NVL(A.BI_OTHBC_AT,'N') AS BI_OTHBC_AT
+			,NVL(A.ASEMBY_OTHBC_AT,'N') AS ASEMBY_OTHBC_AT
+			
+			, B.BRTC_CODE AS brtcCode
+			, B.LOASM_CODE AS loasmCode		
+			, C.INSTT_CL_CODE AS insttClCode
+			, C.INSTT_CL_NM AS insttClCodeNm
+			, D.INSTT_CL_CODE AS fInsttClCode
+			, D.INSTT_CL_Nm AS fInsttClCodeNm
+			
+			, ROSTATUS.RASMBLY_ID AS RASMBLY_PRMTAGO_ID
+			, organ.BRTC_CODE AS prmtBrtcCode
+			, ROSTATUS.RASMBLY_ID AS prmtLoasmCode		
+			, organ_class.INSTT_CL_CODE AS prmtInsttClCode
+			, organ_class.INSTT_CL_NM AS prmtInsttClCodeNm
+			, organ_class2.INSTT_CL_CODE AS prmtFInsttClCode
+			, organ_class2.INSTT_CL_Nm AS prmtFInsttClCodeNm
+		FROM
+			colgover A
+	  		LEFT OUTER JOIN organ B ON A.RASMBLY_ID = B.LOASM_CODE
+	  		LEFT OUTER JOIN organ_class C ON B.INSTT_CL_CODE = C.INSTT_CL_CODE
+	   		INNER JOIN organ_class D ON C.UPPER_INSTT_CL_CODE = D.INSTT_CL_CODE
+		   	
+		   	LEFT OUTER JOIN ROSTATUS ON A.RASMBLY_ID = ROSTATUS.RASMBLY_PRMTAGO_ID AND ROSTATUS.DELETE_AT = 'N'
+		   	LEFT OUTER JOIN organ ON ROSTATUS.RASMBLY_ID = organ.LOASM_CODE
+	  		LEFT OUTER JOIN organ_class ON organ.INSTT_CL_CODE = organ_class.INSTT_CL_CODE
+	  		LEFT OUTER JOIN organ_class organ_class2 ON organ_class.UPPER_INSTT_CL_CODE = organ_class2.INSTT_CL_CODE	
+		WHERE
+			A.RASMBLY_ID = #rasmbly_id#
+	</select>
+	
+	<!-- 기수 목록을 조회한다. -->
+	<select id="RcmManage.selectGenerationFlagList" parameterClass="RlmManageSearchVO" resultClass="HrsmnpdVO">
+		SELECT
+			A.TOTCNT, B.*
+		FROM
+			(SELECT
+				COUNT(*) AS TOTCNT
+			FROM
+				cterm
+			WHERE 
+				NVL(DELETE_AT,'N') != 'Y'
+			) A,
+			(SELECT
+				ROWNUM AS RNUM
+				,HRSMNPD_SN
+				,HRSMNPD_NM
+				,TO_CHAR(TO_DATE(BEGIN_DE),'YYYY.MM.DD') AS BEGIN_DE
+				,TO_CHAR(TO_DATE(END_DE),'YYYY.MM.DD') AS END_DE
+				,FRST_REGIST_DT
+				,LAST_UPDT_DT
+				,DELETE_DT
+				,DELETE_AT
+				,TO_CHAR(TO_DATE(FRHFYR_BEGIN_DE),'YYYY.MM.DD') AS FRHFYR_BEGIN_DE
+				,TO_CHAR(TO_DATE(FRHFYR_END_DE),'YYYY.MM.DD') AS FRHFYR_END_DE
+				,TO_CHAR(TO_DATE(SHYY_BEGIN_DE),'YYYY.MM.DD') AS SHYY_BEGIN_DE
+				,TO_CHAR(TO_DATE(SHYY_END_DE),'YYYY.MM.DD') AS SHYY_END_DE
+			FROM
+				cterm
+			WHERE
+				NVL(DELETE_AT,'N') = 'N'
+			ORDER BY BEGIN_DE DESC
+			) B
+</select>
+	
+	<!-- 기수 상세정보를 조회한다. -->
+	<select id="RcmManage.selectGenerationFlag" parameterClass="HrsmnpdVO" resultClass="HrsmnpdVO">
+		SELECT
+			ROWNUM AS RNUM
+			,HRSMNPD_SN
+			,HRSMNPD_NM
+			,TO_CHAR(TO_DATE(BEGIN_DE),'YYYY-MM-DD') AS BEGIN_DE
+			,TO_CHAR(TO_DATE(END_DE),'YYYY-MM-DD') AS END_DE
+			,FRST_REGIST_DT
+			,LAST_UPDT_DT
+			,DELETE_DT
+			,DELETE_AT
+			,TO_CHAR(TO_DATE(FRHFYR_BEGIN_DE),'YYYY-MM-DD') AS FRHFYR_BEGIN_DE
+			,TO_CHAR(TO_DATE(FRHFYR_END_DE),'YYYY-MM-DD') AS FRHFYR_END_DE
+			,TO_CHAR(TO_DATE(SHYY_BEGIN_DE),'YYYY-MM-DD') AS SHYY_BEGIN_DE
+			,TO_CHAR(TO_DATE(SHYY_END_DE),'YYYY-MM-DD') AS SHYY_END_DE
+		FROM
+			cterm
+		WHERE
+			NVL(DELETE_AT,'N') = 'N'
+		<isNotEmpty property="hrsmnpd_sn">
+			AND HRSMNPD_SN = '$hrsmnpd_sn$'
+		</isNotEmpty>
+	</select>
+	
+	<!-- 기수 매핑 의회 목록을 조회한다. -->
+	<select id="RcmManage.selectRasmblyNumprPdList" parameterClass="HrsmnpdVO" resultClass="RasmblyNumprPdVO">
+		SELECT
+			ROWNUM AS RNUM
+			,colgover_gener.HRSMNPD_SN
+			,colgover_gener.RASMBLY_NUMPR
+			,colgover_gener.RASMBLY_ID
+			,colgover.RASMBLY_NM
+		FROM
+			cterm
+			,colgover_gener
+			,gener 
+			,colgover
+		WHERE
+			colgover.RASMBLY_ID = gener .RASMBLY_ID
+			AND gener .RASMBLY_ID = colgover_gener.RASMBLY_ID
+			AND gener .RASMBLY_NUMPR = colgover_gener.RASMBLY_NUMPR
+			AND colgover_gener.HRSMNPD_SN = cterm.HRSMNPD_SN
+			AND NVL(gener .CUD_CODE,'D') != 'D'
+			AND NVL(colgover_gener.DELETE_AT,'N') != 'Y'
+			AND cterm.HRSMNPD_SN = '$hrsmnpd_sn$'
+			
+		ORDER BY colgover_gener.RASMBLY_NUMPR
+</select>
+	
+	<!-- 기수 매핑 의회 목록을 조회한다. -->
+	<select id="RcmManage.selectNumprMapping" parameterClass="HrsmnpdVO" resultClass="java.util.HashMap">
+		SELECT
+			gener .RASMBLY_NUMPR
+			,colgover.RASMBLY_ID
+			,colgover.RASMBLY_NM
+		FROM
+			gener 
+			,colgover
+			,ORGAN
+		WHERE
+			colgover.RASMBLY_ID = gener .RASMBLY_ID
+			AND ORGAN.LOASM_CODE = colgover.RASMBLY_ID
+			AND gener .BEGIN_DE BETWEEN TO_DATE(#begin_de#,'YYYY-MM-DD') AND TO_DATE(#end_de#,'YYYY-MM-DD')
+			AND gener .END_DE BETWEEN TO_DATE(#begin_de#,'YYYY-MM-DD') AND TO_DATE(#end_de#,'YYYY-MM-DD')
+			AND NVL(gener .CUD_CODE,'D') != 'D'
+		ORDER BY 
+			gener .RASMBLY_NUMPR DESC
+	</select>
+	
+	<!-- 기수기간 정보를 등록한다. -->
+	<insert id="RcmManage.insertHrsmnpd" parameterClass="HrsmnpdVO" >
+		INSERT INTO cterm
+			(HRSMNPD_SN ,HRSMNPD_NM ,BEGIN_DE ,END_DE ,FRST_REGIST_DT 
+			,DELETE_AT ,FRHFYR_BEGIN_DE ,FRHFYR_END_DE ,SHYY_BEGIN_DE ,SHYY_END_DE)
+		VALUES
+			(#hrsmnpd_sn# ,#hrsmnpd_nm# ,#begin_de# ,#end_de# ,SYSDATE 
+			,'N' ,#frhfyr_begin_de# ,#frhfyr_end_de# ,#shyy_begin_de# ,#shyy_end_de#)
+		
+	</insert>
+	
+	<!-- 기수기간 정보를 수정한다. -->
+	<update id="RcmManage.updateHrsmnpd" parameterClass="HrsmnpdVO" >
+		UPDATE
+			cterm
+		SET
+			HRSMNPD_NM			= #hrsmnpd_nm#
+			,BEGIN_DE				= #begin_de#
+			,END_DE				= #end_de#
+			,FRHFYR_BEGIN_DE	= #frhfyr_begin_de#
+			,FRHFYR_END_DE	= #frhfyr_end_de#
+			,SHYY_BEGIN_DE	= #shyy_begin_de#
+			,SHYY_END_DE		= #shyy_end_de#
+			,LAST_UPDT_DT		= SYSDATE
+		WHERE
+			HRSMNPD_SN 			= '$hrsmnpd_sn$'
+	</update>
+	
+	<!-- 기수기간 정보를 삭제한다. -->
+	<update id="RcmManage.deleteHrsmnpd" parameterClass="HrsmnpdVO" >
+		UPDATE
+			cterm
+		SET
+			DELETE_AT		= 'Y'
+			,DELETE_DT	= SYSDATE
+		WHERE
+			HRSMNPD_SN = '$hrsmnpd_sn$'
+	</update>
+	
+	<!-- 대수기간 정보를 등록한다. -->
+	<insert id="RcmManage.insertNumprpd" parameterClass="RasmblyNumprPdVO" >
+		INSERT INTO colgover_gener
+			(HRSMNPD_SN ,RASMBLY_NUMPR ,RASMBLY_ID ,FRST_REGIST_DT ,DELETE_AT) 
+		VALUES
+			(#hrsmnpd_sn# ,#rasmbly_numpr# ,#rasmbly_id# ,SYSDATE ,'N')
+		
+	</insert>
+	
+	<!-- 대수기간 정보를 수정한다. -->
+	<update id="RcmManage.updateNumprpd" parameterClass="RasmblyNumprPdVO" >
+		UPDATE
+			colgover_gener
+		SET
+			DELETE_AT		= 'N'
+			,DELETE_DT	= null
+		WHERE
+			HRSMNPD_SN 				= '$hrsmnpd_sn$'
+			AND RASMBLY_NUMPR = '$rasmbly_numpr$'
+			AND RASMBLY_ID		= '$rasmbly_id$'
+	</update>
+	
+	<!-- 대수기간 정보를 삭제한다. -->
+	<update id="RcmManage.deleteNumprpd" parameterClass="HrsmnpdVO" >
+		UPDATE
+			colgover_gener
+		SET
+			DELETE_AT		= 'Y'
+			,DELETE_DT	= SYSDATE
+		WHERE
+			HRSMNPD_SN = '$hrsmnpd_sn$'
+	</update>
+	
+	<!-- 기수별 정당 정보 목록을 조회한다. -->
+	<select id="RcmManage.selectHrsmnPprtyMngList" resultClass="HrsmnpdPprtyVO">
+		SELECT 
+			ROWNUM AS RNUM, A.TOTCNT, B.*
+		FROM 
+			(SELECT
+				COUNT(AGGR_CONCAT(colgover_party.PPRTY_NM,',')) AS TOTCNT
+			FROM
+				cterm
+				,cterm_party
+				,common_detail_code
+				,colgover_party
+			WHERE
+				cterm.HRSMNPD_SN = cterm_party.HRSMNPD_SN
+				AND common_detail_code.CODE = cterm_party.HT_SE_STDCD
+				AND colgover_party.PPRTY_CODE = cterm_party.PPRTY_CODE
+				AND NVL(cterm_party.DELETE_AT,'N') = 'N'
+			GROUP BY
+				cterm_party.HRSMNPD_SN 
+				,cterm_party.HT_SE_STDCD
+				,cterm.HRSMNPD_NM || ' ' || common_detail_code.CODE_NM
+				,DECODE(cterm_party.HT_SE_STDCD
+				,'HTS001',TO_CHAR(TO_DATE(cterm.FRHFYR_BEGIN_DE),'YYYY.MM.DD') || ' ~ ' || TO_CHAR(TO_DATE(cterm.FRHFYR_END_DE),'YYYY.MM.DD')
+				,'HTS002',TO_CHAR(TO_DATE(cterm.SHYY_BEGIN_DE),'YYYY.MM.DD') || ' ~ ' || TO_CHAR(TO_DATE(cterm.SHYY_END_DE),'YYYY.MM.DD') )
+			) A,
+			(SELECT
+				cterm_party.HRSMNPD_SN ,cterm_party.HT_SE_STDCD
+				,cterm.HRSMNPD_NM || ' ' || common_detail_code.CODE_NM AS HRSMNPD_NM
+				,DECODE(cterm_party.HT_SE_STDCD
+				,'HTS001',TO_CHAR(TO_DATE(cterm.FRHFYR_BEGIN_DE),'YYYY.MM.DD') || ' ~ ' || TO_CHAR(TO_DATE(cterm.FRHFYR_END_DE),'YYYY.MM.DD')
+				,'HTS002',TO_CHAR(TO_DATE(cterm.SHYY_BEGIN_DE),'YYYY.MM.DD') || ' ~ ' || TO_CHAR(TO_DATE(cterm.SHYY_END_DE),'YYYY.MM.DD') ) AS BEGIN_DE
+				,AGGR_CONCAT(colgover_party.PPRTY_NM,',') AS PPRTY_NM
+			FROM
+				cterm
+				,cterm_party
+				,common_detail_code
+				,colgover_party
+			WHERE
+				cterm.HRSMNPD_SN = cterm_party.HRSMNPD_SN
+				AND common_detail_code.CODE = cterm_party.HT_SE_STDCD
+				AND colgover_party.PPRTY_CODE = cterm_party.PPRTY_CODE
+				AND NVL(cterm_party.DELETE_AT,'N') = 'N'
+			GROUP BY
+				cterm_party.HRSMNPD_SN 
+				,cterm_party.HT_SE_STDCD
+				,cterm.HRSMNPD_NM || ' ' || common_detail_code.CODE_NM
+				,DECODE(cterm_party.HT_SE_STDCD
+				,'HTS001',TO_CHAR(TO_DATE(cterm.FRHFYR_BEGIN_DE),'YYYY.MM.DD') || ' ~ ' || TO_CHAR(TO_DATE(cterm.FRHFYR_END_DE),'YYYY.MM.DD')
+				,'HTS002',TO_CHAR(TO_DATE(cterm.SHYY_BEGIN_DE),'YYYY.MM.DD') || ' ~ ' || TO_CHAR(TO_DATE(cterm.SHYY_END_DE),'YYYY.MM.DD') )
+			) B
+			ORDER BY
+					HRSMNPD_SN 		DESC
+				, 	HT_SE_STDCD 	DESC
+	</select>
+	
+	<!-- 기수별 정당 상세정보를 조회한다. -->
+	<select id="RcmManage.selectHrsmnPprtyMng" parameterClass="HrsmnpdPprtyVO" resultClass="HrsmnpdPprtyVO">
+		SELECT
+			HRSMNPD_SN
+			,HT_SE_STDCD
+			,PPRTY_CODE
+			,FRST_REGIST_DT
+			,LAST_UPDT_DT
+			,DELETE_AT
+			,DELETE_DT
+			,BEGIN_DE
+			,END_DE 
+		FROM
+			cterm_party
+		WHERE
+			NVL(DELETE_AT,'N') = 'N'
+			<isNotEmpty property="hrsmnpd_sn">
+			AND HRSMNPD_SN	= '$hrsmnpd_sn$'
+			</isNotEmpty>
+			<isNotEmpty property="ht_se_stdcd">
+			AND HT_SE_STDCD	= '$ht_se_stdcd$'
+			</isNotEmpty>
+		<isNotEmpty property="pprty_code">
+			AND PPRTY_CODE	= '$pprty_code$'
+		</isNotEmpty>
+	</select>
+	
+	<!-- 기수별 정당 정보를 등록한다. -->
+	<insert id="RcmManage.insertHrsmnPprtyMng"  parameterClass="HrsmnpdPprtyVO" >
+		INSERT INTO cterm_party
+			(HRSMNPD_SN ,HT_SE_STDCD ,PPRTY_CODE ,FRST_REGIST_DT ,DELETE_AT ,BEGIN_DE ,END_DE)
+		VALUES
+			(#hrsmnpd_sn# ,#ht_se_stdcd# ,#pprty_code# ,SYSDATE ,#delete_at# ,#begin_de# ,#end_de#)
+	</insert>
+	
+	<!-- 기수별 정당 정보를 수정한다. -->
+	<update id="RcmManage.updateHrsmnPprtyMng"  parameterClass="HrsmnpdPprtyVO" >
+		UPDATE
+			cterm_party
+		SET
+			BEGIN_DE				= #begin_de#
+			,END_DE 				= #end_de#
+			,DELETE_AT			= 'N'
+			,DELETE_DT			= null
+			,LAST_UPDT_DT		= SYSDATE		
+		WHERE
+			HRSMNPD_SN			= '$hrsmnpd_sn$'
+			AND HT_SE_STDCD	= '$ht_se_stdcd$'
+			AND PPRTY_CODE	= '$pprty_code$'
+	</update>
+	
+	<!-- 기수별 정당 정보를 삭제한다. -->
+	<update id="RcmManage.deleteHrsmnPprtyMng"  parameterClass="HrsmnpdPprtyVO" >
+		UPDATE
+			cterm_party
+		SET
+			DELETE_AT 			= 'Y'
+			,DELETE_DT 			= SYSDATE
+		WHERE
+			HRSMNPD_SN			= '$hrsmnpd_sn$'
+			AND HT_SE_STDCD	= '$ht_se_stdcd$'
+			<isNotEmpty property="pprty_code">
+			AND PPRTY_CODE	= '$pprty_code$'
+			</isNotEmpty>
+	</update>
+	
+	<!-- 지방의회 정당 목록을 조회한다. -->
+	<select id="RcmManage.selectPprtyList" parameterClass="RlmManageSearchVO"  resultClass="PprtyVO">
+		SELECT
+			PPRTY_CODE
+			,PPRTY_NM
+			,BEGIN_DE
+			,END_DE
+			,RM
+			,PPRTY_SN
+			,PPRTY_ABRV
+			,FRST_REGIST_DT
+			,LAST_UPDT_DT
+			,DELETE_DT
+			,DELETE_AT
+		FROM
+			 colgover_party
+		WHERE 
+			NVL(DELETE_AT,'N') = 'N'
+		<isNotEmpty property="searchCondition">
+			<isEqual property="searchCondition" compareValue="PPRTY_CODE">
+			AND PPRTY_CODE = #searchKeyword#
+			</isEqual>
+		</isNotEmpty>
+		ORDER BY
+			PPRTY_NM ASC
+	</select>
+	
+	
+	
+	<!-- 연계API 수집 내역 // 목록 -->
+	<select id="RcmManage.selectCollectionInfoList" parameterClass="RlmManageVO" resultClass="RlmManageVO">
+		<![CDATA[
+		SELECT * FROM ( SELECT rownum rn, TB.* FROM (
+				SELECT
+					colgover.RASMBLY_NM AS rasmblyNm
+					,common_detail_code.CODE_NM AS codeNm
+					,tar_log.RECPTN_TOTCNT AS recptnTotcnt
+					,TO_CHAR(TO_DATE(tar_log.OCCRRNC_DE, 'YYYYMMDD'), 'YYYY.MM.DD')  AS occrrncDe
+					,NVL(tar_log.RESULT_MSSAGE, '') AS resultMssage
+				  FROM
+					tar_log
+					,colgover
+					,common_detail_code
+				WHERE
+					tar_log.REQUST_INSTT_ID = colgover.RASMBLY_ID
+					AND NVL(colgover.DELETE_AT,'N') = 'N'
+					AND common_detail_code.CODE = tar_log.PROVD_INSTT_ID
+		 ]]>
+		 <isNotEmpty property="selectRasmbly">
+		 	<![CDATA[   AND colgover.RASMBLY_ID = #selectRasmbly#]]>	
+		 </isNotEmpty>
+		 <isNotEmpty property="selectApi">
+		 	<![CDATA[   AND tar_log.PROVD_INSTT_ID  = #selectApi#   ]]>	
+		 </isNotEmpty>
+		 <isNotEmpty property="schDt1">
+		 	<isNotEmpty property="schDt2">
+		 		<![CDATA[ AND tar_log.OCCRRNC_DE BETWEEN #schDt1# AND #schDt2#  ]]>
+		 	</isNotEmpty>
+		 </isNotEmpty>
+		<isNotEmpty property="sortOrder">
+			<isEqual property="sortOrder" compareValue="rasmblyNm_DESC">
+			<![CDATA[	ORDER BY 	colgover.RASMBLY_NM DESC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="rasmblyNm_ASC">
+			<![CDATA[	ORDER BY 	colgover.RASMBLY_NM ASC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="codeNm_DESC">
+			<![CDATA[	ORDER BY 	common_detail_code.CODE_NM DESC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="codeNm_ASC">
+			<![CDATA[	ORDER BY 	common_detail_code.CODE_NM ASC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="recptnTotcnt_DESC">
+			<![CDATA[	ORDER BY 	tar_log.RECPTN_TOTCNT DESC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="recptnTotcnt_ASC">
+			<![CDATA[	ORDER BY 	tar_log.RECPTN_TOTCNT ASC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="occrrncDe_DESC">
+			<![CDATA[	ORDER BY 	tar_log.OCCRRNC_DE DESC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="occrrncDe_ASC">
+			<![CDATA[	ORDER BY 	tar_log.OCCRRNC_DE ASC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="">
+			<![CDATA[	ORDER BY 	tar_log.OCCRRNC_DE DESC		]]>
+			</isEqual>
+		</isNotEmpty>
+        <![CDATA[   
+             ) TB )  WHERE rn BETWEEN #firstIndex# + 1 AND #firstIndex# + #recordCountPerPage#
+        ]]>					
+	</select>
+
+	<!-- 연계API 수집 내역 // 목록갯수 -->
+	<select id="RcmManage.selectCollectionInfoCnt" parameterClass="RlmManageVO"	resultClass="java.lang.Integer">
+		<![CDATA[
+				SELECT
+					COUNT(colgover.RASMBLY_NM) totCnt
+				  FROM
+					tar_log
+					,colgover
+					,common_detail_code
+				WHERE
+					tar_log.REQUST_INSTT_ID = colgover.RASMBLY_ID
+					AND NVL(colgover.DELETE_AT,'N') = 'N'
+					AND common_detail_code.CODE = tar_log.PROVD_INSTT_ID
+		 ]]>
+		 <isNotEmpty property="selectRasmbly">
+		 	<![CDATA[   AND colgover.RASMBLY_ID = #selectRasmbly#]]>	
+		 </isNotEmpty>
+		 <isNotEmpty property="selectApi">
+		 	<![CDATA[   AND tar_log.PROVD_INSTT_ID  = #selectApi#   ]]>	
+		 </isNotEmpty>
+		 <isNotEmpty property="schDt1">
+		 	<isNotEmpty property="schDt2">
+		 		<![CDATA[ AND tar_log.OCCRRNC_DE BETWEEN #schDt1# AND #schDt2#  ]]>
+		 	</isNotEmpty>
+		 </isNotEmpty>
+		<isNotEmpty property="sortOrder">
+			<isEqual property="sortOrder" compareValue="rasmblyNm_DESC">
+			<![CDATA[	ORDER BY 	colgover.RASMBLY_NM DESC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="rasmblyNm_ASC">
+			<![CDATA[	ORDER BY 	colgover.RASMBLY_NM ASC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="codeNm_DESC">
+			<![CDATA[	ORDER BY 	common_detail_code.CODE_NM DESC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="codeNm_ASC">
+			<![CDATA[	ORDER BY 	common_detail_code.CODE_NM ASC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="recptnTotcnt_DESC">
+			<![CDATA[	ORDER BY 	tar_log.RECPTN_TOTCNT DESC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="recptnTotcnt_ASC">
+			<![CDATA[	ORDER BY 	tar_log.RECPTN_TOTCNT ASC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="occrrncDe_DESC">
+			<![CDATA[	ORDER BY 	tar_log.OCCRRNC_DE DESC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="occrrncDe_ASC">
+			<![CDATA[	ORDER BY 	tar_log.OCCRRNC_DE ASC		]]>
+			</isEqual>
+			<isEqual property="sortOrder" compareValue="">
+			<![CDATA[	ORDER BY 	tar_log.OCCRRNC_DE DESC		]]>
+			</isEqual>
+		</isNotEmpty>		 
+<!-- 		 
+		 <isNotEmpty property="selectRasmbly">
+		 	<![CDATA[   AND colgover.RASMBLY_ID = #selectRasmbly#]]>	
+		 </isNotEmpty>
+		 <isNotEmpty property="selectApi">
+		 	<![CDATA[   AND tar_log.PROVD_INSTT_ID  = #selectApi#   ]]>	
+		 </isNotEmpty>
+		 <isNotEmpty property="selectBgdate">
+		 	<isNotEmpty property="selectEndate">
+		 		<![CDATA[ AND tar_log.OCCRRNC_DE BETWEEN #schDt1# AND #schDt2#  ]]>	
+		 	</isNotEmpty>
+		 </isNotEmpty>	 
+ -->		 
+		 
+	</select>	
+	
+
+	<!-- 연계의회 목록 -->
+	<select id="RcmManage.selectRasmblyList" resultClass="RlmManageVO">
+		<![CDATA[
+			SELECT
+				RASMBLY_ID AS rasmblyId
+				,RASMBLY_NM AS rasmblyNm
+			  FROM
+				colgover
+			WHERE
+				NVL(DELETE_AT,'N') = 'N'
+			ORDER BY
+				RASMBLY_ID ASC
+			
+		 ]]>
+	</select>		
+	
+	
+	<!-- 연계API 구분 -->
+	<select id="RcmManage.selectApiList" resultClass="RlmManageVO">
+		<![CDATA[
+			SELECT
+				CODE AS codeId
+				,CODE_NM AS codeNm
+			FROM
+				common_detail_code
+			WHERE
+				NVL(USE_AT,'Y') = 'Y'
+				AND CODE_ID = 'RIS005'
+			ORDER BY CODE_ORDR
+		 ]]>
+	</select>			
+	
+	<!-- 표준연계 API 수집요청 목록을 조회한다. -->
+	<select id="RcmManage.selectStdCntcApiColctMngList" parameterClass="RlmManageVO" resultClass="java.util.HashMap">
+		<![CDATA[
+			
+			SELECT 
+				AA.*
+			FROM
+				(
+				SELECT
+					ROWNUM AS RNUM, A.TOTCNT, B.*
+				FROM
+					(			
+					SELECT
+						NVL(COUNT(STD_CNTC_SETUP_ID),0) AS TOTCNT
+					FROM
+						TAPI_RECOLL_TERM
+						,COLGOVER
+						,ORGAN
+						,COMMON_DETAIL_CODE CDC1
+						,COMMON_DETAIL_CODE CDC2
+					WHERE
+						TAPI_RECOLL_TERM.RASMBLY_ID = COLGOVER.RASMBLY_ID
+						AND TAPI_RECOLL_TERM.RASMBLY_ID = ORGAN.LOASM_CODE
+						AND TAPI_RECOLL_TERM.COLCT_SE_CODE = CDC1.CODE
+						AND TAPI_RECOLL_TERM.DTA_SE_CODE = CDC2.CODE
+						AND CDC1.CODE_ID = 'RIS028'
+						AND CDC2.CODE_ID = 'RIS029'
+		]]>
+					<isNotEmpty property="INSTT_TY_CODE">
+						AND ORGAN.INSTT_CL_CODE = #INSTT_TY_CODE#
+					</isNotEmpty>
+					<isNotEmpty property="BRTC_CODE">
+						AND ORGAN.BRTC_CODE = #BRTC_CODE#
+					</isNotEmpty>
+					<isNotEmpty property="LOASM_CODE">
+						AND ORGAN.LOASM_CODE = #LOASM_CODE#
+					</isNotEmpty>
+					<isNotEmpty property="DTA_SE_CODE">
+						AND TAPI_RECOLL_TERM.DTA_SE_CODE = #DTA_SE_CODE#
+					</isNotEmpty>
+		<![CDATA[
+					) A,
+					(			
+					SELECT
+						TAPI_RECOLL_TERM.STD_CNTC_SETUP_ID
+						,COLGOVER.RASMBLY_NM
+						,TAPI_RECOLL_TERM.COLCT_SE_CODE
+						,CDC1.CODE_NM AS COLCT_SE_CODE_NM
+						,TAPI_RECOLL_TERM.DTA_SE_CODE
+						,CDC2.CODE_NM AS DTA_SE_CODE_NM
+						,TO_CHAR(TAPI_RECOLL_TERM.COLCT_RESVE_DT,'YYYY-MM-DD HH24:MI') AS COLCT_RESVE_DT
+						,CASE 
+						WHEN TAPI_RECOLL_TERM.COLCT_SE_CODE = 'CLT101' 
+						THEN TO_CHAR(TAPI_RECOLL_TERM.BEGIN_DE,'YYYY-MM-DD') || ' ~ ' || TO_CHAR(TAPI_RECOLL_TERM.END_DE,'YYYY-MM-DD')
+						WHEN TAPI_RECOLL_TERM.COLCT_SE_CODE = 'CLT102'
+						THEN 
+							CASE 
+								WHEN TO_CHAR(TAPI_RECOLL_TERM.NUMPR) = '0'
+								THEN '전체'
+								ELSE TO_CHAR(TAPI_RECOLL_TERM.NUMPR) || '대'
+							END
+						WHEN TAPI_RECOLL_TERM.COLCT_SE_CODE = 'CLT103'
+						THEN TAPI_RECOLL_TERM.CN
+						END AS COLCT_SCOPE
+						,CASE
+							WHEN NVL(TAPI_RECOLL_TERM.PROCESS_STTUS_CODE,'N') = 'Y' 
+							THEN '수집'
+							ELSE '미수집'
+						END AS PROCESS_STTUS_CODE
+						,TAPI_RECOLL_TERM.PK
+					FROM
+						TAPI_RECOLL_TERM
+						,COLGOVER
+						,ORGAN
+						,COMMON_DETAIL_CODE CDC1
+						,COMMON_DETAIL_CODE CDC2
+					WHERE
+						TAPI_RECOLL_TERM.RASMBLY_ID = COLGOVER.RASMBLY_ID
+						AND TAPI_RECOLL_TERM.RASMBLY_ID = ORGAN.LOASM_CODE
+						AND TAPI_RECOLL_TERM.COLCT_SE_CODE = CDC1.CODE
+						AND TAPI_RECOLL_TERM.DTA_SE_CODE = CDC2.CODE
+						AND CDC1.CODE_ID = 'RIS028'
+						AND CDC2.CODE_ID = 'RIS029'
+		]]>
+					<isNotEmpty property="INSTT_TY_CODE">
+						AND ORGAN.INSTT_CL_CODE = #INSTT_TY_CODE#
+					</isNotEmpty>
+					<isNotEmpty property="BRTC_CODE">
+						AND ORGAN.BRTC_CODE = #BRTC_CODE#
+					</isNotEmpty>
+					<isNotEmpty property="LOASM_CODE">
+						AND ORGAN.LOASM_CODE = #LOASM_CODE#
+					</isNotEmpty>
+					<isNotEmpty property="DTA_SE_CODE">
+						AND TAPI_RECOLL_TERM.DTA_SE_CODE = #DTA_SE_CODE#
+					</isNotEmpty>
+					<isNotEmpty property="sortOrder">
+					ORDER BY 
+						$sortOrder$
+					</isNotEmpty>
+					<isEmpty property="sortOrder">
+					ORDER BY 
+						TAPI_RECOLL_TERM.COLCT_RESVE_DT DESC
+						,TAPI_RECOLL_TERM.DTA_SE_CODE ASC
+						,CASE 
+						WHEN TAPI_RECOLL_TERM.COLCT_SE_CODE = 'CLT101' 
+						THEN TO_CHAR(TAPI_RECOLL_TERM.BEGIN_DE,'YYYY-MM-DD') || ' ~ ' || TO_CHAR(TAPI_RECOLL_TERM.END_DE,'YYYY-MM-DD')
+						WHEN TAPI_RECOLL_TERM.COLCT_SE_CODE = 'CLT102'
+						THEN 
+							CASE 
+								WHEN TO_CHAR(TAPI_RECOLL_TERM.NUMPR) = '0'
+								THEN '전체'
+								ELSE TO_CHAR(TAPI_RECOLL_TERM.NUMPR) || '대'
+							END
+						WHEN TAPI_RECOLL_TERM.COLCT_SE_CODE = 'CLT103'
+						THEN TAPI_RECOLL_TERM.CN
+						END ASC
+					</isEmpty>
+		<![CDATA[ 
+					) B
+				) AA
+				WHERE AA.RNUM BETWEEN #firstIndex# + 1 AND #firstIndex# + #recordCountPerPage#
+		]]>
+	</select>
+	
+	<!-- 의회 정보를 조회한다. -->
+	<select id="RcmManage.selectRasmblyInfo" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT
+			ORGAN_CLASS.INSTT_CL_CODE
+			,ORGAN_CLASS.UPPER_INSTT_CL_CODE
+			,ORGAN.INSTT_TY_CODE
+			,ORGAN.BRTC_CODE
+			,ORGAN.LOASM_TY_CODE
+			,COLGOVER.RASMBLY_ID
+		FROM
+			COLGOVER
+			,ORGAN
+			,ORGAN_CLASS
+		WHERE
+			COLGOVER.RASMBLY_ID = ORGAN.LOASM_CODE
+			AND ORGAN_CLASS.INSTT_CL_CODE = ORGAN.INSTT_CL_CODE
+			AND COLGOVER.RASMBLY_ID = #RASMBLY_ID#
+	</select>
+	
+	<!-- 표준연계 API 수집요청 상세정보를 조회한다. -->
+	<select id="RcmManage.selectStdCntcApiColctMngDetail" resultClass="java.util.HashMap">
+		<![CDATA[
+			SELECT
+				STD_CNTC_SETUP_ID
+				,NUMPR
+				,BEGIN_DE
+				,END_DE
+				,PROCESS_STTUS_CODE
+				,FRST_REGIST_PNTTM
+				,PROCESS_PNTTM
+				,DTA_SE_CODE
+				,COLCT_RESVE_DT
+				,COLCT_SE_CODE
+				,CN
+				,PK
+			FROM
+				TAPI_RECOLL_TERM
+			WHERE
+				1=1
+		 ]]>
+	</select>
+	
+	<!-- 표윤연계 API 수집요청 정보를 삭제한다. -->
+	<delete id="RcmManage.DeleteStdCntcApiColct" parameterClass="java.util.HashMap">
+		DELETE FROM 
+			TAPI_RECOLL_TERM
+		WHERE
+			STD_CNTC_SETUP_ID = #STD_CNTC_SETUP_ID#
+	</delete>
+	
+	<!-- 표준연계 API 재수집정보를 등록한다. -->
+	<insert id="RcmManage.insertStdCntcApiColct" parameterClass="java.util.HashMap">
+		INSERT INTO TAPI_RECOLL_TERM
+		(
+			STD_CNTC_SETUP_ID
+			,RASMBLY_ID
+			,DTA_SE_CODE
+			,COLCT_SE_CODE
+			,COLCT_RESVE_DT
+			,NUMPR
+			,BEGIN_DE
+			,END_DE
+			,CN
+			,PK
+			,PROCESS_PNTTM
+			,PROCESS_STTUS_CODE
+			,FRST_REGIST_PNTTM
+		)
+		VALUES
+		(
+			#STD_CNTC_SETUP_ID#
+			,#RASMBLY_ID#
+			,#DTA_SE_CODE#
+			,#COLCT_SE_CODE#
+			,TO_DATE(#COLCT_RESVE_DT#,'YYYY-MM-DD HH24:MI:SS')
+			,#NUMPR#
+			,TO_DATE(#BEGIN_DE#,'YYYY-MM-DD HH24:MI:SS')
+			,TO_DATE(#END_DE#,'YYYY-MM-DD HH24:MI:SS')
+			,#CN#
+			,#PK#
+			,NULL
+			,#PROCESS_STTUS_CODE#
+			,SYSDATE
+		)
+	</insert>
+	
+	<!-- 지방의회 연계 모니터링 정보를 조회한다. -->
+	<select id="RcmManage.selectStdCntcApiColctMntrng" resultClass="java.util.HashMap">
+	<![CDATA[
+		WITH SYSTEM_CONTROL AS (
+			SELECT 
+				RASMBLY_ID, CMMND_CODE, CMMND_TRNSMIS_AT, FRST_REGIST_DT, CMMND_EXC_AT, CMMND_EXC_DT, SET_INTERVAL FROM 
+				(
+				SELECT 
+					COUNCIL_SYSTEM_CONTROL.*,
+					ROW_NUMBER() OVER (PARTITION BY COUNCIL_SYSTEM_CONTROL.RASMBLY_ID ORDER BY COUNCIL_SYSTEM_CONTROL.FRST_REGIST_DT DESC) RN
+				FROM 
+					COUNCIL_SYSTEM_CONTROL, COLGOVER
+				WHERE 
+					COUNCIL_SYSTEM_CONTROL.RASMBLY_ID = COLGOVER.RASMBLY_ID
+				AND COUNCIL_SYSTEM_CONTROL.CMMND_CODE = 'REQ001'
+			) WHERE RN = 1
+			
+			UNION ALL
+			
+			SELECT 
+				RASMBLY_ID, CMMND_CODE, CMMND_TRNSMIS_AT, FRST_REGIST_DT, CMMND_EXC_AT, CMMND_EXC_DT, SET_INTERVAL FROM 
+				(
+				SELECT 
+					COUNCIL_SYSTEM_CONTROL.*,
+					ROW_NUMBER() OVER (PARTITION BY COUNCIL_SYSTEM_CONTROL.RASMBLY_ID ORDER BY COUNCIL_SYSTEM_CONTROL.FRST_REGIST_DT DESC) RN
+				FROM 
+					COUNCIL_SYSTEM_CONTROL, COLGOVER
+				WHERE 
+					COUNCIL_SYSTEM_CONTROL.RASMBLY_ID = COLGOVER.RASMBLY_ID
+				AND COUNCIL_SYSTEM_CONTROL.CMMND_CODE = 'REQ002'
+			) WHERE RN = 1
+			
+			UNION ALL
+			
+			SELECT 
+				RASMBLY_ID, CMMND_CODE, CMMND_TRNSMIS_AT, FRST_REGIST_DT, CMMND_EXC_AT, CMMND_EXC_DT, SET_INTERVAL FROM 
+				(
+				SELECT 
+					COUNCIL_SYSTEM_CONTROL.*,
+					ROW_NUMBER() OVER (PARTITION BY COUNCIL_SYSTEM_CONTROL.RASMBLY_ID ORDER BY COUNCIL_SYSTEM_CONTROL.FRST_REGIST_DT DESC) RN
+				FROM 
+					COUNCIL_SYSTEM_CONTROL, COLGOVER
+				WHERE 
+					COUNCIL_SYSTEM_CONTROL.RASMBLY_ID = COLGOVER.RASMBLY_ID
+				AND COUNCIL_SYSTEM_CONTROL.CMMND_CODE = 'REQ003'
+			) WHERE RN = 1
+			
+			UNION ALL
+			
+			SELECT 
+				RASMBLY_ID, CMMND_CODE, CMMND_TRNSMIS_AT, FRST_REGIST_DT, CMMND_EXC_AT, CMMND_EXC_DT, SET_INTERVAL FROM 
+				(
+				SELECT 
+					COUNCIL_SYSTEM_CONTROL.*,
+					ROW_NUMBER() OVER (PARTITION BY COUNCIL_SYSTEM_CONTROL.RASMBLY_ID ORDER BY COUNCIL_SYSTEM_CONTROL.FRST_REGIST_DT DESC) RN
+				FROM 
+					COUNCIL_SYSTEM_CONTROL, COLGOVER
+				WHERE 
+					COUNCIL_SYSTEM_CONTROL.RASMBLY_ID = COLGOVER.RASMBLY_ID
+				AND COUNCIL_SYSTEM_CONTROL.CMMND_CODE = 'REQ004'
+			) WHERE RN = 1
+			
+			UNION ALL
+			
+			SELECT 
+				RASMBLY_ID, CMMND_CODE, CMMND_TRNSMIS_AT, FRST_REGIST_DT, CMMND_EXC_AT, CMMND_EXC_DT, SET_INTERVAL FROM 
+				(
+				SELECT 
+					COUNCIL_SYSTEM_CONTROL.*,
+					ROW_NUMBER() OVER (PARTITION BY COUNCIL_SYSTEM_CONTROL.RASMBLY_ID ORDER BY COUNCIL_SYSTEM_CONTROL.FRST_REGIST_DT DESC) RN
+				FROM 
+					COUNCIL_SYSTEM_CONTROL, COLGOVER
+				WHERE 
+					COUNCIL_SYSTEM_CONTROL.RASMBLY_ID = COLGOVER.RASMBLY_ID
+				AND COUNCIL_SYSTEM_CONTROL.CMMND_CODE = 'REQ005'
+			) WHERE RN = 1
+			
+			UNION ALL
+			
+			SELECT 
+				RASMBLY_ID, CMMND_CODE, CMMND_TRNSMIS_AT, FRST_REGIST_DT, CMMND_EXC_AT, CMMND_EXC_DT, SET_INTERVAL FROM 
+				(
+				SELECT 
+					COUNCIL_SYSTEM_CONTROL.*,
+					ROW_NUMBER() OVER (PARTITION BY COUNCIL_SYSTEM_CONTROL.RASMBLY_ID ORDER BY COUNCIL_SYSTEM_CONTROL.FRST_REGIST_DT DESC) RN
+				FROM 
+					COUNCIL_SYSTEM_CONTROL, COLGOVER
+				WHERE 
+					COUNCIL_SYSTEM_CONTROL.RASMBLY_ID = COLGOVER.RASMBLY_ID
+				AND COUNCIL_SYSTEM_CONTROL.CMMND_CODE = 'REQ006'
+			) WHERE RN = 1
+			
+			UNION ALL
+			
+			SELECT 
+				RASMBLY_ID, CMMND_CODE, CMMND_TRNSMIS_AT, FRST_REGIST_DT, CMMND_EXC_AT, CMMND_EXC_DT, SET_INTERVAL FROM 
+				(
+				SELECT 
+					COUNCIL_SYSTEM_CONTROL.*,
+					ROW_NUMBER() OVER (PARTITION BY COUNCIL_SYSTEM_CONTROL.RASMBLY_ID ORDER BY COUNCIL_SYSTEM_CONTROL.FRST_REGIST_DT DESC) RN
+				FROM 
+					COUNCIL_SYSTEM_CONTROL, COLGOVER
+				WHERE 
+					COUNCIL_SYSTEM_CONTROL.RASMBLY_ID = COLGOVER.RASMBLY_ID
+				AND COUNCIL_SYSTEM_CONTROL.CMMND_CODE = 'REQ007'
+			) WHERE RN = 1
+			
+			UNION ALL
+			
+			SELECT 
+				RASMBLY_ID, CMMND_CODE, CMMND_TRNSMIS_AT, FRST_REGIST_DT, CMMND_EXC_AT, CMMND_EXC_DT, SET_INTERVAL FROM 
+				(
+				SELECT 
+					COUNCIL_SYSTEM_CONTROL.*,
+					ROW_NUMBER() OVER (PARTITION BY COUNCIL_SYSTEM_CONTROL.RASMBLY_ID ORDER BY COUNCIL_SYSTEM_CONTROL.FRST_REGIST_DT DESC) RN
+				FROM 
+					COUNCIL_SYSTEM_CONTROL, COLGOVER
+				WHERE 
+					COUNCIL_SYSTEM_CONTROL.RASMBLY_ID = COLGOVER.RASMBLY_ID
+				AND COUNCIL_SYSTEM_CONTROL.CMMND_CODE = 'REQ901'
+			) WHERE RN = 1
+		)
+		
+		
+		SELECT * FROM (
+		
+			SELECT 
+				COLGOVER.RASMBLY_ID
+				,COLGOVER.RASMBLY_NM
+				,TO_CHAR(COLGOVER.LAST_CNTC_DT,'YYYY-MM-DD HH24:MI:SS') AS LAST_CNTC_DT
+				
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ006' THEN SYSTEM_CONTROL.SET_INTERVAL ELSE COLGOVER.SET_INTERVAL END) AS SET_INTERVAL
+				
+				
+				,NVL(COLGOVER.SYSTEM_STTUS_CODE,'001') AS SYSTEM_STTUS_CODE
+				,COLGOVER.ORDR
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ001' THEN SYSTEM_CONTROL.CMMND_CODE END) AS CMMND_CODE_001
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ001' THEN SYSTEM_CONTROL.CMMND_TRNSMIS_AT END) AS CMMND_TRNSMIS_AT_001
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ001' THEN TO_CHAR(SYSTEM_CONTROL.FRST_REGIST_DT,'YYYY-MM-DD HH24:MI:SS') END) AS FRST_REGIST_DT_001
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ001' THEN SYSTEM_CONTROL.CMMND_EXC_AT END) AS CMMND_EXC_AT_001
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ001' THEN TO_CHAR(SYSTEM_CONTROL.CMMND_EXC_DT,'YYYY-MM-DD HH24:MI:SS') END) AS CMMND_EXC_DT_001
+				
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ002' THEN SYSTEM_CONTROL.CMMND_CODE END) AS CMMND_CODE_002
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ002' THEN SYSTEM_CONTROL.CMMND_TRNSMIS_AT END) AS CMMND_TRNSMIS_AT_002
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ002' THEN TO_CHAR(SYSTEM_CONTROL.FRST_REGIST_DT,'YYYY-MM-DD HH24:MI:SS') END) AS FRST_REGIST_DT_002
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ002' THEN SYSTEM_CONTROL.CMMND_EXC_AT END) AS CMMND_EXC_AT_002
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ002' THEN TO_CHAR(SYSTEM_CONTROL.CMMND_EXC_DT,'YYYY-MM-DD HH24:MI:SS') END) AS CMMND_EXC_DT_002
+				
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ003' THEN SYSTEM_CONTROL.CMMND_CODE END) AS CMMND_CODE_003
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ003' THEN SYSTEM_CONTROL.CMMND_TRNSMIS_AT END) AS CMMND_TRNSMIS_AT_003
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ003' THEN TO_CHAR(SYSTEM_CONTROL.FRST_REGIST_DT,'YYYY-MM-DD HH24:MI:SS') END) AS FRST_REGIST_DT_003
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ003' THEN SYSTEM_CONTROL.CMMND_EXC_AT END) AS CMMND_EXC_AT_003
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ003' THEN TO_CHAR(SYSTEM_CONTROL.CMMND_EXC_DT,'YYYY-MM-DD HH24:MI:SS') END) AS CMMND_EXC_DT_003
+				
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ004' THEN SYSTEM_CONTROL.CMMND_CODE END) AS CMMND_CODE_004
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ004' THEN SYSTEM_CONTROL.CMMND_TRNSMIS_AT END) AS CMMND_TRNSMIS_AT_004
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ004' THEN TO_CHAR(SYSTEM_CONTROL.FRST_REGIST_DT,'YYYY-MM-DD HH24:MI:SS') END) AS FRST_REGIST_DT_004
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ004' THEN SYSTEM_CONTROL.CMMND_EXC_AT END) AS CMMND_EXC_AT_004
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ004' THEN TO_CHAR(SYSTEM_CONTROL.CMMND_EXC_DT,'YYYY-MM-DD HH24:MI:SS') END) AS CMMND_EXC_DT_004
+				
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ005' THEN SYSTEM_CONTROL.CMMND_CODE END) AS CMMND_CODE_005
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ005' THEN SYSTEM_CONTROL.CMMND_TRNSMIS_AT END) AS CMMND_TRNSMIS_AT_005
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ005' THEN TO_CHAR(SYSTEM_CONTROL.FRST_REGIST_DT,'YYYY-MM-DD HH24:MI:SS') END) AS FRST_REGIST_DT_005
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ005' THEN SYSTEM_CONTROL.CMMND_EXC_AT END) AS CMMND_EXC_AT_005
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ005' THEN TO_CHAR(SYSTEM_CONTROL.CMMND_EXC_DT,'YYYY-MM-DD HH24:MI:SS') END) AS CMMND_EXC_DT_005
+				
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ006' THEN SYSTEM_CONTROL.CMMND_CODE END) AS CMMND_CODE_006
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ006' THEN SYSTEM_CONTROL.CMMND_TRNSMIS_AT END) AS CMMND_TRNSMIS_AT_006
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ006' THEN TO_CHAR(SYSTEM_CONTROL.FRST_REGIST_DT,'YYYY-MM-DD HH24:MI:SS') END) AS FRST_REGIST_DT_006
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ006' THEN SYSTEM_CONTROL.CMMND_EXC_AT END) AS CMMND_EXC_AT_006
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ006' THEN TO_CHAR(SYSTEM_CONTROL.CMMND_EXC_DT,'YYYY-MM-DD HH24:MI:SS') END) AS CMMND_EXC_DT_006
+				
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ007' THEN SYSTEM_CONTROL.CMMND_CODE END) AS CMMND_CODE_007
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ007' THEN SYSTEM_CONTROL.CMMND_TRNSMIS_AT END) AS CMMND_TRNSMIS_AT_007
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ007' THEN TO_CHAR(SYSTEM_CONTROL.FRST_REGIST_DT,'YYYY-MM-DD HH24:MI:SS') END) AS FRST_REGIST_DT_007
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ007' THEN SYSTEM_CONTROL.CMMND_EXC_AT END) AS CMMND_EXC_AT_007
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ007' THEN TO_CHAR(SYSTEM_CONTROL.CMMND_EXC_DT,'YYYY-MM-DD HH24:MI:SS') END) AS CMMND_EXC_DT_007
+				
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ901' THEN SYSTEM_CONTROL.CMMND_CODE END) AS CMMND_CODE_901
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ901' THEN SYSTEM_CONTROL.CMMND_TRNSMIS_AT END) AS CMMND_TRNSMIS_AT_901
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ901' THEN TO_CHAR(SYSTEM_CONTROL.FRST_REGIST_DT,'YYYY-MM-DD HH24:MI:SS') END) AS FRST_REGIST_DT_901
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ901' THEN SYSTEM_CONTROL.CMMND_EXC_AT END) AS CMMND_EXC_AT_901
+				,MAX(CASE WHEN SYSTEM_CONTROL.CMMND_CODE = 'REQ901' THEN TO_CHAR(SYSTEM_CONTROL.CMMND_EXC_DT,'YYYY-MM-DD HH24:MI:SS') END) AS CMMND_EXC_DT_901
+				
+				,CASE 
+					WHEN LAST_CNTC_DT IS NULL 
+						THEN 'ERROR'
+					WHEN TO_NUMBER((SYSDATE - LAST_CNTC_DT)*24*60*60) > TO_NUMBER(NVL(COLGOVER.SET_INTERVAL,600)) 
+						THEN 'ERROR' 
+						ELSE 'NORMAL'
+				END AS DELAY_SE_CODE
+			FROM 
+				COLGOVER
+				LEFT JOIN SYSTEM_CONTROL ON SYSTEM_CONTROL.RASMBLY_ID = COLGOVER.RASMBLY_ID
+			WHERE 
+				NVL(COLGOVER.DELETE_AT,'N') = 'N'
+			GROUP BY
+				COLGOVER.RASMBLY_ID
+				,COLGOVER.RASMBLY_NM
+				,COLGOVER.LAST_CNTC_DT
+				,COLGOVER.SET_INTERVAL
+				,NVL(COLGOVER.SYSTEM_STTUS_CODE,'001')
+				,COLGOVER.ORDR
+				,CASE 
+					WHEN LAST_CNTC_DT IS NULL 
+						THEN 'ERROR'
+					WHEN TRUNC(TO_NUMBER((SYSDATE - date '1970-01-01')*24*60*60)) -
+						TRUNC(TO_NUMBER((TO_DATE(LAST_CNTC_DT,'YYYY-MM-DD HH24:mi:ss') - date '1970-01-01')*24*60*60))
+						> TO_NUMBER(NVL(COLGOVER.SET_INTERVAL,600)) 
+						THEN 'ERROR' 
+						ELSE 'SUCCESS'
+				END
+			) 
+			ORDER BY
+				ORDR ASC, RASMBLY_ID ASC
+	]]>
+	</select>
+	
+	<!-- 연계 API 관리 - 승격 지방의회 정보를 등록한다. -->
+	<insert id="RcmManage.insertPrmtRasmbly" parameterClass="clikmng.nanet.go.kr.rlm.service.RasmblyVO">
+		INSERT INTO ROSTATUS
+			(RASMBLY_ID
+			,RASMBLY_PRMTAGO_ID
+			,FRST_REGIST_DT
+			,DELETE_AT)
+		VALUES
+			(#rasmbly_id#
+			,#rasmbly_prmtago_id#
+			,SYSDATE
+			,'N') 
+	</insert>
+	
+	<!-- 연계 API 관리 - 승격 지방의회 정보를 수정한다. -->
+	<update id="RcmManage.updatePrmtRasmbly" parameterClass="clikmng.nanet.go.kr.rlm.service.RasmblyVO">
+		UPDATE
+			ROSTATUS
+		SET
+			RASMBLY_ID 			= #rasmbly_id#
+			,LAST_UPDT_DT 		= SYSDATE
+			,DELETE_DT			= NULL
+			,DELETE_AT			= 'N'
+		WHERE
+			RASMBLY_PRMTAGO_ID 	= #rasmbly_prmtago_id#
+	</update>
+	
+	<!-- 연계 API 관리 - 승격 지방의회 정보를 삭제한다. -->
+	<update id="RcmManage.deletePrmtRasmbly" parameterClass="clikmng.nanet.go.kr.rlm.service.RasmblyVO">
+		UPDATE
+			ROSTATUS
+		SET
+			DELETE_AT 	= 'Y'
+			,DELETE_DT 	= SYSDATE
+		WHERE
+			RASMBLY_PRMTAGO_ID = #rasmbly_id#
+	</update>
+	
+	<!-- 지방의회 정당코드 목록을 조회한다. -->
+	<select id="RcmManage.selectPprtyCodeList" parameterClass="RlmManageSearchVO" resultClass="java.util.HashMap">
+	<![CDATA[
+	SELECT
+		AA.*	
+	FROM
+		(	
+			SELECT
+				ROWNUM AS RNUM, A.TOTCNT, B.*
+			FROM
+				(
+					SELECT
+						COUNT(*) AS TOTCNT
+					FROM
+						COLGOVER_PARTY
+					WHERE
+	]]>
+						1=1
+	<![CDATA[
+				) A,
+				(
+					SELECT
+						PPRTY_CODE
+						,PPRTY_NM
+						,BEGIN_DE
+						,END_DE
+						,RM
+						,PPRTY_SN
+						,PPRTY_ABRV
+						,FRST_REGIST_DT
+						,LAST_UPDT_DT
+						,DELETE_DT
+						,DELETE_AT
+					FROM
+						COLGOVER_PARTY
+					WHERE
+						1=1
+	]]>
+				<isNotEmpty property="searchKeyword">
+					AND $searchCondition$ = #searchKeyword#
+				</isNotEmpty>
+				
+				<isNotEmpty property="sortOrder">
+					ORDER BY $sortOrder$
+				</isNotEmpty>
+				<isEmpty property="sortOrder">
+					ORDER BY PPRTY_NM ASC
+				</isEmpty>
+	<![CDATA[
+				) B
+		) AA
+		WHERE
+	]]>
+			AA.RNUM BETWEEN #firstIndex# + 1 AND #firstIndex# + #recordCountPerPage#
+	</select>
+	
+	<!-- 지방의회 정당코드 목록을 조회한다. -->
+	<select id="RcmManage.selectPprtyCodeDetail" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT
+			PPRTY_CODE
+			,PPRTY_NM
+			,TO_CHAR(TO_DATE(BEGIN_DE),'YYYY-MM-DD') AS BEGIN_DE
+			,TO_CHAR(TO_DATE(END_DE),'YYYY-MM-DD') AS END_DE
+			,RM
+			,PPRTY_SN
+			,PPRTY_ABRV
+			,FRST_REGIST_DT
+			,LAST_UPDT_DT
+			,DELETE_DT
+			,NVL(DELETE_AT,'N') AS DELETE_AT
+		FROM
+			COLGOVER_PARTY
+		WHERE
+			PPRTY_CODE = #PPRTY_CODE#
+	</select>
+	
+	<!-- 지방의회 정당코드 관리 - 정당코드를 삭제한다. -->
+	<update id="RcmManage.DeletePprtyCode" parameterClass="java.util.HashMap">
+		UPDATE 
+			COLGOVER_PARTY
+		SET
+			DELETE_AT 	= 'Y'
+			,DELETE_DT 	= TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+		WHERE
+			PPRTY_CODE 	= #PPRTY_CODE#
+	</update>
+	
+	<!-- 지방의회 정당코드 관리 - 정당코드를 등록한다. -->
+	<update id="RcmManage.InsertPprtyCode" parameterClass="java.util.HashMap">
+		INSERT INTO COLGOVER_PARTY
+			(PPRTY_CODE
+			,PPRTY_NM
+			,BEGIN_DE
+			,END_DE
+			,RM
+			,PPRTY_SN
+			,PPRTY_ABRV
+			,FRST_REGIST_DT
+			,LAST_UPDT_DT
+			,DELETE_DT
+			,DELETE_AT)
+		VALUES
+			(#PPRTY_CODE#
+			,#PPRTY_NM#
+			,TO_CHAR(TO_DATE(#BEGIN_DE#),'YYYYMMDD')
+			,TO_CHAR(TO_DATE(#END_DE#),'YYYYMMDD')
+			,#RM#
+			,#PPRTY_SN#
+			,#PPRTY_ABRV#
+			,TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+			,#LAST_UPDT_DT#
+			,#DELETE_DT#
+			,#DELETE_AT#)
+	</update>
+	
+	<!-- 지방의회 정당코드 관리 - 정당코드를 수정한다. -->
+	<update id="RcmManage.UpdatePprtyCode" parameterClass="java.util.HashMap">
+		UPDATE 
+			COLGOVER_PARTY
+		SET
+			PPRTY_NM = #PPRTY_NM# 
+			,BEGIN_DE = #BEGIN_DE#
+			,END_DE = #END_DE#
+			,RM = #RM#
+			,PPRTY_SN = #PPRTY_SN#
+			,PPRTY_ABRV = #PPRTY_ABRV#
+			,LAST_UPDT_DT = TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+			,DELETE_AT = #DELETE_AT#
+			,DELETE_DT = #DELETE_DT#
+		WHERE
+			PPRTY_CODE 	= #PPRTY_CODE#
+	</update>
+	
+	<!-- 지방의회 연계API 관리 - AGENT 설정 정보를 등록한다. -->
+	<insert id="RcmManage.insertCouncilSystemControl" parameterClass="java.util.HashMap">
+		INSERT INTO COUNCIL_SYSTEM_CONTROL
+		(
+			REQST_NO
+			,RASMBLY_ID
+			,CMMND_NM
+			,CMMND_CODE
+			,EXE_CMMND
+			,TRGET_FILE_PATH
+			,TRGET_FILE_SIZE
+			,LOG_FILE_NAME
+			,LOG_FILE_LINE_CO
+			,CALL_URL
+			,CMMND_TRNSMIS_AT
+			,CMMND_TRNSMIS_DT
+			,CMMND_EXC_DT
+			,CMMND_EXC_AT
+			,CMMND_EXC_DATA
+			,CMMND_EXC_CNFIRM_AT
+			,FRST_REGISTER_ID
+			,FRST_REGIST_DT
+			,SET_INTERVAL
+			,TRGET_FILE_STRE_PATH
+		)
+		VALUES
+		(
+			#REQST_NO#
+			,#RASMBLY_ID#
+			,(SELECT CODE_NM FROM COMMON_DETAIL_CODE WHERE CODE_ID = 'RIS030' AND CODE = #CMMND_CODE#)
+			,#CMMND_CODE#
+			,#EXE_CMMND#
+			,#TRGET_FILE_PATH#
+			,#TRGET_FILE_SIZE#
+			,#LOG_FILE_NAME#
+			,#LOG_FILE_LINE_CO#
+			,#CALL_URL#
+			,#CMMND_TRNSMIS_AT#
+			,#CMMND_TRNSMIS_DT#
+			,#CMMND_EXC_DT#
+			,#CMMND_EXC_AT#
+			,#CMMND_EXC_DATA:CLOB#
+			,#CMMND_EXC_CNFIRM_AT#
+			,#FRST_REGISTER_ID#
+			,SYSDATE
+			,#SET_INTERVAL#
+			,#TRGET_FILE_STRE_PATH#
+		)
+	</insert>
+	
+	<!-- 지방의회 시스템 제어 목록을 조회한다. -->
+	<select id="RcmManage.selectCouncilSystemControllList" parameterClass="java.lang.String" resultClass="java.util.HashMap">
+	    SELECT
+			COUNCIL_SYSTEM_CONTROL.REQST_NO
+			,COLGOVER.RASMBLY_NM
+			,COUNCIL_SYSTEM_CONTROL.CMMND_CODE
+			,COUNCIL_SYSTEM_CONTROL.CMMND_NM
+			,NVL(COUNCIL_SYSTEM_CONTROL.CMMND_TRNSMIS_AT,'N') AS CMMND_TRNSMIS_AT
+			,NVL(COUNCIL_SYSTEM_CONTROL.CMMND_EXC_AT,'N') AS CMMND_EXC_AT
+			,NVL(COUNCIL_SYSTEM_CONTROL.CMMND_EXC_CNFIRM_AT,'N') AS CMMND_EXC_CNFIRM_AT
+			,TO_CHAR(COUNCIL_SYSTEM_CONTROL.FRST_REGIST_DT,'YYYY-MM-DD HH24:MI:SS') AS FRST_REGIST_DT
+		FROM
+			COUNCIL_SYSTEM_CONTROL
+			,COLGOVER
+			,COMMON_DETAIL_CODE
+		WHERE
+			COUNCIL_SYSTEM_CONTROL.RASMBLY_ID = COLGOVER.RASMBLY_ID
+			AND COMMON_DETAIL_CODE.CODE = COUNCIL_SYSTEM_CONTROL.CMMND_CODE
+			AND COUNCIL_SYSTEM_CONTROL.RASMBLY_ID = #RASMBLY_ID#
+		ORDER BY
+		COUNCIL_SYSTEM_CONTROL.FRST_REGIST_DT DESC
+	</select>
+	
+	<!-- agent log 상세을 조회한다. -->
+	<select id="RcmManage.selectCouncilSystemLogDetailView" parameterClass="java.lang.String" resultClass="java.lang.String">
+	    SELECT
+			CMMND_EXC_DATA
+		FROM
+			COUNCIL_SYSTEM_CONTROL
+		WHERE
+			REQST_NO = #REQST_NO#
+			AND CMMND_CODE = 'REQ005'
+			AND NVL(CMMND_TRNSMIS_AT,'N') = 'Y'
+			AND NVL(CMMND_EXC_AT,'N') = 'Y'
+	</select>
+	
+	<!-- agent log 확인여부를 수정한다. -->
+	<update id="RcmManage.updateCouncilSystemLogDetailView" parameterClass="java.lang.String">
+	    UPDATE
+	    	COUNCIL_SYSTEM_CONTROL
+	    SET
+	    	CMMND_EXC_CNFIRM_AT = 'Y'
+	    WHERE
+	    	REQST_NO = #REQST_NO#
+	</update>
+</sqlMap>

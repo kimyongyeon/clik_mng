@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="AuthorManage">
+
+    <typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+    <typeAlias  alias="AuthorManageVO" type="clikmng.nanet.go.kr.mna.ram.service.AuthorManageVO"/>
+    <typeAlias  alias="AuthorManage" type="clikmng.nanet.go.kr.mna.ram.service.AuthorManage"/>
+
+    <resultMap id="author" class="clikmng.nanet.go.kr.mna.ram.service.AuthorManageVO">
+        <result property="authorCode" column="AUTHOR_CODE" columnIndex="1"/>
+        <result property="authorNm" column="AUTHOR_NM" columnIndex="2"/>
+        <result property="authorDc" column="AUTHOR_DC" columnIndex="3"/>
+        <result property="authorCreatDe" column="AUTHOR_CREAT_DE" columnIndex="4"/>
+        <result property="authorClCode" column="AUTHOR_CL_CODE" columnIndex="5"/>
+    </resultMap>
+
+    <select id="authorManageDAO.selectAuthorList" parameterClass="AuthorManageVO" resultMap="author">
+        <![CDATA[
+            SELECT  * 
+              FROM  (
+            SELECT ROWNUM RNUM, ALL_LIST.* 
+              FROM  (
+
+            SELECT
+                   AUTHOR_CODE, AUTHOR_NM, AUTHOR_DC, AUTHOR_CREAT_DE, AUTHOR_CL_CODE
+              FROM group_authority
+             WHERE 1=1
+               AND AUTHOR_CL_CODE = #authorClCode#
+        ]]>   
+        	<isNotEmpty property="searchKeyword" prepend="AND">
+        		AUTHOR_NM LIKE '%'||#searchKeyword#||'%'
+        	</isNotEmpty>           
+        <![CDATA[            
+            ORDER BY AUTHOR_CREAT_DE DESC
+
+                    ) ALL_LIST
+                    )
+             WHERE  RNUM  > #firstIndex#
+               AND  RNUM <= #firstIndex# + #recordCountPerPage#
+        ]]>                 
+    </select>
+
+    <insert id="authorManageDAO.insertAuthor" parameterClass="AuthorManage">
+        <![CDATA[
+            INSERT INTO group_authority 
+                  ( AUTHOR_CODE
+                  , AUTHOR_NM
+                  , AUTHOR_DC
+                  , AUTHOR_CREAT_DE
+                  , AUTHOR_CL_CODE )
+           VALUES ( #authorCode#
+                  , #authorNm#
+                  , #authorDc#
+                  , SYSDATE
+                  , #authorClCode#)
+        ]]>  
+    </insert>
+
+    <update id="authorManageDAO.updateAuthor" parameterClass="AuthorManage">
+        <![CDATA[
+            UPDATE group_authority 
+               SET AUTHOR_NM=#authorNm#
+                 , AUTHOR_DC=#authorDc#
+                 , AUTHOR_CL_CODE=#authorClCode#
+             WHERE AUTHOR_CODE=#authorCode#
+        ]]>
+    </update>
+    
+    <delete id="authorManageDAO.deleteAuthor">
+        <![CDATA[
+            DELETE FROM group_authority 
+             WHERE AUTHOR_CODE=#authorCode#
+        ]]>
+    </delete>
+    
+    <select id="authorManageDAO.selectAuthor" resultMap="author">
+        <![CDATA[
+            SELECT AUTHOR_CODE, AUTHOR_NM, AUTHOR_DC, AUTHOR_CREAT_DE, AUTHOR_CL_CODE
+              FROM group_authority 
+             WHERE AUTHOR_CODE=#authorCode#
+        ]]>
+    </select>
+    
+    <select id="authorManageDAO.selectAuthorListTotCnt" parameterClass="AuthorManageVO" resultClass="int">
+            SELECT COUNT(*) totcnt
+            FROM group_authority
+            WHERE 1=1
+              AND AUTHOR_CL_CODE = #authorClCode#
+        	<isNotEmpty property="searchKeyword" prepend="AND">
+        		AUTHOR_NM LIKE '%'||#searchKeyword#||'%'
+        	</isNotEmpty>
+    </select>
+    
+    <select id="authorManageDAO.selectAuthorAllList" parameterClass="AuthorManageVO" resultMap="author">
+            SELECT
+                   AUTHOR_CODE, AUTHOR_NM, AUTHOR_DC, AUTHOR_CREAT_DE, AUTHOR_CL_CODE
+              FROM group_authority
+    </select>
+</sqlMap>

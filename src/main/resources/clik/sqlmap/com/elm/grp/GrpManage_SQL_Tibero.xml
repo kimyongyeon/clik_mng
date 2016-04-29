@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ElmGrpManage">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="userClassVO" type="clikmng.nanet.go.kr.elm.com.UserClassVO"/>	
+	
+	<!-- 게시승인설정 -->
+	<select id="grpManageDAO.selectElmGrpList" resultClass="userClassVO">
+		<![CDATA[
+				SELECT 	USER_CLASS_NM 				AS 	userClassNm 
+							, 	USER_SUB_CLASS_NM 		AS 	userSubClassNm
+							,	USER_GROUP_ID				AS 	userGroupId 
+							,	USER_GROUP_NM				AS 	userGroupNm
+							,	FRST_REGISTER_ID			AS	frstRegisterId 
+							,	FRST_REGIST_PNTTM		AS	frstRegistPnttm 
+							,	LAST_UPDUSR_ID				AS	lastUpdusrId 
+							,	LAST_UPDT_PNTTM			AS	lastUpdtPnttm 
+				  FROM 		user_class 
+				  ORDER BY USER_GROUP_ID
+			]]>
+	</select>
+
+    <!-- 등록 전 아이디 체크 -->
+	<select id="grpManageDAO.selectUserGroupIdChk" parameterClass="java.lang.String" resultClass="int">
+		<![CDATA[
+			SELECT COUNT(*) AS CNT
+			  FROM USER_CLASS
+			 WHERE USER_GROUP_ID = #userGroupId#
+		]]>
+	</select>
+
+
+	<!-- 관리자 등록::입력  -->
+	<insert id="grpManageDAO.insertElmGrpRegist" parameterClass="userClassVO">
+	 <![CDATA[
+		INSERT INTO user_class (
+			USER_CLASS_NM
+		,	USER_SUB_CLASS_NM
+		,	USER_GROUP_ID
+		,	USER_GROUP_NM
+		,	FRST_REGISTER_ID
+		,	FRST_REGIST_PNTTM
+		,	LAST_UPDUSR_ID
+		,	LAST_UPDT_PNTTM
+		) VALUES (
+			#userClassNm#
+		,	#userSubClassNm#
+		,	#userGroupId#
+		,	#userGroupNm#
+		,	#frstRegisterId#
+		,	sysdate
+		,	#lastUpdusrId#
+		,	sysdate
+		)
+	 ]]>
+	</insert>
+
+
+
+	<!-- 관리자 상세보기 -->
+	<select id="grpManageDAO.selectElmGrpDetail" parameterClass="userClassVO" resultClass="userClassVO">
+	<![CDATA[
+		SELECT 		USER_CLASS_NM 				AS 	userClassNm 
+				, 	USER_SUB_CLASS_NM 			AS 	userSubClassNm
+				,	USER_GROUP_ID				AS 	userGroupId 
+				,	USER_GROUP_NM				AS 	userGroupNm
+				,	FRST_REGISTER_ID			AS	frstRegisterId 
+				,	FRST_REGIST_PNTTM			AS	frstRegistPnttm 
+				,	LAST_UPDUSR_ID				AS	lastUpdusrId 
+				,	LAST_UPDT_PNTTM				AS	lastUpdtPnttm 
+		FROM 		user_class 
+		WHERE USER_GROUP_ID = #userGroupId#
+	]]>
+	</select>
+	
+	<!-- 관리자 내용 수정  -->
+	<update id="grpManageDAO.updateElmGrpDetail" parameterClass="userClassVO">
+	 <![CDATA[
+		UPDATE user_class
+		SET 	USER_CLASS_NM 			= 	#userClassNm#
+		,		USER_SUB_CLASS_NM		= 	#userSubClassNm#
+		,		USER_GROUP_ID			= 	#userGroupId#
+		,		USER_GROUP_NM			= 	#userGroupNm#
+		, 		LAST_UPDUSR_ID 			= 	#lastUpdusrId#
+		, 		LAST_UPDT_PNTTM 		= 	sysdate
+		WHERE 	USER_GROUP_ID = #userGroupId#
+	 ]]>
+	</update> 		
+
+
+	<!-- 관리자 내용 삭제  -->
+	<delete id="grpManageDAO.deleteElmGrpDetail" parameterClass="userClassVO">
+	 <![CDATA[
+		DELETE FROM user_class
+		 WHERE USER_GROUP_ID = #userGroupId#
+	 ]]>
+	</delete> 	
+</sqlMap>
+

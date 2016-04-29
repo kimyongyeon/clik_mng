@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="LogManage">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="logVO" type="clikmng.nanet.go.kr.sit.log.service.LogManageVO"/>	
+
+	<!-- 로그인로그 맵 -->
+	<resultMap id="LoginLogVO"
+		class="clikmng.nanet.go.kr.sit.log.service.LogManageVO">
+		<result property="logId" 				column="LOG_ID" />
+		<result property="creatDt" 				column="CREAT_DT" />
+		<result property="conectMthd" 			column="CONECT_MTHD" />
+		<result property="conectIp" 			column="CONECT_IP" />
+		<result property="conectId" 			column="CONECT_ID" />
+		<result property="conectNm" 			column="CONECT_NM" />
+	</resultMap>
+
+	<!-- 웹로그 맵 -->
+	<resultMap id="WebLogVO"
+		class="clikmng.nanet.go.kr.sit.log.service.LogManageVO">
+		<result property="requestId" 		column="REQUST_ID" />
+		<result property="occrrncDe" 		column="OCCRRNC_DE" />
+		<result property="occrrncDeDate" 	column="OCCRRNC_DE_DATE" />
+		<result property="occrrncDeTime" 	column="OCCRRNC_DE_TIME" />
+		<result property="requestUrl"		column="REQUST_URL" />
+		<result property="requesterIp"		column="RQESTER_IP" />
+		<result property="requesterId" 		column="RQESTER_ID" />
+		<result property="requesterNm" 		column="RQESTER_NM" />
+	</resultMap>
+
+	<!-- 관리자 접속 로그 조회 -->
+	<select id="LogManageDAO.selectConnectLogListInfo" parameterClass="logVO" resultMap="LoginLogVO">
+		<![CDATA[
+		SELECT * FROM ( SELECT rownum rn, TB.* FROM (
+			SELECT
+				SSLOG_ID AS LOG_ID
+				, (LOGIN_DATE || ' ' || LOGIN_TIME) AS CREAT_DT
+				, '로그인' AS CONECT_MTHD
+				, USER_IP AS CONECT_IP
+				, USERID AS CONECT_ID
+				, USER_NAME AS CONECT_NM
+			FROM
+				LOG_SESSION_NEW
+			WHERE
+				REPLACE(LOGIN_DATE, '-', '') BETWEEN #schDt1# AND #schDt2#
+		]]>
+			
+		<isNotEmpty property="searchKeyword">
+			<isNotEqual property="searchKeyword" compareValue="">
+				<isEqual prepend="AND" property="selSearchGubun" compareValue="selId">
+					<![CDATA[	USERID LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+				<isEqual prepend="AND" property="selSearchGubun" compareValue="selNm">
+					<![CDATA[	USER_NAME LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+			</isNotEqual>
+		</isNotEmpty>
+		<![CDATA[
+			ORDER BY LOGIN_DATE DESC, LOGIN_TIME DESC
+			) TB )
+		]]>
+		<isNotEmpty property="searchCondition">
+			<isNotEqual property="searchCondition" compareValue="EXCEL">
+			<![CDATA[	WHERE rn > #firstIndex# AND ROWNUM <= #recordCountPerPage# ]]>
+			</isNotEqual>
+		</isNotEmpty>
+		<isEmpty property="searchCondition">
+		<![CDATA[	WHERE rn > #firstIndex# AND ROWNUM <= #recordCountPerPage# ]]>
+		</isEmpty>
+	</select>
+
+	<!-- 관리자 접속 로그 총건수 -->
+	<select id="LogManageDAO.selectConnectLogListInfoCnt" parameterClass="logVO"	resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT COUNT(SSLOG_ID) as cnt
+			FROM
+				LOG_SESSION_NEW
+			WHERE
+				REPLACE(LOGIN_DATE, '-', '') BETWEEN #schDt1# AND #schDt2#
+		]]>
+		<isNotEmpty property="searchKeyword">
+			<isNotEqual property="searchKeyword" compareValue="">
+				<isEqual prepend="AND" property="selSearchGubun" compareValue="selId">
+					<![CDATA[	USERID LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+				<isEqual prepend="AND" property="selSearchGubun" compareValue="selNm">
+					<![CDATA[	USER_NAME LIKE '%' || #searchKeyword# || '%' ]]>
+				</isEqual>
+			</isNotEqual>
+		</isNotEmpty>
+	</select>
+
+
+
+	<!-- 웹 로그 조회 -->
+	<select id="LogManageDAO.selectWebLogListInfo" parameterClass="logVO" resultMap="WebLogVO">
+		<![CDATA[
+		SELECT * FROM ( SELECT rownum rn, TB.* FROM (
+			SELECT
+				  a.REQUST_ID
+				, TO_CHAR(TO_DATE(a.OCCRRNC_DE, 'YYYYMMDDHH24MISS'), 'YYYY.MM.DD HH24:MI:SS') AS OCCRRNC_DE
+				, TO_CHAR(TO_DATE(a.OCCRRNC_DE, 'YYYYMMDDHH24MISS'), 'YYYY.MM.DD') AS OCCRRNC_DE_DATE
+				, TO_CHAR(TO_DATE(a.OCCRRNC_DE, 'YYYYMMDDHH24MISS'), 'HH24:MI:SS') AS OCCRRNC_DE_TIME
+				
+				, a.URL AS REQUST_URL
+				, a.RQESTER_IP
+				/* ,  PKG_OBFUS.DECRYPT(a.RQESTER_ID,'NAEODOCZ') AS RQESTER_ID */
+				,  a.RQESTER_ID AS RQESTER_ID
+				, b.MNGR_NM AS RQESTER_NM
+			FROM
+				weblog a
+			LEFT OUTER JOIN manag_user b
+				ON a.RQESTER_ID = b.MNGR_ID
+			WHERE
+				SITE_SE_CODE = 'CLIK'
+				AND		TO_CHAR(TO_DATE(a.OCCRRNC_DE, 'YYYYMMDDHH24MISS'), 'YYYYMMDD') BETWEEN #schDt1# AND #schDt2#
+			]]>
+			
+		<isNotEmpty prepend="AND" property="searchKeyword">
+			<![CDATA[	a.URL LIKE '%' || #searchKeyword# || '%' ]]>
+		</isNotEmpty>
+		<![CDATA[
+			ORDER BY OCCRRNC_DE DESC
+			) TB )
+		]]>
+		<isNotEmpty property="searchCondition">
+			<isNotEqual property="searchCondition" compareValue="EXCEL">
+			<![CDATA[	WHERE rn > #firstIndex# AND ROWNUM <= #recordCountPerPage# ]]>
+			</isNotEqual>
+		</isNotEmpty>
+		<isEmpty property="searchCondition">
+		<![CDATA[	WHERE rn > #firstIndex# AND ROWNUM <= #recordCountPerPage# ]]>
+		</isEmpty>
+	</select>
+
+	<!-- 웹 로그 총건수 -->
+	<select id="LogManageDAO.selectWebLogListInfoCnt" parameterClass="logVO"	resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT COUNT(a.REQUST_ID) as cnt
+			FROM
+				weblog a
+			LEFT OUTER JOIN manag_user b
+				ON a.RQESTER_ID = b.MNGR_ID
+			WHERE
+				SITE_SE_CODE = 'CLIK'
+				AND		TO_CHAR(TO_DATE(a.OCCRRNC_DE, 'YYYYMMDDHH24MISS'), 'YYYYMMDD') BETWEEN #schDt1# AND #schDt2#
+			]]>
+		<isNotEmpty prepend="AND" property="searchKeyword">
+			<![CDATA[	a.URL LIKE '%' || #searchKeyword# || '%' ]]>
+		</isNotEmpty>
+	</select>
+
+
+</sqlMap>

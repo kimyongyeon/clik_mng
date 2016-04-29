@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="CmmUse">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="ComDefaultCodeVO" type="clikmng.nanet.go.kr.cmm.ComDefaultCodeVO"/>
+	<typeAlias  alias="CmmnDetailCode" type="clikmng.nanet.go.kr.cmm.service.CmmnDetailCode"/>
+
+	<resultMap id="CmmCodeDetail" 	class="clikmng.nanet.go.kr.cmm.service.CmmnDetailCode">
+		<result property="codeId"    		column="CODE_ID"   	columnIndex="1"/>
+		<result property="code"  			column="CODE" 			columnIndex="2"/>
+		<result property="codeNm"   	column="CODE_NM"  	columnIndex="3"/>
+		<result property="codeDc"   		column="CODE_DC"  	columnIndex="4"/>
+	</resultMap>
+	
+	<select id="CmmUseDAO.selectCmmCodeDetail" parameterClass="ComDefaultCodeVO" resultMap="CmmCodeDetail">
+		<![CDATA[ 
+			SELECT 
+			CODE_ID, CODE, CODE_NM, CODE_DC
+			FROM 
+			common_detail_code
+			WHERE
+			USE_AT      = 'Y'
+			AND CODE_ID = #codeId#
+		]]>
+	</select>
+
+    <select id="CmmUseDAO.selectOgrnztIdDetail" parameterClass="ComDefaultCodeVO" resultMap="CmmCodeDetail">
+            <![CDATA[ 
+            SELECT 
+                #tableNm#     CODE_ID, 
+                ORGNZT_ID     CODE, 
+                ORGNZT_NM     CODE_NM, 
+                ORGNZT_DC     CODE_DC
+            FROM 
+                TNPORGNZTINFO
+            WHERE 1=1
+            ]]>
+            <isEqual prepend="AND" property="haveDetailCondition" compareValue="Y">
+                ORGNZT_ID  LIKE  #detailConditionValue#
+            </isEqual>
+    </select>
+    
+    <select id="CmmUseDAO.selectGroupIdDetail" parameterClass="ComDefaultCodeVO" resultMap="CmmCodeDetail">
+            <![CDATA[ 
+            SELECT 
+                #tableNm#     CODE_ID, 
+                GROUP_ID     CODE, 
+                GROUP_NM     CODE_NM, 
+                GROUP_DC     CODE_DC
+            FROM 
+                TNPAUTHORGROUPINFO
+            WHERE 1=1
+            ]]>
+            <isEqual prepend="AND" property="haveDetailCondition" compareValue="Y">
+                GROUP_ID  LIKE  #detailConditionValue#
+            </isEqual>
+    </select>
+
+
+	<!--    기관 및 지역 관련 시작 -->
+	<!-- 기관유형 코드  :: 광역, 기초유형 -->
+ 	<select id="CmmUseDAO.selectInsttTyDetails" parameterClass="CmmnDetailCode" resultClass="CmmnDetailCode">
+ 	<![CDATA[
+			SELECT		INSTT_CL_CODE AS fInsttClCode
+							, INSTT_CL_NM AS fInsttClCodeNm
+			  FROM		organ_class
+			WHERE		UPPER_INSTT_CL_CODE = #fInsttClCode#
+			 ORDER		BY INSTT_ORDR ASC
+	]]>			 
+ 	</select>
+    
+    <!-- 광역시도 코드 -->
+ 	<select id="CmmUseDAO.selectBrtcCodeDetails" parameterClass="CmmnDetailCode" resultClass="CmmnDetailCode">
+ 	<![CDATA[
+ 			SELECT		CODE_ID AS codeId
+							, CODE_ID_NM AS codeIdNm
+			  FROM		common_code
+			 WHERE		CL_CODE = #brtcCode#
+			     AND		USE_AT = 'Y'
+			 ORDER		BY CODE_ORDR ASC
+	]]>			 
+ 	</select>
+ 	
+    <!-- 의회 또는 지방정부 코드 및 코드명(연계대상)  -->
+    <select id="CmmUseDAO.selectLoasmInfo" parameterClass="CmmnDetailCode" resultClass="CmmnDetailCode">
+            <![CDATA[ 
+			SELECT		LOASM_CODE AS loasmCode
+							, LOASM_NM AS loasmNm
+							, BRTC_CODE AS brtcCode
+							, CTPRVNGUGUN_CODE AS ctprvngugunCode
+							, INSTT_CL_CODE AS insttClCode
+			  FROM		organ, COLGOVER
+			 WHERE		BRTC_CODE = #brtcCode#
+			     AND		INSTT_CL_CODE = #insttClCode#
+			     and organ.loasm_code = COLGOVER.rasmbly_id
+			 ORDER		BY LOASM_CODE ASC 
+			 ]]>
+    </select>
+    
+    <!-- 의회 또는 지방정부 코드 및 코드명(전체)  -->
+    <select id="CmmUseDAO.selectLoasmInfoAll" parameterClass="CmmnDetailCode" resultClass="CmmnDetailCode">
+            <![CDATA[ 
+			SELECT		LOASM_CODE AS loasmCode
+							, LOASM_NM AS loasmNm
+							, BRTC_CODE AS brtcCode
+							, CTPRVNGUGUN_CODE AS ctprvngugunCode
+							, INSTT_CL_CODE AS insttClCode
+			  FROM		organ, COLGOVER
+			 WHERE		BRTC_CODE = #brtcCode#
+			     AND		INSTT_CL_CODE = #insttClCode#
+			     and organ.loasm_code = COLGOVER.rasmbly_id(+)
+			 ORDER		BY LOASM_CODE ASC 
+			 ]]>
+    </select>     
+    
+    <!--    기관 및 지역 관련 끝 -->
+</sqlMap>            

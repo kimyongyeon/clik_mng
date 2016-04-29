@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ErrManage">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="ErrManageSearchVO" type="clikmng.nanet.go.kr.cop.err.service.ErrManageDefaultVO"/>
+
+	<resultMap id="ErrManage" class="clikmng.nanet.go.kr.cop.err.service.ErrManageVO">
+		<result property="errorReportId" 		column="ERROR_REPORT_ID" 	columnIndex="1"/>
+		<result property="reportSj" 			column="REPORT_SJ" 			columnIndex="2"/>
+		<result property="reportCn" 			column="REPORT_CN" 			columnIndex="3"/>
+		<result property="writngPassword" 		column="WRITNG_PASSWORD" 	columnIndex="4"/>
+		<result property="telno" 				column="TELNO" 			columnIndex="5"/>
+		<result property="middleTelno" 			column="MIDDLE_TELNO" 		columnIndex="6"/>
+		<result property="endTelno" 			column="END_TELNO" 			columnIndex="7"/>
+		<result property="emailAdres" 			column="EMAIL_ADRES" 		columnIndex="8"/>
+		<result property="emailAnswerAt" 	    column="EMAIL_ANSWER_AT" 	columnIndex="9"/>
+		<result property="wrterNm" 				column="WRTER_NM" 			columnIndex="10"/>
+		<result property="writngDe" 			column="WRITNG_DE" 			columnIndex="11"/>
+		<result property="inqireCo" 			column="RDCNT" 			columnIndex="12"/>
+		<result property="reportProcessSttusCode" 	column="REPORT_PROCESS_STTUS_CODE" 	columnIndex="13"/>
+		<result property="reportProcessSttusNm" column="REPORT_PROCESS_STTUS_NM" columnIndex="14"/>
+		<result property="answerCn" 			column="ANSWER_CN" 			columnIndex="15"/>
+		<result property="answerDe" 			column="ANSWER_DE" 			columnIndex="16"/>
+
+<!-- 		<result property="emplyrNm" 			column="USER_NM" 			columnIndex="17"/>
+		<result property="offmTelno" 			column="OFFM_TELNO" 		columnIndex="18"/> 
+		<result property="aemailAdres" 			column="AEMAIL_ADRES" 		columnIndex="19"/>
+		<result property="orgnztNm" 			column="ORGNZT_NM" 			columnIndex="20"/> -->
+
+
+		<result property="frstRegisterPnttm" 	column="FRST_REGIST_PNTTM" 	columnIndex="17"/>
+		<result property="frstRegisterId" 		column="FRST_REGISTER_ID" 		columnIndex="18"/>
+		<result property="lastUpdusrPnttm" 		column="LAST_UPDT_PNTTM" 		columnIndex="19"/>
+		<result property="lastUpdusrId" 		column="LAST_UPDUSR_ID" 		columnIndex="20"/>
+	</resultMap>
+
+	<!-- 오류신고 글 목록에 대한 상세내용을 조회한다. -->
+	<select id="ErrManageDAO.selectErrListDetail" resultMap="ErrManage">
+	<![CDATA[
+		SELECT 	
+			C.ERROR_REPORT_ID,
+	        C.REPORT_SJ,
+	        C.REPORT_CN,
+	        C.WRITNG_PASSWORD,
+	        C.TELNO,
+	        C.MIDDLE_TELNO,
+	        C.END_TELNO,
+	        C.EMAIL_ADRES,
+	        C.EMAIL_ANSWER_AT,
+	        C.WRTER_NM,
+	        C.WRITNG_DE,
+	        C.RDCNT,
+	        C.REPORT_PROCESS_STTUS_CODE,
+	        D.CODE_NM REPORT_PROCESS_STTUS_NM,
+	        C.ANSWER_CN,
+	        C.ANSWER_DE,
+	        TO_CHAR(C.FRST_REGIST_PNTTM,'YYYY-MM-DD') FRST_REGIST_PNTTM,
+	        C.FRST_REGISTER_ID,
+	        TO_CHAR(C.LAST_UPDT_PNTTM,'YYYY-MM-DD') LAST_UPDT_PNTTM,
+	        C.LAST_UPDUSR_ID
+		FROM 
+			ERROR_REPORTING C
+		
+			LEFT OUTER JOIN common_detail_code D 
+				ON D.CODE_ID ='RKS015' AND C.REPORT_PROCESS_STTUS_CODE = D.CODE
+				
+		WHERE	ERROR_REPORT_ID = '$errorReportId$'
+	]]>
+		
+	</select>
+
+	<!-- 오류신고 글 목록을 조회한다. -->
+	<select id="ErrManageDAO.selectErrList" parameterClass="ErrManageSearchVO" resultClass="egovMap">
+	<![CDATA[
+			SELECT ERROR_REPORT_ID,
+				   REPORT_SJ,
+				   REPORT_CN,
+				   WRITNG_PASSWORD,
+				   TELNO,
+				   MIDDLE_TELNO,
+				   END_TELNO,
+				   EMAIL_ADRES,
+				   EMAIL_ANSWER_AT,
+				   WRTER_NM,
+				   WRITNG_DE,
+				   ANSWER_CN,
+				   ANSWER_DE,
+				   RDCNT AS INQIRE_CO,
+				   REPORT_PROCESS_STTUS_CODE,
+				   REPORT_PROCESS_STTUS_CODE_NM,
+				   FRST_REGIST_PNTTM 			FRST_REGISTER_PNTTM,
+				   FRST_REGISTER_ID,
+				   LAST_UPDT_PNTTM				LAST_UPDUSR_PNTTM,
+				   LAST_UPDUSR_ID
+			FROM
+				   (
+				   SELECT  ROWNUM RNUM,ERROR_REPORTING.*
+				   FROM
+				   	   	  (
+				   		   SELECT 	ERROR_REPORT_ID, REPORT_SJ, REPORT_CN, WRITNG_PASSWORD, TELNO, MIDDLE_TELNO, END_TELNO,
+						   			EMAIL_ADRES, EMAIL_ANSWER_AT, WRTER_NM, WRITNG_DE, ANSWER_CN, ANSWER_DE, RDCNT,
+									REPORT_PROCESS_STTUS_CODE, B.CODE_NM REPORT_PROCESS_STTUS_CODE_NM,
+									A.FRST_REGIST_PNTTM , A.FRST_REGISTER_ID,
+									A.LAST_UPDT_PNTTM   , A.LAST_UPDUSR_ID
+						   FROM 	ERROR_REPORTING A
+						   LEFT OUTER JOIN common_detail_code B
+						   ON		B.CODE_ID ='RKS015' AND A.REPORT_PROCESS_STTUS_CODE = B.CODE
+						   WHERE	1=1
+		]]>
+			<isEqual prepend="AND" property="searchCondition" compareValue="wrterNm">
+				<![CDATA[WRTER_NM LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="reportSj">
+				<![CDATA[REPORT_SJ LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="reportCn">
+				<![CDATA[REPORT_CN LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="0">
+				<![CDATA[
+				( REPORT_SJ LIKE '%' || #searchKeyword# || '%' or REPORT_CN LIKE '%' || #searchKeyword# || '%' or WRTER_NM LIKE '%' || #searchKeyword# || '%' )
+				]]>
+			</isEqual>
+		<![CDATA[
+							ORDER BY ERROR_REPORT_ID DESC
+						  ) ERROR_REPORTING
+				   )
+			WHERE ROWNUM <= #recordCountPerPage# and RNUM > #firstIndex#
+		]]>
+	</select>
+
+	<!-- 오류신고 글 총 갯수를 조회한다. -->
+	<select id="ErrManageDAO.selectErrListTotCnt" parameterClass="ErrManageSearchVO" resultClass="int">
+	<![CDATA[
+			SELECT 	COUNT(*) totcnt
+			FROM 	ERROR_REPORTING
+			WHERE 	1=1
+		]]>
+			<isEqual prepend="AND" property="searchCondition" compareValue="wrterNm">
+				<![CDATA[WRTER_NM LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="reportSj">
+				<![CDATA[REPORT_SJ LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="reportCn">
+				<![CDATA[REPORT_CN LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="0">
+				<![CDATA[
+				( REPORT_SJ LIKE '%' || #searchKeyword# || '%' or REPORT_CN LIKE '%' || #searchKeyword# || '%' or WRTER_NM LIKE '%' || #searchKeyword# || '%' )
+				]]>
+			</isEqual>
+	</select>
+
+	<!-- 오류신고 글을 등록한다. -->
+	<insert id="ErrManageDAO.insertErrCn">
+	<![CDATA[
+		INSERT INTO ERROR_REPORTING
+			   (ERROR_REPORT_ID
+			  , REPORT_SJ
+			  , REPORT_CN
+			  , WRITNG_PASSWORD
+			  , TELNO
+			  , MIDDLE_TELNO
+			  , END_TELNO
+			  ,	EMAIL_ADRES
+			  , EMAIL_ANSWER_AT
+			  , WRTER_NM
+			  , WRITNG_DE
+			  , RDCNT
+			  , REPORT_PROCESS_STTUS_CODE
+			  , FRST_REGIST_PNTTM
+			  , FRST_REGISTER_ID )
+		VALUES ( #errorReportId#
+			  , #reportSj#
+			  , #reportCn#
+			  , #writngPassword#
+			  , #telno#
+			  , #middleTelno#
+			  , #endTelno#
+			  , #emailAdres#
+			  , #emailAnswerAt#
+			  , #wrterNm#
+			  , TO_CHAR(sysdate,'YYYYMMDD')
+			  , 0
+			  , 1
+			  , sysdate
+			  , #frstRegisterId#)
+	]]>
+	</insert>
+
+	<!-- 오류신고 글을 수정한다.(조회수를 수정) -->
+	<update id="ErrManageDAO.updateErrInqireCo">
+		<![CDATA[
+			UPDATE	ERROR_REPORTING	SET
+				    RDCNT= RDCNT + 1
+ 			WHERE  ERROR_REPORT_ID=#errorReportId#
+		]]>
+	</update>
+
+	<!-- 작성비밀번호를 확인한다. -->
+	<select id="ErrManageDAO.selectErrPasswordConfirmCnt" resultClass="int">
+		<![CDATA[
+			SELECT 	COUNT(*) totcnt
+			FROM 	ERROR_REPORTING
+			WHERE	ERROR_REPORT_ID=#errorReportId#
+			AND		WRITNG_PASSWORD=#writngPassword#
+		]]>
+	</select>
+
+	<!-- 오류신고 글을 수정한다. -->
+	<update id="ErrManageDAO.updateErrCn">
+	<![CDATA[
+		UPDATE	ERROR_REPORTING	SET
+			  	REPORT_SJ=#reportSj#
+			  , REPORT_CN=#reportCn#
+			  , WRITNG_PASSWORD=#writngPassword#
+			  , TELNO=#telno#
+			  , MIDDLE_TELNO=#middleTelno#
+			  , END_TELNO=#endTelno#
+			  ,	EMAIL_ADRES=#emailAdres#
+			  , EMAIL_ANSWER_AT=NVL(#emailAnswerAt#,'N')
+			  , WRTER_NM=#wrterNm#
+			  , WRITNG_DE=TO_CHAR(sysdate,'YYYYMMDD')
+			  ,LAST_UPDUSR_ID=#lastUpdusrId#
+		WHERE  ERROR_REPORT_ID=#ERROR_REPORT_ID#
+	]]>
+	</update>
+
+	<!-- 오류신고 글을 삭제한다. -->
+	<delete id="ErrManageDAO.deleteErrCn">
+		<![CDATA[
+			DELETE FROM ERROR_REPORTING
+			WHERE  ERROR_REPORT_ID = '$errorReportId$'
+		]]>
+	</delete>
+
+	<!-- 오류신고 답변 글 목록에 대한 상세내용을 조회한다. -->
+	<select id="ErrManageDAO.selectErrAnswerListDetail" resultMap="ErrManage">
+	<![CDATA[
+		SELECT 
+			C.ERROR_REPORT_ID
+			, C.REPORT_SJ
+			, C.REPORT_CN
+			, C.WRITNG_PASSWORD
+			, C.TELNO
+			, C.MIDDLE_TELNO
+			, C.END_TELNO
+			, C.EMAIL_ADRES
+			, C.EMAIL_ANSWER_AT
+			, C.WRTER_NM
+			, C.WRITNG_DE
+			, C.ANSWER_CN
+			, C.ANSWER_DE
+			, C.RDCNT
+			, C.REPORT_PROCESS_STTUS_CODE
+			, D.CODE_NM REPORT_PROCESS_STTUS_CODE_NM
+			, A.USER_NM AS emplyrNm
+			, A.OFFM_TELNO AS offmTelno
+			, A.EMAIL_ADRES AEMAIL_ADRES AS aemailAdres
+			, B.ORGNZT_NM 
+			, TO_CHAR(C.FRST_REGIST_PNTTM,'YYYY-MM-DD') FRST_REGIST_PNTTM
+			, C.FRST_REGISTER_ID
+			, TO_CHAR(C.LAST_UPDT_PNTTM,'YYYY-MM-DD') LAST_UPDT_PNTTM
+			, C.LAST_UPDUSR_ID
+		FROM 	ERROR_REPORTING C
+		LEFT 	OUTER JOIN common_detail_code D ON		D.CODE_ID ='RKS015' AND C.REPORT_PROCESS_STTUS_CODE = D.CODE
+		LEFT 	OUTER JOIN TNPEMPLYRINFO A     ON		A.ESNTL_ID= C.LAST_UPDUSR_ID
+		LEFT 	OUTER JOIN TNPORGNZTINFO B     ON		A.ORGNZT_ID = B.ORGNZT_ID
+		WHERE	ERROR_REPORT_ID = '$errorReportId$'
+	]]>
+	</select>
+
+	<!-- 오류신고 답변 글 목록을 조회한다. -->
+	<select id="ErrManageDAO.selectErrAnswerList" parameterClass="ErrManageSearchVO" resultClass="egovMap">
+	<![CDATA[
+		SELECT ERROR_REPORT_ID,
+			   REPORT_SJ,
+			   REPORT_CN,
+			   WRITNG_PASSWORD,
+			   TELNO,
+			   MIDDLE_TELNO,
+			   END_TELNO,
+			   EMAIL_ADRES,
+			   EMAIL_ANSWER_AT,
+			   WRTER_NM,
+			   WRITNG_DE,
+			   ANSWER_CN,
+			   ANSWER_DE,
+			   RDCNT INQIRE_CO,
+			   REPORT_PROCESS_STTUS_CODE,
+			   REPORT_PROCESS_STTUS_CODE_NM,
+			   FRST_REGIST_PNTTM FRST_REGISTER_PNTTM,
+			   FRST_REGISTER_ID,
+			   LAST_UPDT_PNTTM LAST_UPDUSR_PNTTM,
+			   LAST_UPDUSR_ID
+		FROM
+			   (
+			   SELECT  ROWNUM RNUM,ERROR_REPORTING.*
+			   FROM
+			   	   	  (
+			   		   SELECT 	ERROR_REPORT_ID, REPORT_SJ, REPORT_CN, WRITNG_PASSWORD, TELNO, MIDDLE_TELNO, END_TELNO,
+					   			EMAIL_ADRES, EMAIL_ANSWER_AT, WRTER_NM, WRITNG_DE, ANSWER_CN, ANSWER_DE, RDCNT,
+								REPORT_PROCESS_STTUS_CODE, B.CODE_NM REPORT_PROCESS_STTUS_CODE_NM,
+								A.FRST_REGIST_PNTTM , A.FRST_REGISTER_ID,
+								A.LAST_UPDT_PNTTM   , A.LAST_UPDUSR_ID
+					   FROM 	ERROR_REPORTING A
+					   LEFT OUTER JOIN common_detail_code B
+					   ON		B.CODE_ID ='RKS015' AND A.REPORT_PROCESS_STTUS_CODE = B.CODE
+					   WHERE	1=1
+		]]>
+			<isEqual prepend="AND" property="searchCondition" compareValue="wrterNm">
+				<![CDATA[WRTER_NM LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="reportSj">
+				<![CDATA[REPORT_SJ LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="reportCn">
+				<![CDATA[REPORT_CN LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="0">
+				<![CDATA[
+				( REPORT_SJ LIKE '%' || #searchKeyword# || '%' or REPORT_CN LIKE '%' || #searchKeyword# || '%' or WRTER_NM LIKE '%' || #searchKeyword# || '%' )
+				]]>
+			</isEqual>
+		<![CDATA[
+							ORDER BY ERROR_REPORT_ID DESC
+						  ) ERROR_REPORTING
+				   )
+			WHERE ROWNUM <= #recordCountPerPage# and RNUM > #firstIndex#
+		]]>
+	</select>
+
+	<!-- 오류신고 답변 글 총 갯수를 조회한다. -->
+	<select id="ErrManageDAO.selectErrAnswerListTotCnt" parameterClass="ErrManageSearchVO" resultClass="int">
+	<![CDATA[
+			SELECT 	COUNT(*) totcnt
+			FROM 	ERROR_REPORTING
+			WHERE 	1=1
+		]]>
+			<isEqual prepend="AND" property="searchCondition" compareValue="wrterNm">
+				<![CDATA[WRTER_NM LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="qestnSj">
+				<![CDATA[REPORT_SJ LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="qestnCn">
+				<![CDATA[REPORT_CN LIKE '%' || #searchKeyword# || '%']]>
+			</isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="0">
+				<![CDATA[
+				( REPORT_SJ LIKE '%' || #searchKeyword# || '%' or REPORT_CN LIKE '%' || #searchKeyword# || '%' or WRTER_NM LIKE '%' || #searchKeyword# || '%' )
+				]]>
+			</isEqual>
+	</select>
+
+	<!-- 오류신고 답변 글을 수정한다. -->
+	<update id="ErrManageDAO.updateErrCnAnswer">
+	<![CDATA[
+		UPDATE	
+			ERROR_REPORTING	
+		SET
+			REPORT_PROCESS_STTUS_CODE = #reportProcessSttusCode#
+			, ANSWER_CN = #answerCn#
+			, ANSWER_DE = TO_CHAR(sysdate,'YYYYMMDD')
+			, LAST_UPDT_PNTTM = sysdate
+			, LAST_UPDUSR_ID = #lastUpdusrId#
+			, EMAIL_ANSWER_AT = #emailAnswerAt#
+		WHERE  
+			ERROR_REPORT_ID = '$errorReportId$'
+	]]>
+	</update>
+
+	<delete id="ErrManageDAO.deleteErrCnAnswer">
+		<![CDATA[
+			DELETE FROM ERROR_REPORTING
+			WHERE  ERROR_REPORT_ID='$errorReportId$'
+		]]>
+	</delete>
+
+	<!-- 오류신고 답변 글 목록에 대한 상세내용을 조회한다. -->
+	<select id="ErrManageDAO.selectErrChargerList" resultClass="java.util.HashMap">
+	<![CDATA[
+		SELECT
+			MNGR_NM || '(' || MNGR_EMAIL || ')' AS EMAIL
+		FROM
+			MANAG_USER
+		WHERE
+			MNGR_EMAIL IS NOT NULL
+			AND NVL(ER_EMAIL_RECPTN_AT,'N') = 'Y'
+	]]>
+	</select>
+	
+	<!-- 오류신고 관리자 목록을 조회한다. -->
+	<select id="ErrManageDAO.selectMngList" resultClass="java.util.HashMap">
+	<![CDATA[
+		SELECT 
+			MNGR_ID
+			,MNGR_NM
+			,MNGR_DEPT
+			,AUTHOR_CODE
+			,MNGR_EMAIL
+			,MNGR_SE_CODE
+			,NVL(ER_EMAIL_RECPTN_AT,'N') AS ER_EMAIL_RECPTN_AT
+		FROM 
+			MANAG_USER
+	]]>
+	</select>
+	
+	<!-- 오류신고 메일수신 담당자 정보를 수정한다. -->
+	<update id="ErrManageDAO.updateErrMailRcvrCharger" parameterClass="java.util.HashMap">
+		UPDATE
+			MANAG_USER
+		SET
+			ER_EMAIL_RECPTN_AT = #ER_EMAIL_RECPTN_AT#
+			,LAST_UPDT_PNTTM = SYSDATE
+			,LAST_UPDUSR_ID = #LAST_UPDUSR_ID#
+		WHERE
+			1=1
+			<isNotEmpty property="MNGR_ID">
+			AND MNGR_ID = #MNGR_ID#			
+			</isNotEmpty>
+	</update>
+</sqlMap>

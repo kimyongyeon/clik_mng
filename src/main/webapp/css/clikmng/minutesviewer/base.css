@@ -1,0 +1,32 @@
+@CHARSET "UTF-8";
+
+@font-face {
+	font-family:'NanumGothic';
+	font-weight:normal;
+	font-style:normal;
+	src: url('/css/clikmng/minutesviewer/font/NanumGothic.eot');
+	src: local('?'), 
+		url('/css/clikmng/minutesviewer/font/NanumGothic.eot?#iefix') format('embedded-opentype'),
+		url('/css/clikmng/minutesviewer/font/NanumGothic.woff2') format('woff2'),
+		url('/css/clikmng/minutesviewer/font/NanumGothic.woff') format('woff'),
+		url('/css/clikmng/minutesviewer/font/NanumGothic.ttf') format('truetype');     
+}
+@font-face {
+	font-family:'NanumGothicBold';
+	font-weight:bold;
+	font-style:normal;
+	src: url('/css/clikmng/minutesviewer/font/NanumGothicBold.eot');
+	src: local('?'), 
+		url('/css/clikmng/minutesviewer/font/NanumGothicBold.eot?#iefix') format('embedded-opentype'),
+		url('/css/clikmng/minutesviewer/font/NanumGothicBold.woff') format('woff'),
+		url('/css/clikmng/minutesviewer/font/NanumGothicBold.ttf') format('truetype');
+}
+
+@media screen and(max-width:500px){
+	#header h1{font-size:105%;}
+	#header .menu_view {left:6px; top:15px;}
+	#header .menu_view img{max-height:55%;}
+	#titlearea ul li{font-size:85%;}
+}
+
+.shareBackDiv2{position:absolute;left:0px;top:0px;background-color:#484848;opacity:0.8;filter:alpha(opacity=80);-moz-opacity:0.8;-khtml-opacity:0.8; display:none;}

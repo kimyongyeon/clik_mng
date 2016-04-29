@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="EstManage">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="estManageVO" type="clikmng.nanet.go.kr.est.service.EstManageVO"/>	
+	
+	<!-- 게시승인설정 -->
+	<select id="estManageDAO.selectNtctAtList" resultClass="estManageVO">
+		<![CDATA[
+				SELECT COLCT_INFO_TY_CODE AS colctInfoTyCode 
+						, ATMC_NTCE_AT AS atmcNtceAt
+						, (
+							SELECT CODE_NM
+							  FROM common_detail_code
+							 WHERE CODE_ID = 'RKS021'
+							   AND CODE = COLCT_INFO_TY_CODE
+							) AS colctInfoTyCodeNm
+				  FROM mng_confi 
+			]]>
+	</select>
+	
+	
+	<!-- 변환승인설정 -->
+	<select id="estManageDAO.selectCnvrAtList" resultClass="estManageVO">
+		<![CDATA[
+				SELECT COLCT_INFO_TY_CODE AS colctInfoTyCode 
+						, ATMC_CNVR_AT AS atmcCnvrAt
+						, (
+							SELECT CODE_NM
+							  FROM common_detail_code
+							 WHERE CODE_ID = 'RKS021'
+							   AND CODE = COLCT_INFO_TY_CODE
+							) AS colctInfoTyCodeNm
+				  FROM mng_confi 
+			]]>
+	</select>
+	
+	<!-- 게시승인설정 수정 -->
+	<update id="estManageDAO.updateNtctAt" parameterClass="estManageVO">
+		<![CDATA[
+				UPDATE mng_confi
+				      SET ATMC_NTCE_AT = #atmcNtceAt#
+				      		/* , LAST_UPDUSR_ID =  PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ') */
+				      		, LAST_UPDUSR_ID =  #lastUpdusrId#
+				      		, LAST_UPDT_PNTTM = SYSDATE
+				 WHERE COLCT_INFO_TY_CODE = #colctInfoTyCode#
+			]]>
+	</update>	
+	
+	<!-- 변환승인 수정 -->
+	<update id="estManageDAO.updateCnvrAt" parameterClass="estManageVO">
+		<![CDATA[
+				UPDATE mng_confi
+				      SET ATMC_CNVR_AT = #atmcCnvrAt#
+				      		/* , LAST_UPDUSR_ID =  PKG_OBFUS.ENCRYPT(lastUpdusrId,'NAEODOCZ') */
+				      		, LAST_UPDUSR_ID =  #lastUpdusrId#
+				      		, LAST_UPDT_PNTTM = SYSDATE
+				 WHERE COLCT_INFO_TY_CODE = #colctInfoTyCode#
+ 
+			]]>
+	</update>			
+</sqlMap>
+

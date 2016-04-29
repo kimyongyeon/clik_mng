@@ -1,0 +1,1265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="MdmManage">
+	<typeAlias  alias="mdmTnsrAsmblyMintsVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyMintsVO"/>
+	<typeAlias  alias="mdmTnsrAsmblyApndxVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyApndxVO"/>
+	<typeAlias  alias="mdmTnsrAsmblySpkngVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblySpkngVO"/>
+	<typeAlias  alias="mdmTnsrAsmblyMtrVO" 	 type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyMtrVO"/>
+	<typeAlias  alias="mdmMinutesVO" 		 type="clikmng.nanet.go.kr.mdm.model.MdmMinutesVO"/>
+	<typeAlias  alias="mdmSearchVO" 		 type="clikmng.nanet.go.kr.mdm.model.MdmSearchVO"/>
+	<typeAlias  alias="mdmIsViewVO" 		 type="clikmng.nanet.go.kr.mdm.model.MdmIsViewVO"/>
+	
+	<typeAlias  alias="mdmTnsrAsmblySesnVO"  type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblySesnVO"/>
+	<typeAlias  alias="mdmTnsrAsmblyNumPrVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyNumPrVO"/>
+	<typeAlias  alias="mdmTnsrAsmblyMtgNmVO" type="clikmng.nanet.go.kr.mdm.model.MdmTnsrAsmblyMtgNmVO"/>
+
+	<resultMap class="clikmng.nanet.go.kr.mdm.model.MdmFileVO" id="mintsFileCmmn">
+		<result property="atchFileId"    column="MINTS_CN" />
+		<result property="orignlFileNm"  column="FILE_NM" />
+		<result property="fileStreCours" column="MINTS_FILE_PATH" />
+		<result property="streFileNm" 	 column="MINTS_PDF_FILE_PATH" />
+		<result property="fileSn" 		 column="DOC_CNVR_STTU_CODE" />
+		<result property="fileCn" 		 column="DOC_CNVR_RESULT_MSSAGE" />
+		<result property="fileExtsn" 	 column="FILEEXT" />
+		<result property="fileMg" 	     column="FILEMG" />
+	</resultMap>
+
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesSeq" resultClass="int">
+        <![CDATA[
+			SELECT 
+				TNSRASMBLYMINTSSEQ.NEXTVAL AS SEQ 
+			FROM 
+				DUAL
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmAsmblyNumPr" parameterClass="mdmTnsrAsmblyMintsVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				gener  
+			WHERE 
+			    RASMBLY_ID = #RASMBLY_ID#
+			    AND RASMBLY_NUMPR = #RASMBLY_NUMPR#
+				AND ROWNUM = 1
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmAsmblySesn" parameterClass="mdmTnsrAsmblyMintsVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				colg_session 
+			WHERE 
+			    RASMBLY_ID = #RASMBLY_ID#
+			    AND RASMBLY_NUMPR = #RASMBLY_NUMPR#
+			    AND RASMBLY_SESN = #RASMBLY_SESN#
+				AND ROWNUM = 1
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmAsmblyMtgId" parameterClass="mdmTnsrAsmblyMintsVO" resultClass="string">
+        <![CDATA[
+			SELECT 
+				MTGNM_ID 
+			FROM 
+				scommit 
+			WHERE 
+			    RASMBLY_ID = #RASMBLY_ID#
+			    AND RASMBLY_NUMPR = #RASMBLY_NUMPR#
+			    AND MTGNM = #MTGNM#
+				AND ROWNUM = 1
+		]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmAsmblyMaxMtgId" parameterClass="mdmTnsrAsmblyMintsVO" resultClass="string">
+        <![CDATA[
+			SELECT 
+				MAX(MTGNM_ID) AS MTGNM_ID
+			FROM 
+				scommit 
+			WHERE 
+			    RASMBLY_ID = #RASMBLY_ID#
+			    AND RASMBLY_NUMPR = #RASMBLY_NUMPR#
+		]]>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesSpkngList" parameterClass="mdmTnsrAsmblyMintsVO" resultClass="mdmTnsrAsmblySpkngVO">
+        <![CDATA[
+			SELECT 
+				 * 
+			FROM 
+				minutes_statement 
+			WHERE 
+				MINTS_CN = #MINTS_CN#
+			ORDER BY 
+				SPKNG_SN ASC 
+		]]>
+    </select>
+<!-- 사용안함 -->	
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesMtrList" parameterClass="mdmTnsrAsmblyMintsVO" resultClass="mdmTnsrAsmblyMtrVO">
+        <![CDATA[
+			SELECT
+				*
+			FROM
+				item
+			WHERE
+				MINTS_CN = #MINTS_CN#
+			ORDER BY
+				MTR_SN ASC
+		]]>
+	</select>
+<!-- 사용안함 -->
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesApndxList" parameterClass="mdmTnsrAsmblyMintsVO" resultClass="mdmTnsrAsmblyApndxVO">
+        <![CDATA[
+			SELECT 
+				 * 
+			FROM 
+				minutes_appendix 
+			WHERE 
+				MINTS_CN = #MINTS_CN#
+			ORDER BY 
+				APNDX_ID ASC 
+		]]>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesMaxRegDate" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				SUBSTR(MAX(FRST_REGIST_DT), 0, 8) AS REGDATE 
+			FROM 
+				minutes 
+			WHERE
+				FRST_REGIST_DT <= REPLACE(#TODAY#, '-', '') || '999999'
+		]]>
+    </select>
+<!-- 사용안함 -->    
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmApndxFileExt" parameterClass="string" resultClass="string">
+        <![CDATA[
+			SELECT 
+				CASE 
+					WHEN INSTR(APNDX_PDF_FILE_PATH, '.', -1) > 1 THEN 'pdf'
+					WHEN INSTR(APNDX_FILE_PATH, '.', -1) > 1 THEN LOWER(SUBSTR(APNDX_FILE_PATH, (INSTR(APNDX_FILE_PATH, '.', -1) + 1)))
+					ELSE ''
+				END EXT
+			FROM 
+				minutes_appendix 
+			WHERE 
+				TRIM(MINTS_CN) = '$MINTS_CN$'
+				AND CUD_CODE != 'D'
+				AND ROWNUM = 1
+			ORDER BY
+				APNDX_ID ASC
+		]]>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesDfltListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				minutes 
+	        ]]>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesDfltList" parameterClass="mdmSearchVO" resultClass="mdmTnsrAsmblyMintsVO">
+        <![CDATA[
+			SELECT 	
+				M.* 
+			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+					SELECT
+						B.RASMBLY_ID, B.RASMBLY_NUMPR, B.RASMBLY_SESN, B.MTGNM_ID, B.ODR_NM, 
+						B.MTG_DE, B.MINTS_FILE_PATH, B.MINTS_ODR, B.FRST_REGIST_DT, TRIM(B.MINTS_CN) AS MINTS_CN, 
+						B.ISVIEW, B.CUD_CODE, B.DOC_CNVR_STTU_CODE, B.DOC_CNVR_RESULT_MSSAGE
+						,( SELECT 
+								CODE_NM 
+							FROM 
+								common_detail_code WHERE CODE_ID = 'RKS002' AND CODE = SUBSTRING(B.RASMBLY_ID, 0, 3) AND ROWNUM = 1
+						) RASMBLY_NM
+						,( SELECT 
+								MTGNM 
+							FROM 
+								scommit 
+							WHERE 
+								RASMBLY_ID = B.RASMBLY_ID AND RASMBLY_NUMPR = B.RASMBLY_NUMPR AND MTGNM_ID = B.MTGNM_ID AND ROWNUM = 1  
+						) AS MTGNM 
+						,( SELECT COUNT(*) AS FILECNT FROM minutes_appendix WHERE TRIM(MINTS_CN) = TRIM(B.MINTS_CN) AND CUD_CODE != 'D' ) FILECNT
+                        ,( SELECT COUNT(*) AS FILECNT FROM minutes_appendix WHERE TRIM(MINTS_CN) = TRIM(B.MINTS_CN) AND CUD_CODE != 'D' AND (DOC_CNVR_STTU_CODE = '1' OR DOC_CNVR_STTU_CODE = '3') ) FILESUCCCNT 
+                        ,( SELECT COUNT(*) AS FILECNT FROM minutes_appendix WHERE TRIM(MINTS_CN) = TRIM(B.MINTS_CN) AND CUD_CODE != 'D' AND DOC_CNVR_STTU_CODE = '2' ) FILEFLRCNT 
+						,( SELECT 
+								COUNT(*) 
+							FROM 
+								minutes D 
+							WHERE 
+								CUD_CODE != 'D' 
+								AND D.RASMBLY_ID = B.RASMBLY_ID 
+								AND D.RASMBLY_NUMPR = B.RASMBLY_NUMPR
+								AND D.RASMBLY_SESN = B.RASMBLY_SESN
+								AND D.MTGNM_ID = B.MTGNM_ID
+								AND D.MTG_DE = B.MTG_DE 
+								AND D.MINTS_ODR = B.MINTS_ODR 
+								AND D.MINTS_SN = B.MINTS_SN
+						) DUPCNT
+					FROM
+						minutes B
+					ORDER BY 
+						B.MTG_DE DESC, B.RASMBLY_ID ASC, B.MTGNM_ID ASC
+				) A 
+			) M
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+			]]>
+    </select>
+
+	<!-- 지방의회 회의록 카운트 정보를 조회한다 -->
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				minutes B
+				, COLGOVER
+			]]>
+			<!-- 지방의회 일 경우  -->
+			<isNotEmpty property="schOrgCodeStep2">
+				<isEqual property="schOrgCodeStep2" compareValue="004">
+				<![CDATA[
+			  	, (
+					SELECT LOASM_CODE, WS.SITEID
+			  		  FROM ORGAN OG
+			  	           , ORGAN_CLASS OC
+			  	           , WEBROBOT_SITE WS
+			  	     WHERE OG.INSTT_CL_CODE = OC.INSTT_CL_CODE
+			   		   AND OC.UPPER_INSTT_CL_CODE = 'INTSTTCL_000012'
+                       AND OG.BRTC_CODE = WS.REGION
+				]]>                       
+	   			<isNotEmpty property="schOrgCodeStep3">
+            	<![CDATA[   AND WS.ORG_3 = #schOrgCodeStep3# ]]>
+            	</isNotEmpty>
+            	<isNotEmpty property="schOrgCodeStep4">
+            	<![CDATA[   AND WS.SITEID = #schOrgCodeStep4# ]]>
+            	</isNotEmpty>
+            	<![CDATA[   
+				) BT
+				]]>
+				</isEqual>
+			</isNotEmpty>
+			
+			<![CDATA[ 
+				WHERE 1=1 
+				AND COLGOVER.RASMBLY_ID = B.RASMBLY_ID
+			]]>
+			
+				<isNotEmpty property="schOrgCodeStep2">
+					<isEqual property="schOrgCodeStep2" compareValue="004">
+					<![CDATA[
+						AND B.RASMBLY_ID = BT.LOASM_CODE
+					]]>
+					</isEqual>
+				</isNotEmpty>			
+				<isNotEmpty property="schDtConditionOperators">
+					AND (
+						<!-- 수집일자 -->
+						<isNotEmpty property="schDt1">
+							<![CDATA[ ( B.FRST_REGIST_DT >= REPLACE(#schDt1#, '-', '') || 000000 AND ]]>
+						</isNotEmpty>
+						<isEmpty property="schDt1">
+						    <isNotEmpty property="schDt2">
+							( 1=1 AND
+							</isNotEmpty>
+						</isEmpty>
+						    
+						<isNotEmpty property="schDt2">
+							<![CDATA[ B.FRST_REGIST_DT <= REPLACE(#schDt2#, '-', '') || 235959 ) ]]>
+						</isNotEmpty>
+						<isEmpty property="schDt2">
+						    <isNotEmpty property="schDt1">
+							1=1 )
+							</isNotEmpty>
+						</isEmpty> 
+						
+						<isEqual property="schDtConditionOperators" compareValue="Y">
+						    OR
+						</isEqual>
+						
+						<!-- 등록일자 -->
+						<isNotEmpty property="schDt3">
+							<![CDATA[ ( B.MTG_DE >= REPLACE(#schDt3#, '-', '') AND ]]>
+						</isNotEmpty>
+						<isEmpty property="schDt3">
+						    <isNotEmpty property="schDt4">
+							( 1=1 AND
+							</isNotEmpty>
+						</isEmpty>
+						
+						<isNotEmpty property="schDt4">
+							<![CDATA[ B.MTG_DE <= REPLACE(#schDt4#, '-', '') )]]>
+						</isNotEmpty>
+						<isEmpty property="schDt4">
+						    <isNotEmpty property="schDt3">
+							1=1 )
+							</isNotEmpty>
+						</isEmpty>
+					)
+				</isNotEmpty>
+				
+				<isNotEmpty prepend="AND" property="schIsView">
+					<isEqual property="schIsView" compareValue="N">
+					    B.ISVIEW = 'N'
+					</isEqual>
+					<isEqual property="schIsView" compareValue="Y">
+					    B.ISVIEW != 'N'
+					</isEqual>				  
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDel">				  
+					<isEqual property="schDel" compareValue="D">
+					    B.CUD_CODE = 'D'
+					</isEqual>
+					<isEqual property="schDel" compareValue="Y">
+					    B.CUD_CODE != 'D'
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schRks022">
+				    B.CNTC_INPUT_SE_CODE = #schRks022#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schLoAsmCode">
+				    B.RASMBLY_ID = #schLoAsmCode#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schRasmblyNumpr">
+				    B.RASMBLY_NUMPR = #schRasmblyNumpr#
+				</isNotEmpty>
+				
+				<isNotEmpty property="schLoAsmTyCode">
+					<isEmpty property="schRegion">
+				AND B.RASMBLY_ID
+					<iterate prepend="IN" property="schLoAsmTyCodeList" open="(" close=")" conjunction=","> 
+       					#schLoAsmTyCodeList[]# 
+     				</iterate>
+     				</isEmpty>
+				</isNotEmpty>
+				<isNotEmpty property="schRegion">
+				AND B.RASMBLY_ID
+					<iterate prepend="IN" property="schRegionList" open="(" close=")" conjunction=","> 
+       					#schRegionList[]# 
+     				</iterate>				
+				</isNotEmpty>
+				<!-- 검색어  -->					
+				<isNotEmpty prepend="AND" property="schKw">
+					<isEqual property="schKey" compareValue="schTitle">
+						<![CDATA[ B.MTGNM like '%' || #schKw# || '%' ]]>
+					</isEqual>
+					<isEqual property="schKey" compareValue="cnId">
+						<![CDATA[ B.MINTS_CN IN ( $schKw$ ) ]]>
+					</isEqual>
+					<isEqual property="schKey" compareValue="schContent">
+						<![CDATA[ B.MINTS_HTML LIKE '%' || #schKw# || '%' ]]>
+					</isEqual>				  
+				</isNotEmpty>
+				<isNotEmpty property="schMtgNmList">
+					<iterate prepend="AND" property="schMtgNmList" open="(" close=")" conjunction="OR">
+						MTGNM_ID = #schMtgNmList[]#
+					</iterate>	
+				</isNotEmpty>
+				
+    </select>
+
+    <!-- 회의록 정보를 조회한다 -->
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesList" parameterClass="mdmSearchVO" resultClass="mdmTnsrAsmblyMintsVO">
+        <![CDATA[
+        
+         SELECT 
+			RET.RNUM, RET.RASMBLY_ID, RET.RASMBLY_NUMPR, RET.RASMBLY_SESN, RET.MTGNM_ID, RET.ODR_NM, RET.MTG_DE
+			, RET.MINTS_FILE_PATH, RET.MINTS_ODR, RET.ORGINL_FILE_URL, RET.FRST_REGIST_DT, RET.MINTS_CN
+			, RET.ISVIEW, RET.CUD_CODE, RET.DOC_CNVR_STTU_CODE, RET.DOC_CNVR_RESULT_MSSAGE, RET.RASMBLY_NM, RET.MTGNM
+		FROM (
+        
+			SELECT 	
+				M.* 
+			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+				SELECT *
+					FROM (
+					SELECT
+						B.RASMBLY_ID, B.RASMBLY_NUMPR, B.RASMBLY_SESN, B.MTGNM_ID, B.ODR_NM, B.MTG_DE, B.MINTS_FILE_PATH, B.MINTS_ODR, B.ORGINL_FILE_URL,
+						B.FRST_REGIST_DT, TRIM(B.MINTS_CN) AS MINTS_CN, B.ISVIEW, B.CUD_CODE, B.DOC_CNVR_STTU_CODE, B.DOC_CNVR_RESULT_MSSAGE
+						,COLGOVER.RASMBLY_NM
+						,( SELECT MTGNM FROM scommit WHERE RASMBLY_ID = B.RASMBLY_ID AND RASMBLY_NUMPR = B.RASMBLY_NUMPR AND MTGNM_ID = B.MTGNM_ID AND ROWNUM = 1) AS MTGNM 
+					FROM
+						minutes B
+						, COLGOVER
+					]]>
+					<!-- 기관유형 : 지방의회 일 경우  -->
+					<isNotEmpty property="schOrgCodeStep2">
+						<isEqual property="schOrgCodeStep2" compareValue="004">
+						<![CDATA[
+					  	, (
+							SELECT LOASM_CODE, WS.SITEID
+					  		  FROM ORGAN OG
+					  	           , ORGAN_CLASS OC
+					  	           , WEBROBOT_SITE WS
+					  	     WHERE OG.INSTT_CL_CODE = OC.INSTT_CL_CODE
+					   		   AND OC.UPPER_INSTT_CL_CODE = 'INTSTTCL_000012'
+		                       AND OG.BRTC_CODE = WS.REGION
+						]]>                       
+			   			<isNotEmpty property="schOrgCodeStep3">
+		            	<![CDATA[   AND WS.ORG_3 = #schOrgCodeStep3# ]]>
+		            	</isNotEmpty>
+		            	<isNotEmpty property="schOrgCodeStep4">
+		            	<![CDATA[   AND WS.SITEID = #schOrgCodeStep4# ]]>
+		            	</isNotEmpty>
+		            	<![CDATA[   
+						) BT
+						]]>
+						</isEqual>
+					</isNotEmpty>					
+					
+					<![CDATA[ 
+						WHERE 1=1 
+						AND COLGOVER.RASMBLY_ID = B.RASMBLY_ID
+					]]>
+					
+					<isNotEmpty property="schOrgCodeStep2">
+						<isEqual property="schOrgCodeStep2" compareValue="004">
+						<![CDATA[
+							AND B.RASMBLY_ID = BT.LOASM_CODE
+						]]>
+						</isEqual>
+					</isNotEmpty>
+					
+					<isNotEmpty property="schDtConditionOperators">
+					AND (
+						<!-- 수집일자 -->
+						<isNotEmpty property="schDt1">
+							<![CDATA[ ( B.FRST_REGIST_DT >= REPLACE(#schDt1#, '-', '') || 000000 AND ]]>
+						</isNotEmpty>
+						<isEmpty property="schDt1">
+						    <isNotEmpty property="schDt2">
+							( 1=1 AND
+							</isNotEmpty>
+						</isEmpty>
+						    
+						<isNotEmpty property="schDt2">
+							<![CDATA[ B.FRST_REGIST_DT <= REPLACE(#schDt2#, '-', '') || 235959 ) ]]>
+						</isNotEmpty>
+						<isEmpty property="schDt2">
+						    <isNotEmpty property="schDt1">
+							1=1 )
+							</isNotEmpty>
+						</isEmpty> 
+						
+						<isEqual property="schDtConditionOperators" compareValue="Y">
+						    OR
+						</isEqual>
+						
+						<!-- 등록일자 -->
+						<isNotEmpty property="schDt3">
+							<![CDATA[ ( B.MTG_DE >= REPLACE(#schDt3#, '-', '') AND ]]>
+						</isNotEmpty>
+						<isEmpty property="schDt3">
+						    <isNotEmpty property="schDt4">
+							( 1=1 AND
+							</isNotEmpty>
+						</isEmpty>
+						
+						<isNotEmpty property="schDt4">
+							<![CDATA[ B.MTG_DE <= REPLACE(#schDt4#, '-', '') )]]>
+						</isNotEmpty>
+						<isEmpty property="schDt4">
+						    <isNotEmpty property="schDt3">
+							1=1 )
+							</isNotEmpty>
+						</isEmpty>
+					)
+					</isNotEmpty>
+					
+					<!-- 게시여부 -->
+					<isNotEmpty prepend="AND" property="schIsView">				  
+					    B.ISVIEW = #schIsView#
+					</isNotEmpty>
+					
+					<!-- 삭제여부 -->
+					<isNotEmpty prepend="AND" property="schDel">				  
+						<isEqual property="schDel" compareValue="D">
+						    B.CUD_CODE = 'D'
+						</isEqual>
+						<isEqual property="schDel" compareValue="Y">
+						    B.CUD_CODE != 'D'
+						</isEqual>
+					</isNotEmpty>
+					
+					<!-- ?? -->
+					<isNotEmpty prepend="AND" property="schRks022">				  
+					    B.CNTC_INPUT_SE_CODE = #schRks022#
+					</isNotEmpty>
+					
+					<!-- 대수 -->
+					<isNotEmpty prepend="AND" property="schRasmblyNumpr">				  
+					    B.RASMBLY_NUMPR = #schRasmblyNumpr#
+					</isNotEmpty>
+					
+					<!-- 의회선택 -->
+					<isNotEmpty property="schLoAsmTyCode">
+						<isEmpty property="schRegion">
+						AND B.RASMBLY_ID
+						<iterate prepend="IN" property="schLoAsmTyCodeList" open="(" close=")" conjunction=","> 
+	       					#schLoAsmTyCodeList[]# 
+	     				</iterate>
+	     				</isEmpty>
+					</isNotEmpty>
+					
+					<!-- 지역선택 -->
+					<isNotEmpty property="schRegion">
+						AND B.RASMBLY_ID
+						<iterate prepend="IN" property="schRegionList" open="(" close=")" conjunction=","> 
+	       					#schRegionList[]# 
+	     				</iterate>				
+					</isNotEmpty>
+					
+					<!-- 의회명 -->
+					<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+					    B.RASMBLY_ID = #schLoAsmCode#
+					</isNotEmpty>
+					
+					<!-- 검색어  -->						
+					<isNotEmpty prepend="AND" property="schKw">
+						<isEqual property="schKey" compareValue="schTitle">
+							<![CDATA[ B.MTGNM like '%' || #schKw# || '%' ]]>
+						</isEqual>
+						<isEqual property="schKey" compareValue="cnId">
+							<![CDATA[ B.MINTS_CN IN ( $schKw$ ) ]]>
+						</isEqual>
+						<isEqual property="schKey" compareValue="schContent">
+							<![CDATA[ B.MINTS_HTML LIKE '%' || #schKw# || '%' ]]>
+						</isEqual>				  
+					</isNotEmpty>
+			
+					<isNotEmpty property="schMtgNmList">				  
+						<iterate prepend="AND" property="schMtgNmList" open="(" close=")" conjunction="OR">
+							B.MTGNM_ID = #schMtgNmList[]#
+						</iterate>	
+					</isNotEmpty>
+				) AA
+				
+				ORDER BY 
+				<isEmpty property="sort">
+					AA.MTG_DE DESC, AA.RASMBLY_ID ASC, AA.MTGNM_ID ASC
+				</isEmpty>
+					
+				<isNotEmpty property="sort">
+				    AA.$sort$
+				</isNotEmpty>
+				) A
+			) M
+			WHERE 
+			<![CDATA[
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+			) RET 
+	LEFT OUTER JOIN minutes_appendix APX
+		ON APX.MINTS_CN = RET.MINTS_CN
+	GROUP BY RET.RNUM, RET.RASMBLY_ID, RET.RASMBLY_NUMPR, RET.RASMBLY_SESN, RET.MTGNM_ID, RET.ODR_NM, RET.MTG_DE
+		, RET.MINTS_FILE_PATH, RET.MINTS_ODR, RET.ORGINL_FILE_URL, RET.FRST_REGIST_DT, RET.MINTS_CN
+		, RET.ISVIEW, RET.CUD_CODE, RET.DOC_CNVR_STTU_CODE, RET.DOC_CNVR_RESULT_MSSAGE, RET.RASMBLY_NM, RET.MTGNM
+	ORDER BY RET.RNUM ASC 
+		]]>
+    </select>
+    
+<!-- 사용안함 -->    
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesCnvrsListTotCnt" parameterClass="mdmSearchVO" resultClass="int">
+        <![CDATA[
+			SELECT 
+				COUNT(*) AS CNT 
+			FROM 
+				minutes B 
+			WHERE
+				TRIM(B.MINTS_CN) IN (
+					SELECT 
+						TRIM(MINTS_CN) AS MINTS_CN 
+					FROM 
+						minutes
+					WHERE 
+						TRIM(MINTS_CN) = TRIM(B.MINTS_CN) 
+						]]>
+						<isEqual prepend="AND" property="schConversion" compareValue="1">
+							<![CDATA[ (DOC_CNVR_STTU_CODE = '1' OR DOC_CNVR_STTU_CODE = '3') ]]>
+						</isEqual>
+						<isEqual prepend="AND" property="schConversion" compareValue="2">
+							<![CDATA[ DOC_CNVR_STTU_CODE = '2' ]]>
+						</isEqual>
+					GROUP BY 
+						BI_CN
+				)
+				<isNotEmpty prepend="AND" property="schDt1">				  
+					<![CDATA[ MTG_DE >= REPLACE(#schDt1#, '-', '') ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDt2">				  
+					<![CDATA[ MTG_DE <= REPLACE(#schDt2#, '-', '') ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schIsView">				  
+				    ISVIEW = #schIsView#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schDel">				  
+					<isEqual property="schDel" compareValue="D">
+					    CUD_CODE = 'D'
+					</isEqual>
+					<isEqual property="schDel" compareValue="Y">
+					    CUD_CODE != 'D'
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schRks022">
+				    CNTC_INPUT_SE_CODE = #schRks022#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schLoAsmCode">
+				    RASMBLY_ID = #schLoAsmCode#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="schRasmblyNumpr">
+				    RASMBLY_NUMPR = #schRasmblyNumpr#
+				</isNotEmpty>
+				<isNotEmpty property="schMtgNmList">
+					<iterate prepend="AND" property="schMtgNmList" open="(" close=")" conjunction="OR">
+						MTGNM_ID = #schMtgNmList[]#
+					</iterate>	
+				</isNotEmpty>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesCnvrsList" parameterClass="mdmSearchVO" resultClass="mdmTnsrAsmblyMintsVO">
+        <![CDATA[
+			SELECT 	
+				M.* 
+			FROM 
+			(
+				SELECT 	
+					ROWNUM AS RNUM, A.* 
+				FROM
+				( 
+					SELECT
+						B.RASMBLY_ID, B.RASMBLY_NUMPR, B.SESN_SE_STDCD, B.RASMBLY_SESN, B.MTGNM_ID, B.MINTS_ODR, B.MINTS_SN, B.ODR_NM, B.MTG_DE, B.MINTS_FILE_PATH,  
+						B.FRST_REGIST_DT, TRIM(B.MINTS_CN) AS MINTS_CN, B.ISVIEW, B.CUD_CODE, B.DOC_CNVR_STTU_CODE, B.DOC_CNVR_RESULT_MSSAGE
+						,( SELECT 
+								CODE_NM 
+							FROM 
+								common_detail_code WHERE CODE_ID = 'RKS002' AND CODE = SUBSTRING(B.RASMBLY_ID, 0, 3) AND ROWNUM = 1
+						) RASMBLY_NM
+						,( SELECT 
+								MTGNM 
+							FROM 
+								scommit 
+							WHERE 
+								RASMBLY_ID = B.RASMBLY_ID AND RASMBLY_NUMPR = B.RASMBLY_NUMPR AND MTGNM_ID = B.MTGNM_ID AND ROWNUM = 1  
+						) AS MTGNM 
+						,( SELECT COUNT(*) AS FILECNT FROM minutes_appendix WHERE TRIM(MINTS_CN) = TRIM(B.MINTS_CN) AND CUD_CODE != 'D' ) FILECNT
+                        ,( SELECT COUNT(*) AS FILECNT FROM minutes_appendix WHERE TRIM(MINTS_CN) = TRIM(B.MINTS_CN) AND CUD_CODE != 'D' AND (DOC_CNVR_STTU_CODE = '1' OR DOC_CNVR_STTU_CODE = '3') ) FILESUCCCNT 
+                        ,( SELECT COUNT(*) AS FILECNT FROM minutes_appendix WHERE TRIM(MINTS_CN) = TRIM(B.MINTS_CN) AND CUD_CODE != 'D' AND DOC_CNVR_STTU_CODE = '2' ) FILEFLRCNT 
+						,( SELECT 
+								COUNT(*) 
+							FROM 
+								minutes D 
+							WHERE 
+								CUD_CODE != 'D' 
+								AND D.RASMBLY_ID = B.RASMBLY_ID 
+								AND D.RASMBLY_NUMPR = B.RASMBLY_NUMPR
+								AND D.RASMBLY_SESN = B.RASMBLY_SESN
+								AND D.MTGNM_ID = B.MTGNM_ID
+								AND D.MTG_DE = B.MTG_DE 
+								AND D.MINTS_ODR = B.MINTS_ODR 
+								AND D.MINTS_SN = B.MINTS_SN
+						) DUPCNT
+					FROM
+						minutes B
+					WHERE
+						TRIM(B.MINTS_CN) IN (
+							SELECT 
+								TRIM(MINTS_CN) AS MINTS_CN 
+							FROM 
+								minutes
+							WHERE 
+								TRIM(MINTS_CN) = TRIM(B.MINTS_CN) 
+								]]>
+								<isEqual prepend="AND" property="schConversion" compareValue="1">
+									<![CDATA[ (DOC_CNVR_STTU_CODE = '1' OR DOC_CNVR_STTU_CODE = '3') ]]>
+								</isEqual>
+								<isEqual prepend="AND" property="schConversion" compareValue="2">
+									<![CDATA[ DOC_CNVR_STTU_CODE = '2' ]]>
+								</isEqual>
+							GROUP BY 
+								BI_CN
+						)
+						<isNotEmpty prepend="AND" property="schDt1">				  
+							<![CDATA[ B.MTG_DE >= REPLACE(#schDt1#, '-', '') ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDt2">				  
+							<![CDATA[ B.MTG_DE <= REPLACE(#schDt2#, '-', '') ]]>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schIsView">				  
+						    B.ISVIEW = #schIsView#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schDel">				  
+							<isEqual property="schDel" compareValue="D">
+							    B.CUD_CODE = 'D'
+							</isEqual>
+							<isEqual property="schDel" compareValue="Y">
+							    B.CUD_CODE != 'D'
+							</isEqual>
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schRks022">				  
+						    B.CNTC_INPUT_SE_CODE = #schRks022#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schLoAsmCode">				  
+						    B.RASMBLY_ID = #schLoAsmCode#
+						</isNotEmpty>
+						<isNotEmpty prepend="AND" property="schRasmblyNumpr">				  
+						    B.RASMBLY_NUMPR = #schRasmblyNumpr#
+						</isNotEmpty>
+						<isNotEmpty property="schMtgNmList">				  
+							<iterate prepend="AND" property="schMtgNmList" open="(" close=")" conjunction="OR">
+								B.MTGNM_ID = #schMtgNmList[]#
+							</iterate>	
+						</isNotEmpty>
+					<![CDATA[
+					ORDER BY 
+						B.MTG_DE DESC, B.RASMBLY_ID ASC, B.MTGNM_ID ASC
+				) A 
+			) M
+			WHERE 
+				RNUM > #firstRecord#
+				AND RNUM <= #lastRecord#
+        ]]>
+    </select>
+
+    <!-- 회의록 상세정보를 조회한다 -->
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesView" parameterClass="string" resultClass="mdmTnsrAsmblyMintsVO">
+		<![CDATA[
+			SELECT 
+				minutes.RASMBLY_ID
+				,COLGOVER.RASMBLY_NM
+				,minutes.RASMBLY_SESN
+				,minutes.MTGNM_ID
+				,minutes.MTG_DE
+				,minutes.ORGINL_FILE_NM
+				,minutes.MINTS_HTML
+				,minutes.BEGIN_TM
+				,minutes.END_TM
+				,minutes.OTHBC_STDCD
+				,minutes.RASMBLY_NUMPR
+				,minutes.MINTS_ODR
+				,minutes.ORGINL_FILE_URL
+				,SUBSTR(minutes.FRST_REGIST_DT,0,4) || '-'
+				|| SUBSTR(minutes.FRST_REGIST_DT,5,2) || '-'
+				|| SUBSTR(minutes.FRST_REGIST_DT,7,2) AS FRST_REGIST_DT
+				,CASE WHEN minutes.LAST_UPDT_DT IS NOT NULL
+				THEN
+				SUBSTR(minutes.LAST_UPDT_DT,0,4) || '-'
+				|| SUBSTR(minutes.LAST_UPDT_DT,5,2) || '-'
+				|| SUBSTR(minutes.LAST_UPDT_DT,7,2)
+				END AS LAST_UPDT_DT
+				,CASE WHEN minutes.DELETE_DT IS NOT NULL
+				THEN
+				SUBSTR(minutes.DELETE_DT,0,4) || '-'
+				|| SUBSTR(minutes.DELETE_DT,5,2) || '-'
+				|| SUBSTR(minutes.DELETE_DT,7,2)
+				END AS DELETE_DT
+				,minutes.CUD_CODE
+				,minutes.SESN_SE_STDCD
+				,minutes.CLOSE_AT
+				,minutes.ODR_NM
+				,minutes.ORGINL_FILE_LAST_UPDT_TM
+				,minutes.MINTS_SN
+				,minutes.ORGINL_FILE_HASH
+				,TRIM(minutes.MINTS_FILE_PATH) AS MINTS_FILE_PATH
+				,minutes.RASMBLY_MINTS_ID
+				,TRIM(minutes.MINTS_PDF_FILE_PATH) AS MINTS_PDF_FILE_PATH
+				,minutes.CNTC_INPUT_SE_CODE
+				,minutes.MINTS_PDF_FILE_NM
+				,minutes.ISVIEW
+				,TRIM(minutes.MINTS_CN) AS MINTS_CN
+				,minutes.MTGNM
+				,minutes.INQUIRY_NM
+				,minutes.LAST_UPDUSR_ID
+				,minutes.COLCT_AT
+			FROM 
+				minutes
+				,COLGOVER 
+			WHERE 
+				COLGOVER.RASMBLY_ID = minutes.RASMBLY_ID
+				AND TRIM(MINTS_CN) = '$cnId$'
+				AND ROWNUM = 1
+        ]]>
+	</select>
+
+   	<select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesFileListCmmn" parameterClass="string" resultMap="mintsFileCmmn">
+        <![CDATA[
+			SELECT 
+				MINTS_CN
+				,MINTS_PDF_FILE_NM AS FILE_NM
+				,MINTS_FILE_PATH
+				,MINTS_PDF_FILE_PATH
+				,DOC_CNVR_STTU_CODE
+				,DOC_CNVR_RESULT_MSSAGE 
+				,CASE 
+					WHEN 
+						INSTR(MINTS_FILE_PATH, '.', -1) > 1 THEN SUBSTR(MINTS_FILE_PATH, (INSTR(MINTS_FILE_PATH, '.', -1) + 1))
+					ELSE ''
+				END FILEEXT
+				,'MINTS' AS FILEMG
+			FROM 
+				minutes 
+			WHERE 
+				TRIM(MINTS_CN) = TRIM(#MINTS_CN#)
+				AND MINTS_FILE_PATH IS NOT NULL
+				
+			UNION ALL
+			
+			SELECT 
+				APNDX_ID AS MINTS_CN
+				,CASE
+					WHEN APNDX_PDF_FILE_NM IS NULL THEN APNDX_FILE_NM
+					ELSE APNDX_PDF_FILE_NM
+				END AS FILE_NM
+				,APNDX_FILE_PATH AS MINTS_FILE_PATH
+				,APNDX_PDF_FILE_PATH AS MINTS_PDF_FILE_PATH
+				,DOC_CNVR_STTU_CODE
+				,DOC_CNVR_RESULT_MSSAGE 
+				,CASE 
+					WHEN INSTR(APNDX_FILE_NM, '.', -1) > 1 THEN SUBSTR(APNDX_FILE_NM, (INSTR(APNDX_FILE_NM, '.', -1) + 1))
+					ELSE ''
+				END FILEEXT
+				,'APP' AS FILEMG
+			FROM 
+				minutes_appendix 
+			WHERE 
+				TRIM(MINTS_CN) = TRIM(#MINTS_CN#)
+				AND CUD_CODE != 'D'
+        ]]>
+    </select>
+
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesHtml" parameterClass="mdmTnsrAsmblyMintsVO" resultClass="mdmTnsrAsmblyMintsVO">
+        <![CDATA[
+			SELECT 
+				* 
+			FROM 
+				minutes 
+			WHERE 
+				TRIM(MINTS_CN) = #MINTS_CN#
+				AND ROWNUM = 1
+        ]]>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesViewTitle" parameterClass="mdmTnsrAsmblyMintsVO" resultClass="string">
+        <![CDATA[
+			SELECT 
+				F.RASMBLY_NM || '(' || F.SESN_NM || ') ' || F.MTG_NM AS VIEWTITLE
+			FROM
+			(
+				SELECT 
+					(
+						SELECT 
+							CODE_NM || '의회'
+						FROM 
+							common_detail_code 
+						WHERE 
+							CODE_ID = 'RKS002'
+							AND CODE = SUBSTRING(M.RASMBLY_ID, 0, 3)
+							AND ROWNUM = 1
+					) RASMBLY_NM 
+					,(
+						SELECT
+							C.CODE_NM
+						FROM 
+							common_detail_code C, colg_session S 
+						WHERE 
+							C.CODE_ID ='RIS010' 
+							AND C.CODE = S.MTG_KND_STDCD
+							AND M.RASMBLY_ID = S.RASMBLY_ID
+							AND M.RASMBLY_ID = S.RASMBLY_ID
+							AND M.RASMBLY_NUMPR = S.RASMBLY_NUMPR
+							AND M.RASMBLY_SESN = S.RASMBLY_SESN
+							AND ROWNUM = 1
+					) SESN_NM
+					,( 
+						SELECT 
+							MTGNM 
+						FROM 
+							scommit  
+						WHERE 
+							RASMBLY_ID = M.RASMBLY_ID 
+							AND RASMBLY_NUMPR = M.RASMBLY_NUMPR 
+							AND MTGNM_ID = M.MTGNM_ID 
+							AND ROWNUM = 1  
+					) AS MTG_NM 
+				FROM
+					minutes M
+				WHERE
+					M.MINTS_CN = #MINTS_CN#
+					AND ROWNUM = 1
+			) F
+        ]]>
+    </select>
+<!-- 사용안함 -->
+    <select id="MdmTnsrAsmblyMintsDAO.selectMdmMinutesMtgNmList" parameterClass="mdmTnsrAsmblyMtgNmVO" resultClass="mdmTnsrAsmblyMtgNmVO">
+        <![CDATA[
+			SELECT 
+				*
+			FROM
+				scommit
+			WHERE 
+				RASMBLY_ID = #RASMBLY_ID#
+				AND RASMBLY_NUMPR = #RASMBLY_NUMPR#
+			ORDER BY
+				MTGNM_ID ASC 
+		]]>
+    </select>
+<!-- 사용안함 -->
+    <insert id="MdmTnsrAsmblyMintsDAO.insertMdmMinutes" parameterClass="mdmTnsrAsmblyMintsVO">
+        <![CDATA[
+			INSERT 
+				INTO 
+			minutes (
+				RASMBLY_ID
+				,RASMBLY_SESN
+				,MTGNM_ID
+				,MTG_DE
+				,ORGINL_FILE_NM
+				,MINTS_HTML
+				,BEGIN_TM
+				,END_TM
+				,OTHBC_STDCD
+				,RASMBLY_NUMPR
+				,MINTS_ODR
+				,ORGINL_FILE_URL
+				,FRST_REGIST_DT
+				,LAST_UPDT_DT
+				,DELETE_DT
+				,CUD_CODE
+				,SESN_SE_STDCD
+				,CLOSE_AT
+				,ODR_NM
+				,ORGINL_FILE_LAST_UPDT_TM
+				,MINTS_SN
+				,ORGINL_FILE_HASH
+				,MINTS_FILE_PATH
+				,RASMBLY_MINTS_ID
+				,MINTS_PDF_FILE_PATH
+				,CNTC_INPUT_SE_CODE
+				,ISVIEW
+				,MINTS_CN
+				,MTGNM
+				,INQUIRY_NM
+			) VALUES (
+				#RASMBLY_ID#
+				,#RASMBLY_SESN#
+				,#MTGNM_ID#
+				,#MTG_DE#
+				,#ORGINL_FILE_NM#
+				,#MINTS_HTML:CLOB#
+				,#BEGIN_TM#
+				,#END_TM#
+				,#OTHBC_STDCD#
+				,#RASMBLY_NUMPR#
+				,#MINTS_ODR#
+				,#ORGINL_FILE_URL#
+				,#FRST_REGIST_DT#
+				,#LAST_UPDT_DT#
+				,#DELETE_DT#
+				,'D'
+				,#SESN_SE_STDCD#
+				,#CLOSE_AT#
+				,#ODR_NM#
+				,#ORGINL_FILE_LAST_UPDT_TM#
+				,#MINTS_SN#
+				,#ORGINL_FILE_HASH#
+				,#MINTS_FILE_PATH#
+				,#RASMBLY_MINTS_ID#
+				,#MINTS_PDF_FILE_PATH#
+				,'MANUAL'
+				,#ISVIEW#
+				,#MINTS_CN#
+				,#MTGNM#
+				,#INQUIRY_NM#
+			)
+		]]>
+    </insert>
+<!-- 사용안함 -->
+    <insert id="MdmTnsrAsmblyMintsDAO.insertMdmAsmblyNumPr" parameterClass="mdmTnsrAsmblyNumPrVO">
+        <![CDATA[
+			INSERT 
+				INTO 
+			gener  (
+				RASMBLY_NUMPR
+				,BEGIN_SESN
+				,END_SESN
+				,BEGIN_DE
+				,END_DE
+				,RASMBLY_ID
+				,HT_SE_STDCD
+				,FRST_REGIST_DT
+				,LAST_UPDT_DT
+				,DELETE_DT
+				,CUD_CODE
+				,CNTC_INPUT_SE_CODE
+			) VALUES (
+				#RASMBLY_NUMPR#
+				,#BEGIN_SESN#
+				,#END_SESN#
+				,#BEGIN_DE#
+				,#END_DE#
+				,#RASMBLY_ID#
+				,#HT_SE_STDCD#
+				,#FRST_REGIST_DT#
+				,#LAST_UPDT_DT#
+				,#DELETE_DT#
+				,'C'
+				,'MANUAL'
+			)
+		]]>
+    </insert>
+<!-- 사용안함 -->
+    <insert id="MdmTnsrAsmblyMintsDAO.insertMdmAsmblySesn" parameterClass="mdmTnsrAsmblySesnVO">
+        <![CDATA[
+			INSERT 
+				INTO 
+			colg_session (
+				RASMBLY_ID
+				,RASMBLY_SESN
+				,BEGIN_DE
+				,END_DE
+				,MTG_KND_STDCD
+				,RASMBLY_NUMPR
+				,FRST_REGIST_DT
+				,LAST_UPDT_DT
+				,DELETE_DT
+				,CUD_CODE
+				,SESN_SE_STDCD
+				,CNTC_INPUT_SE_CODE
+			) VALUES (
+				#RASMBLY_ID#
+				,#RASMBLY_SESN#
+				,#BEGIN_DE#
+				,#END_DE#
+				,#MTG_KND_STDCD#
+				,#RASMBLY_NUMPR#
+				,#FRST_REGIST_DT#
+				,#LAST_UPDT_DT#
+				,#DELETE_DT#
+				,'C'
+				,#SESN_SE_STDCD#
+				,'MANUAL'
+			)
+		]]>
+    </insert>
+<!-- 사용안함 -->
+    <insert id="MdmTnsrAsmblyMintsDAO.insertMdmAsmblyMtgNm" parameterClass="mdmTnsrAsmblyMtgNmVO">
+        <![CDATA[
+			INSERT 
+				INTO 
+			scommit (
+				RASMBLY_NUMPR
+				,RASMBLY_ID
+				,MTGNM_ID
+				,MTGNM
+				,MTGNM_RM
+				,MTGNM_KND_STDCD
+				,FRST_REGIST_DT
+				,LAST_UPDT_DT
+				,DELETE_DT
+				,CUD_CODE
+				,CNTC_INPUT_SE_CODE
+			) VALUES (
+				#RASMBLY_NUMPR#
+				,#RASMBLY_ID#
+				,#MTGNM_ID#
+				,#MTGNM#
+				,#MTGNM_RM#
+				,#MTGNM_KND_STDCD#
+				,#FRST_REGIST_DT#
+				,#LAST_UPDT_DT#
+				,#DELETE_DT#
+				,'C'
+				,'MANUAL'
+			)
+		]]>
+    </insert>
+
+    <update id="MdmTnsrAsmblyMintsDAO.updateMdmMinutes" parameterClass="mdmTnsrAsmblyMintsVO">
+        <![CDATA[
+			UPDATE 
+				minutes 
+			SET
+				OTHBC_STDCD 		= #OTHBC_STDCD#
+				,ODR_NM 			= #ODR_NM#
+				,SESN_SE_STDCD 		= #SESN_SE_STDCD#
+				,CLOSE_AT 			= #CLOSE_AT#
+				,COLCT_AT			= #COLCT_AT#
+			]]>
+			<isNotEmpty property="ORGINL_FILE_NM">
+				,ORGINL_FILE_NM 	= #ORGINL_FILE_NM#
+			</isNotEmpty>
+			<isNotEmpty property="MINTS_FILE_PATH">
+				,MINTS_FILE_PATH 	= #MINTS_FILE_PATH#
+			</isNotEmpty>
+			<![CDATA[	
+				,LAST_UPDT_DT 		= #LAST_UPDT_DT#
+				,LAST_UPDUSR_ID		= #LAST_UPDUSR_ID#
+				,CUD_CODE 			= 'U'
+			WHERE
+				TRIM(MINTS_CN) 		= TRIM(#MINTS_CN#)
+		]]>
+    </update>
+
+    <update id="MdmTnsrAsmblyMintsDAO.updateMdmMinutesIsView" parameterClass="mdmIsViewVO">
+        <![CDATA[
+			UPDATE 
+				minutes 
+			SET
+				ISVIEW 			= #isview#
+				,LAST_UPDT_DT 	= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			WHERE 
+				TRIM(MINTS_CN) 	= #uid#
+		]]>
+    </update>
+
+    <update id="MdmTnsrAsmblyMintsDAO.updateMdmMinutesFileListReCnvrs" parameterClass="string">
+        <![CDATA[
+			UPDATE 
+				minutes 
+			SET
+				DOC_CNVR_STTU_CODE = '0'
+			WHERE 
+				TRIM(MINTS_CN) = TRIM(#MINTS_CN#)
+		]]>
+    </update>
+
+    <update id="MdmTnsrAsmblyMintsDAO.deleteMdmMinutes" parameterClass="mdmTnsrAsmblyMintsVO">
+        <![CDATA[
+			UPDATE 
+				minutes 
+			SET
+				CUD_CODE 		= 'D'
+				,DELETE_DT 		= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+				,LAST_UPDUSR_ID	= #LAST_UPDUSR_ID#
+			WHERE 
+				TRIM(MINTS_CN) 	= TRIM(#MINTS_CN#)
+		]]>
+    </update>
+
+    <update id="MdmTnsrAsmblyMintsDAO.deleteMdmMinutesFile" parameterClass="string">
+        <![CDATA[
+			UPDATE 
+				minutes 
+			SET
+				ORGINL_FILE_NM = ''
+				,MINTS_FILE_PATH = ''
+				,MINTS_PDF_FILE_PATH = ''
+			WHERE 
+				TRIM(MINTS_CN) = TRIM(#MINTS_CN#)
+		]]>
+    </update>
+
+    <update id="MdmTnsrAsmblyMintsDAO.deleteMdmMinutesAppFile" parameterClass="string">
+        <![CDATA[
+			UPDATE 
+				minutes_appendix 
+			SET
+				CUD_CODE = 'D' 
+			WHERE 
+				APNDX_ID = #APNDX_ID#
+		]]>
+    </update>
+
+    <update id="MdmTnsrAsmblyMintsDAO.deleteMdmMinutesChk" parameterClass="mdmIsViewVO">
+        <![CDATA[
+			UPDATE 
+				minutes 
+			SET
+				CUD_CODE = #isview#
+				,LAST_UPDT_DT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			WHERE 
+				TRIM(MINTS_CN) = #uid#
+		]]>
+    </update>
+	
+	<!-- 지방의회 별 대수정보를 조회한다. -->
+	<select id="MdmTnsrAsmblyMintsDAO.selectRasmblyNumperList" parameterClass="java.lang.String" resultClass="java.util.HashMap">
+		SELECT
+			RASMBLY_NUMPR
+		FROM
+			GENER
+		WHERE
+			RASMBLY_ID = #RASMBLY_ID#
+			AND CUD_CODE != 'D'
+	</select>
+	
+	<!-- 지방의회 별 회기정보를 조회한다. -->
+	<select id="MdmTnsrAsmblyMintsDAO.selectRasmblySesnList" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT
+			COLG_SESSION.RASMBLY_SESN
+		FROM
+			COLG_SESSION
+		WHERE
+			RASMBLY_ID = #rasmbly_id#
+			AND RASMBLY_NUMPR = #rasmbly_numpr#
+			AND CUD_CODE != 'D'
+			<isNotEmpty property="sesn_se_stdcd">
+			AND SESN_SE_STDCD = #sesn_se_stdcd#
+			</isNotEmpty>
+	</select>
+	
+	<!-- 회의명 정보를 조회한다. -->
+	<select id="MdmTnsrAsmblyMintsDAO.selectMtgnmList" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT
+			SCOMMIT.MTGNM_ID
+			,SCOMMIT.MTGNM
+		FROM
+			SCOMMIT
+		WHERE
+			RASMBLY_ID = #rasmbly_id#
+			AND RASMBLY_NUMPR = #rasmbly_numpr#
+			AND CUD_CODE != 'D'
+	</select>
+	
+	<!-- 안건 정보를 조회한다. -->
+	<select id="MdmTnsrAsmblyMintsDAO.selectItemList" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT
+			MTR_SN
+			,MTR_SJ
+		FROM
+			ITEM
+		WHERE
+			MINTS_CN = #mints_cn#
+			AND CUD_CODE != 'D'
+	</select>
+	
+	<!-- 관련의원 정보를 조회한다. -->
+	<select id="MdmTnsrAsmblyMintsDAO.selectAsembyList" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT
+		ROWNUM AS RNUM
+		,ASEMBY_NM
+		FROM
+		(
+		SELECT
+			LAMAN.ASEMBY_NM
+		FROM
+			MINUTES
+			,MINUTES_STATEMENT
+			,LAMAN
+		WHERE
+			MINUTES.MINTS_CN = MINUTES_STATEMENT.MINTS_CN
+			AND LAMAN.ASEMBY_ID = MINUTES_STATEMENT.ASEMBY_ID
+			AND MINUTES.MINTS_CN = #mints_cn#
+		GROUP BY
+			LAMAN.ASEMBY_NM
+		)
+	</select>
+</sqlMap>

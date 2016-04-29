@@ -1,0 +1,59 @@
+@CHARSET "UTF-8";
+
+body{color:#2f2f2f; font-size:75%; }
+			input, select, textarea{color:#2f2f2f; font-size:100%; }
+			textarea{border:1px solid #ccc;}
+	
+			html, body, div, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, address, dl, dt, dd, ol, ul, li, fieldset, form, legend, table, caption, tbody, tfoot, thead, tr, th, td, input, select, textarea{margin:0; padding:0; }
+			hr{display:none;}
+			ul, ol, li{list-style:none;}
+			img, fieldset{border:none; vertical-align:middle;}
+			h1, h2, h3, h4, h5, h6{font-size:100%;}
+			table{border-collapse:collapse;}
+			address, em, optgroup{font-style:normal;}
+			object{vertical-align:top;}
+			input, button, select{vertical-align:middle;}
+			
+			a{color:#2f2f2f; text-decoration:none;}
+			a:link,
+			a:visited{color:#2f2f2f; text-decoration:none;}
+			a:active,
+			a:focus,
+			a:hover{color:#369; text-decoration:underline;}
+			
+			#basis{width:1000px;margin:0 auto;}
+			#top{height:90px;width:100%;}
+			#top h1{text-align:center;font-size:180%;line-height:2.5em}
+			#left{float:left;width:240px;}
+			#left #menu .group h3{font-weight:bold;}
+			#left #menu .group .agenda{float:left;width:100%;}
+			#left #menu .group .appendix{float:left;width:100%;}
+			#left #menu .group .name{float:left; width:56px;text-align:center;}
+			#right{float:right;width:740px;}
+	
+			#right #minutes{width:100%;margin:0;}
+	
+			#right #minutes .minutes_title{border-top:1px solid #aaa;line-height:1.8em;}
+			#right #minutes .minutes_subject{line-height:1.8em;font-size:200%;text-align:center;}
+			#right #minutes .office {text-align:right;border-bottom:1px solid #aaa;}
+			#right #minutes .office li{display:block;line-height:1.6em;}
+	
+			#right h1{display:block; font-size:180%;}
+			#right p{margin:0;}
+			#right ul,
+			#right ul li{list-style:none; margin:0; padding:0;}
+			#right .pageTitle{margin:10px 0 0 0;}
+			#right #pageSbj{width:100%; text-align:center; font-size:140%; padding:3px 0 0 0;}
+			#right .pageOffice li{text-align:right; margin:0 0 10px 0;}
+			#right .member_list{clear:both; margin:0 0 5px 0; padding:0 0 0 6px;}
+			#right .member_list li{float:left; margin:0; padding:0 10px 0 10px;}
+			#right .public_list{clear:both; margin:0 0 5px 0; padding:0;}
+			#right .public_list li{clear:both; padding:2px 0 2px 0px;}
+			#right .public_second{clear:both; margin:0 0 5px 0; padding:0;}
+			#right .public_second li{clear:both; padding:2px 0 2px 0px;}
+			#right .current{color:#ff00cc;}
+			#right .keyword{background-color:#000;color:#fff;}
+			#right .none{padding:15% 0; text-align:center; color:#0033cc;}
+			
+			#forward {float:right;position:fixed; width:40px;right:0 ;bottom:0; border:1px solid red;}
+			#backward {float:left;position:fixed; width:40px;left :0 ;bottom:0; border:1px solid red;}

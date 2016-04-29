@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+							http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+							
+<!--
+    수정일      수정자                      수정내용
+  =========     =======    =================================================
+  2011.09.07   	서준식     	 	로그인 체크 인터셉터 추가
+  2011.09.29	이기하			에러페이지 경로수정
+  2013.05.30	이기하			IP정보기록 로직 추가
+-->
+
+	<context:component-scan base-package="clikmng">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Repository"/>
+	</context:component-scan>
+
+	<!-- For Pagination Tag -->
+	<bean id="imageRenderer" class="clikmng.nanet.go.kr.cmm.ImagePaginationRenderer"/>
+
+	<bean id="paginationManager" class="egovframework.rte.ptl.mvc.tags.ui.pagination.DefaultPaginationManager">
+		<property name="rendererType">
+			<map>
+				<entry key="image" value-ref="imageRenderer"/>
+			</map>
+		</property>
+	</bean>
+
+	<!-- 
+	Controller에서 화면(JSP) 입력값을 받기 위해서 일반적으로 Command(Form Class) 객체를 사용하지만,
+	Map 객체를 사용하는걸 선호할 수 있다.
+	org.springframework.web.bind.support.WebArgumentResolver의 구현클래스인 CommandMapArgumentResolver은
+	HTTP request 객체에 있는 파라미터이름과 값을 Map 객체에 담아 Controller에서 사용도록 제공한다.
+	 -->
+	<bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+		<property name="webBindingInitializer">
+			<bean class="clikmng.nanet.go.kr.cmm.web.EgovBindingInitializer"/>
+		</property>
+		<property name="customArgumentResolvers">
+			<list>
+				<bean class="egovframework.rte.ptl.mvc.bind.CommandMapArgumentResolver"/>
+			</list>
+		</property>
+	</bean>
+
+	<!-- 로그인 체크가 필요한 URL과 로그인 여부를 체크해줄 인터셉터를 등록한다. -->
+<!-- 	<bean id="selectAnnotaionMapper" class="egovframework.rte.ptl.mvc.handler.SimpleUrlAnnotationHandlerMapping" p:order="1">
+		<property name="interceptors">
+			<list>
+ -->				<!-- 로그인 체크 -->
+				<!-- <ref local="authenticInterceptor" /> --> 
+				<!-- IP 정보기록 -->
+				<!-- <ref local="IpObtainInterceptor" /> -->  
+<!-- 			</list>
+		</property>
+ -->		<!-- 로그인 체크가 필요한 URL 리스트  -->
+		<!-- <property name="urls">
+			<set>
+				<value>/**/*.do</value>
+			</set>
+		</property> -->
+	<!-- </bean> -->
+
+	<!-- 로그인 체크 인터셉터 -->
+	<!-- <bean id="authenticInterceptor" class="clikmng.nanet.go.kr.cmm.interceptor.AuthenticInterceptor"> -->
+		<!-- 인증 체크가 필요 없는 URL 리스트  -->
+		<!-- <property name="permittedURL">
+			<set>
+				<value>/uat/uia/[a-zA-Z]+\.do</value>
+				<value>/EgovLeft.do</value>
+				<value>/uat/uia/actionLogin.do</value>
+			</set>
+		</property> -->
+	<!-- </bean> -->
+	
+	<!-- IP 정보 기록 -->
+	<!-- <bean id="IpObtainInterceptor" class="clikmng.nanet.go.kr.cmm.interceptor.IpObtainInterceptor" /> -->
+
+	<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+		<property name="defaultErrorView" value="clikMng/cmm/error/egovError"/>
+		<property name="exceptionMappings">
+			<props>
+				<prop key="org.springframework.dao.DataAccessException">clikMng/cmm/error/dataAccessFailure</prop>
+				<prop key="org.springframework.transaction.TransactionException">clikMng/cmm/error/dataAccessFailure</prop>
+				<prop key="egovframework.rte.fdl.cmmn.exception.EgovBizException">clikMng/cmm/error/egovBizException</prop>
+				<prop key="org.springframework.web.HttpSessionRequiredException">clikMng/uat/uia/EgovLoginUsr</prop>
+			</props>
+		</property>
+	</bean>
+
+	<bean class="org.springframework.web.servlet.view.UrlBasedViewResolver" p:order="1"
+		  p:viewClass="org.springframework.web.servlet.view.JstlView"
+		  p:prefix="/WEB-INF/jsp/" p:suffix=".jsp"/>
+	
+	<!-- for Excel download -->	  
+	<!-- 의회별 자료이용 통계 -->
+	<bean id="DusExcel" class="clikmng.nanet.go.kr.sts.stm.web.DusExcel" />
+	<!-- 이용자 그룹별 자료이용 통계 -->
+	<bean id="GrpDusExcel" class="clikmng.nanet.go.kr.sts.stm.web.GrpDusExcel" />
+	<!-- 그룹별 이용자 방문통계 -->
+	<bean id="GrpUvsExcel" class="clikmng.nanet.go.kr.sts.stm.web.GrpUvsExcel" />
+	<!-- 월별 이용자 방문통계 -->
+	<bean id="GrpUvsMonthExcel" class="clikmng.nanet.go.kr.sts.stm.web.GrpUvsMonthExcel" />
+	<!-- OS별 이용자 방문통계 -->
+	<bean id="OsUvsExcel" class="clikmng.nanet.go.kr.sts.stm.web.OsUvsExcel" />
+	<bean id="LogMngExcel" class="clikmng.nanet.go.kr.sit.log.web.LogMngExcel" />
+	<bean id="WebLogExcel" class="clikmng.nanet.go.kr.sit.log.web.WebLogExcel" />
+	<bean id="MobDusExcel" class="clikmng.nanet.go.kr.mob.web.MobDusExcel" />
+	<bean id="MusExcel" class="clikmng.nanet.go.kr.mob.web.MusExcel" />
+	<bean id="AulExcel" class="clikmng.nanet.go.kr.rcm.web.AulExcel" />
+	<bean id="StmInfoMngExcel" class="clikmng.nanet.go.kr.sts.stm.web.StmInfoMngExcel" />
+	<bean id="LocalMngListExcel" class="clikmng.nanet.go.kr.uss.mng.web.LocalMngListExcel" />
+	<!-- 표준연계API 파일동기화 -->
+	<bean id="CfmListExcel" class="clikmng.nanet.go.kr.col.cfm.service.CfmListExcel" />
+	<bean id="CltExcel" class="clikmng.nanet.go.kr.sts.clt.web.CltExcel" />
+ 	<!-- 정책정보 기관별 수집 내역 -->
+	<bean id="CemSystemExcel" class="clikmng.nanet.go.kr.csm.web.CemSystemExcel" />
+	
+	<!-- METADATA EXCEL DOWNLOAD -->
+	<!-- 지방정책정보 -->
+	<bean id="MdmPolicyInfoExcel" class="clikmng.nanet.go.kr.mdm.web.MdmPolicyInfoExcel" />
+	<bean id="MdmPolicyInfoText" class="clikmng.nanet.go.kr.mdm.web.MdmPolicyInfoText" />
+	<!-- 지방의회 회의록 -->
+	<bean id="MdmMinutesExcel" class="clikmng.nanet.go.kr.mdm.web.MdmMinutesExcel" />
+	<bean id="MdmMinutesText" class="clikmng.nanet.go.kr.mdm.web.MdmMinutesText" />
+	<!-- 지방의회 의안 -->
+	<bean id="MdmBillExcel" class="clikmng.nanet.go.kr.mdm.web.MdmBillExcel" />
+	<bean id="MdmBillText" class="clikmng.nanet.go.kr.mdm.web.MdmBillText" />
+	<!-- 지방의회 의원 -->
+	<bean id="MdmAsmblyAsembyExcel" class="clikmng.nanet.go.kr.mdm.web.MdmAsmblyAsembyExcel" />
+	<bean id="MdmAsmblyAsembyText" class="clikmng.nanet.go.kr.mdm.web.MdmAsmblyAsembyText" />
+	<!-- 교육메뉴얼 -->
+ 	<bean id="MdmEduManualExcel" class="clikmng.nanet.go.kr.mdm.web.MdmEduManualExcel" />
+ 	<bean id="MdmEduManualText" class="clikmng.nanet.go.kr.mdm.web.MdmEduManualText" />
+	<!-- 지역현안소식 -->
+	<bean id="MdmRegionNewsExcel" class="clikmng.nanet.go.kr.mdm.web.MdmRegionNewsExcel" />
+	<bean id="MdmRegionNewsText" class="clikmng.nanet.go.kr.mdm.web.MdmRegionNewsText" />
+ 
+	
+	<!-- for JFile -->	  
+	<bean class="org.springframework.web.servlet.view.BeanNameViewResolver" p:order="0"/>
+
+	<!-- <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource" p:basename="messages/message-common"/> -->
+</beans>

@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ElmCrpManage">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="userClassVO" type="clikmng.nanet.go.kr.elm.com.UserClassVO"/>
+	<typeAlias  alias="readGrantRequestSetupVO" type="clikmng.nanet.go.kr.elm.com.ReadGrantRequestSetupVO"/>
+	<typeAlias  alias="readGrantVO" type="clikmng.nanet.go.kr.elm.com.ReadGrantVO"/>
+	<typeAlias  alias="elmCrpListVO" type="clikmng.nanet.go.kr.elm.crp.service.ElmCrpListVO"/>
+	<typeAlias  alias="elmCrpDetailVO" type="clikmng.nanet.go.kr.elm.crp.service.ElmCrpDetailVO"/>
+
+
+    <resultMap id="elmCrpList" class="clikmng.nanet.go.kr.elm.crp.service.ElmCrpListVO">
+        <result property="readngReqstSetupId" 		column="readngReqstSetupId" 	columnIndex="1"/>
+        <result property="dtaSeCode" 				column="dtaSeCode" 				columnIndex="2"/>
+        <result property="ddc" 						column="ddc" 					columnIndex="3"/>
+        <result property="pl" 						column="pl" 					columnIndex="4"/>
+        <result property="sl" 						column="sl" 					columnIndex="5"/>
+        <result property="postn" 					column="postn" 					columnIndex="6"/>
+        <result property="cnType" 					column="cnType" 				columnIndex="7"/>
+        <result property="readngSeCode" 			column="readngSeCode" 			columnIndex="8"/>
+    </resultMap>
+	
+	<!-- 열람신청목록 -->
+	<select id="crpManageDAO.selectElmCrpList" parameterClass="elmCrpListVO" resultMap="elmCrpList">
+		<![CDATA[
+
+				SELECT 		READNG_REQST_SETUP_ID		AS	readngReqstSetupId
+						,	DTA_SE_CODE					AS	dtaSeCode
+						,	DDC 						AS 	ddc
+						,	PL 							AS 	pl
+						,	SL 							AS 	sl
+						,	POSTN 						AS 	postn
+						,	CN_TYPE 					AS 	cnType
+						,	READNG_SE_CODE 				AS 	readngSeCode
+				FROM (
+					SELECT		ROWNUM AS RNUM
+							,	A.READNG_REQST_SETUP_ID
+							,	A.DTA_SE_CODE
+							,	A.DDC
+							,	A.PL
+							,	A.SL
+							,	A.POSTN
+							,	A.CN_TYPE
+							,	B.READNG_SE_CODE
+					FROM 		lappli_setting A
+					LEFT JOIN (
+						SELECT		READNG_REQST_SETUP_ID
+								,	AGGR_CONCAT(READNG_SE_CODE, ',') AS "READNG_SE_CODE"
+						FROM 		loan_yesno
+						WHERE		READNG_AT = 'Y'
+						GROUP BY 	READNG_REQST_SETUP_ID
+					) B
+					ON		A.READNG_REQST_SETUP_ID = B.READNG_REQST_SETUP_ID
+					WHERE	1 = 1
+		]]>
+		
+					<isNotEmpty property="searchDtaSeCode">
+		<![CDATA[
+					AND		DTA_SE_CODE		=	#searchDtaSeCode#	
+		]]>
+					</isNotEmpty>
+					<isNotEmpty property="searchOpenOnline">
+						<isEqual prepend="AND" property="searchOpenOnline" compareValue="Y">
+							<![CDATA[	NVL(INSTR(READNG_SE_CODE, 'L'), 0) > 0	]]>
+						</isEqual>
+						<isEqual prepend="AND" property="searchOpenOnline" compareValue="N">
+							<![CDATA[	NVL(INSTR(READNG_SE_CODE, 'L'), 0) = 0	]]>
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty property="searchOpenNight">
+						<isEqual prepend="AND" property="searchOpenOnline" compareValue="Y">
+							<![CDATA[	NVL(INSTR(READNG_SE_CODE, 'R'), 0) > 0	]]>
+						</isEqual>
+						<isEqual prepend="AND" property="searchOpenOnline" compareValue="N">
+							<![CDATA[	NVL(INSTR(READNG_SE_CODE, 'R'), 0) = 0	]]>
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty property="searchOpenAssembly">
+						<isEqual prepend="AND" property="searchOpenOnline" compareValue="Y">
+							<![CDATA[	NVL(INSTR(READNG_SE_CODE, 'O'), 0) > 0	]]>
+						</isEqual>
+						<isEqual prepend="AND" property="searchOpenOnline" compareValue="N">
+							<![CDATA[	NVL(INSTR(READNG_SE_CODE, 'O'), 0) = 0	]]>
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty property="searchKeyword">					
+						<isEqual prepend="AND" property="searchCondition" compareValue="caseId">
+							<![CDATA[	A.READNG_REQST_SETUP_ID LIKE '%' || #searchKeyword# || '%' 		]]>
+						</isEqual>
+					</isNotEmpty>
+					
+		<![CDATA[						
+				) C
+				WHERE 		RNUM > #firstIndex# AND ROWNUM <= #recordCountPerPage#
+		]]>
+	</select>
+	
+	<!-- 열람신청목록 -->
+	<select id="crpManageDAO.selectElmCrpListTotCnt" parameterClass="elmCrpListVO" resultClass="int">
+		<![CDATA[
+
+				SELECT 		COUNT(*) AS totCnt
+				FROM (
+					SELECT		ROWNUM AS RNUM
+							,	A.READNG_REQST_SETUP_ID
+							,	A.DTA_SE_CODE
+							,	A.DDC
+							,	A.PL
+							,	A.SL
+							,	A.POSTN
+							,	A.CN_TYPE
+							,	B.READNG_SE_CODE
+					FROM 		lappli_setting A
+					LEFT JOIN (
+						SELECT		READNG_REQST_SETUP_ID
+								,	AGGR_CONCAT(READNG_SE_CODE, ',') AS "READNG_SE_CODE"
+						FROM 		loan_yesno
+						WHERE		READNG_AT = 'Y'
+						GROUP BY 	READNG_REQST_SETUP_ID
+					) B
+					ON		A.READNG_REQST_SETUP_ID = B.READNG_REQST_SETUP_ID
+					WHERE	1 = 1
+		]]>
+		
+					<isNotEmpty property="searchDtaSeCode">
+		<![CDATA[
+					AND		DTA_SE_CODE		=	#searchDtaSeCode#	
+		]]>
+					</isNotEmpty>
+					<isNotEmpty property="searchOpenOnline">
+						<isEqual prepend="AND" property="searchOpenOnline" compareValue="Y">
+							<![CDATA[	NVL(INSTR(READNG_SE_CODE, 'L'), 0) > 0	]]>
+						</isEqual>
+						<isEqual prepend="AND" property="searchOpenOnline" compareValue="N">
+							<![CDATA[	NVL(INSTR(READNG_SE_CODE, 'L'), 0) = 0	]]>
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty property="searchOpenNight">
+						<isEqual prepend="AND" property="searchOpenOnline" compareValue="Y">
+							<![CDATA[	NVL(INSTR(READNG_SE_CODE, 'R'), 0) > 0	]]>
+						</isEqual>
+						<isEqual prepend="AND" property="searchOpenOnline" compareValue="N">
+							<![CDATA[	NVL(INSTR(READNG_SE_CODE, 'R'), 0) = 0	]]>
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty property="searchOpenAssembly">
+						<isEqual prepend="AND" property="searchOpenOnline" compareValue="Y">
+							<![CDATA[	NVL(INSTR(READNG_SE_CODE, 'O'), 0) > 0	]]>
+						</isEqual>
+						<isEqual prepend="AND" property="searchOpenOnline" compareValue="N">
+							<![CDATA[	NVL(INSTR(READNG_SE_CODE, 'O'), 0) = 0	]]>
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty property="searchKeyword">					
+						<isEqual prepend="AND" property="searchCondition" compareValue="caseId">
+							<![CDATA[	A.READNG_REQST_SETUP_ID LIKE '%' || #searchKeyword# || '%' 		]]>
+						</isEqual>
+					</isNotEmpty>
+					
+		<![CDATA[						
+				) C
+		]]>		
+	</select>
+			
+
+	<!-- 관리자 등록::입력 readGrantRequestSetupVO -->
+	<insert id="crpManageDAO.insertElmCrpRegist" parameterClass="elmCrpDetailVO">
+	 <![CDATA[
+			INSERT INTO lappli_setting (
+					READNG_REQST_SETUP_ID
+				,	DTA_SE_CODE
+				,	REGIST_NO
+				,	DDC
+				,	PL
+				,	SL
+				,	DTA_SE
+				,	PBLICTE_YEAR
+				,	POSTN
+				,	POSTN_LC
+				,	PRINT_ID
+				,	PRINT_ID_DC
+				,	CN_TYPE
+				,	FRST_REGISTER_ID
+				,	FRST_REGIST_PNTTM
+			) VALUES (
+					#readngReqstSetupId#
+				,	#dtaSeCode#
+				,	#registNo#
+				,	#ddc#
+				,	#pl#
+				,	#sl#
+				,	#dtaSe#
+				,	#pblicteYear#
+				,	#postn#
+				,	#postnLc#
+				,	#printId#
+				,	#printIdDc#
+				,	#cnType#
+				,	#frstRegisterId#
+				,	SYSDATE
+			);
+	 ]]>
+	</insert>
+
+	<!-- 관리자 등록::입력 readGrantRequestSetupVO -->
+	<insert id="crpManageDAO.insertElmCrpOpenCode" parameterClass="readGrantVO">
+	 <![CDATA[
+			INSERT INTO loan_yesno (
+					READNG_REQST_SETUP_ID
+				,	READNG_SE_CODE
+				,	READNG_AT
+			) VALUES (
+					#readngReqstSetupId#
+				,	#readngSeCode#
+				,	#readngAt#
+			);
+	 ]]>
+	</insert>
+
+
+	<!-- 관리자 상세보기 -->
+	<select id="crpManageDAO.selectElmCrpDetail" parameterClass="elmCrpDetailVO" resultClass="elmCrpDetailVO">
+	<![CDATA[
+		SELECT 		READNG_REQST_SETUP_ID		AS	readngReqstSetupId
+				,	DTA_SE_CODE					AS	dtaSeCode
+				,	REGIST_NO					AS	registNo
+				,	DDC							AS	ddc
+				,	PL							AS	pl
+				,	SL							AS	sl
+				,	DTA_SE						AS	dtaSe
+				,	PBLICTE_YEAR				AS	pblicteYear
+				,	POSTN						AS	postn
+				,	POSTN_LC					AS	postnLc
+				,	PRINT_ID					AS	printId
+				,	PRINT_ID_DC					AS	printIdDc
+				,	CN_TYPE						AS	cnType
+		FROM 		lappli_setting 
+		WHERE 		READNG_REQST_SETUP_ID = #readngReqstSetupId#
+	]]>
+	</select>
+
+	<!-- 관리자 상세보기 -->
+	<select id="crpManageDAO.selectElmCrpOpenCode" parameterClass="elmCrpDetailVO" resultClass="readGrantVO">
+	<![CDATA[
+		SELECT 		READNG_REQST_SETUP_ID		AS	readngReqstSetupId
+				,	READNG_SE_CODE				AS	readngSeCode
+				,	READNG_AT					AS	readngAt
+		FROM 		loan_yesno 
+		WHERE 		READNG_REQST_SETUP_ID 		= 	#readngReqstSetupId#
+	]]>
+	</select>
+	
+	<!-- 관리자 내용 수정  -->
+	<update id="crpManageDAO.updateElmCrpDetail" parameterClass="elmCrpDetailVO">
+	 <![CDATA[
+			UPDATE 		lappli_setting  
+			SET			DTA_SE_CODE					=	#dtaSeCode#
+				,		REGIST_NO					=	#registNo#
+				,		DDC							=	#ddc#
+				,		PL							=	#pl#
+				,		SL							=	#sl#
+				,		DTA_SE						=	#dtaSe#
+				,		PBLICTE_YEAR				=	#pblicteYear#
+				,		POSTN						=	#postn#
+				,		POSTN_LC					=	#postnLc#
+				,		PRINT_ID					=	#printId#
+				,		PRINT_ID_DC					=	#printIdDc#
+				,		CN_TYPE						=	#cnType#
+				,		LAST_UPDUSR_ID				=	#lastUpdusrId#
+				,		LAST_UPDT_PNTTM				=	SYSDATE
+			WHERE		READNG_REQST_SETUP_ID		= 	#readngReqstSetupId#
+	 ]]>
+	</update> 		
+
+	<!-- 관리자 내용 수정  -->
+	<update id="crpManageDAO.updateElmCrpOpenCode" parameterClass="readGrantVO">
+	 <![CDATA[
+			MERGE INTO loan_yesno A
+			USING	DUAL
+			ON 		(
+					A.READNG_REQST_SETUP_ID = #readngReqstSetupId# 
+				AND A.READNG_SE_CODE = #readngSeCode#
+			) 
+			WHEN MATCHED THEN 
+				UPDATE SET READNG_AT = #readngAt#
+			WHEN NOT MATCHED THEN 
+				INSERT VALUES (#readngReqstSetupId#, #readngSeCode#, #readngAt#)
+	 ]]>
+	</update>
+
+	<!-- 관리자 내용 삭제  -->
+	<delete id="crpManageDAO.deleteElmCrpDetail" parameterClass="elmCrpDetailVO">
+	 <![CDATA[
+		DELETE FROM 	lappli_setting
+		 WHERE			READNG_REQST_SETUP_ID		= 	#readngReqstSetupId#
+	 ]]>
+	</delete> 
+
+	<!-- 관리자 내용 삭제  -->
+	<delete id="crpManageDAO.deleteElmCrpOpenCode" parameterClass="elmCrpDetailVO">
+	 <![CDATA[
+		DELETE FROM 	loan_yesno
+		 WHERE 			READNG_REQST_SETUP_ID 		= 	#readngReqstSetupId#
+	 ]]>
+	</delete> 
+
+</sqlMap>
+

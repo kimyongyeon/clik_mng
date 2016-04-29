@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE form-validation PUBLIC 
+    "-//Apache Software Foundation//DTD Commons Validator Rules Configuration 1.1//EN" 
+    "http://jakarta.apache.org/commons/dtds/validator_1_1.dtd">
+
+<form-validation>
+    <formset>
+        <form name="menuManageVO">
+			<field property="menuNo" depends="required, integer">
+        		<arg0 key="메뉴ID" resource="false"/>
+			</field> 
+			<field property="menuOrdr" depends="required, integer">
+        		<arg0 key="메뉴순서" resource="false"/>
+			</field>
+            <field property="menuNm" depends="required">
+        		<arg0 key="메뉴명" resource="false"/>
+			</field> 
+			<field property="upperMenuId" depends="required, integer">
+        		<arg0 key="메뉴상위번호" resource="false"/>
+			</field>
+			<field property="progrmFileNm" depends="required">
+        		<arg0 key="메뉴링크" resource="false"/>
+			</field> 
+		</form>
+    </formset>
+</form-validation>

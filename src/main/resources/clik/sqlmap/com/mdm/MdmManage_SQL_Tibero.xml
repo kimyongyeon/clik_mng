@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="MdmManage">
+
+	<typeAlias  alias="mdmNewsVO" type="clikmng.nanet.go.kr.mdm.model.MdmNewsVO" />
+
+	<insert id="MdmNewsDAO.insertMdmNews" parameterClass="mdmNewsVO">
+	 <![CDATA[
+			MERGE INTO webrobot_news A
+			USING	DUAL
+			ON 		(
+					A.ARTICLE_ID = #articleId# 
+			) 
+			WHEN MATCHED THEN 
+				UPDATE SET 
+						UPDT 			=	SYSDATE
+					,	REGDATE 		=	#regdate#
+					,	REGION 			= 	#region#
+					,	REGION_NM		=	#regionNm#
+					,	WRITER 			=	#writer#
+					,	TITLE 			=	#title#
+					,	CONTENT 		=	REPLACE( #content:CLOB#, CHR(10), CONCAT('<br>', CHR(10)) )
+					,	CUD 			=	#cud#
+					,	AUTO 			=	#auto#
+					,	ATCH_FILE_ID 	=	#atchFileId#
+					,	SEED_ID 		=	#seedId#
+					,	SEED_NM			=	#seedNm#
+					,	INDT			=	SYSDATE
+			WHEN NOT MATCHED THEN 
+				INSERT (
+						NEWS_ID
+					,	REGDATE
+					,	REGION
+					,	REGION_NM
+					,	WRITER
+					,	TITLE
+					,	CONTENT
+					,	CUD
+					,	AUTO
+					,	ATCH_FILE_ID
+					,	SEED_ID
+					,	SEED_NM
+					,	ARTICLE_ID
+					,	INDT
+				) VALUES (
+						#newsId#
+					,	#regdate#
+					,	#region#
+					,	#regionNm#
+					,	#writer#
+					,	#title#
+					,	REPLACE( #content:CLOB#, CHR(10), CONCAT('<br>', CHR(10)) )
+					,	#cud#
+					,	#auto#
+					,	#atchFileId#
+					,	#seedId#
+					,	#seedNm#
+					,	#articleId#
+					,	SYSDATE
+				)			
+
+
+	 ]]>
+	</insert>
+
+</sqlMap>

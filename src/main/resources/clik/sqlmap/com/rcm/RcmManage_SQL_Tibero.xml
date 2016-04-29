@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="RcmManage">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="RcmManageSearchVO" type="clikmng.nanet.go.kr.rcm.service.RcmManageDefaultVO"/>	
+	<typeAlias  alias="RcmManageVO" type="clikmng.nanet.go.kr.rcm.service.RcmManageVO"/>
+
+	<!-- OPENAPI 신청 목록을 조회한다. -->
+	<select id="RcmManageDAO.selectAilList" parameterClass="RcmManageSearchVO" resultClass="egovMap">
+		<![CDATA[ 
+		SELECT  *
+			FROM  (
+				SELECT ROWNUM RNUM, ALL_LIST.*
+					FROM  (		
+						SELECT
+							openapi_application.UNITY_ID
+							,openapi_application.CRTFC_KEY
+							,openapi_application.FRST_REGISTER_ID
+							,SUBSTR(REPLACE(openapi_application.FRST_REGIST_PNTTM,'/',''),0,10) AS FRST_REGIST_PNTTM 
+							,COMMON_DETAIL_CODE.CODE_NM AS STTUS_CODE
+							,openapi_application.DALY_PERM_TRFIC
+							,openapi_application.PRCUSE_PRPOS
+							,openapi_application.DC
+							,openapi_application.REQST_INSTT_NM
+							,openapi_application.CHARGER_NM
+							,openapi_application.CHARGER_EMAIL
+							,openapi_application.CHARGER_TELNO
+							,openapi_application.RM
+							,TO_CHAR(openapi_application.CONFM_PNTTM,'YYYY-MM-DD HH24:MI:SS') AS CONFM_PNTTM
+						FROM
+							openapi_application
+							,COMMON_DETAIL_CODE
+				  		WHERE 
+				  			COMMON_DETAIL_CODE.code_id = 'RKS017'
+				  			AND COMMON_DETAIL_CODE.CODE = openapi_application.STTUS_CODE
+		]]> 
+					<!-- 승인상태 -->
+						<isNotEmpty property="searchCondition1">
+							AND openapi_application.STTUS_CODE = #searchCondition1#
+						</isNotEmpty>
+					
+					<!-- 구분 -->				
+					<isNotEmpty property="searchKeyword">
+						<!-- 신청기관명 -->
+						<isEqual property="searchCondition2" compareValue="REQST_INSTT_NM">
+							AND openapi_application.REQST_INSTT_NM LIKE '%'||#searchKeyword#||'%'
+						</isEqual>
+						<!-- 담당자명 -->
+						<isEqual property="searchCondition2" compareValue="CHARGER_NM">
+							AND openapi_application.CHARGER_NM LIKE '%'||#searchKeyword#||'%'
+						</isEqual>
+						<!-- 담당자 아이디 -->
+						<isEqual property="searchCondition2" compareValue="UNITY_ID">
+							AND openapi_application.UNITY_ID  LIKE '%'||#searchKeyword#||'%' 
+						</isEqual>
+						<!-- 담당자 이메일 -->
+						<isEqual property="searchCondition2" compareValue="CHARGER_EMAIL">
+							AND openapi_application.CHARGER_EMAIL  LIKE '%'||#searchKeyword#||'%' 
+						</isEqual>
+						<!-- 활용용도 밍 서비스 -->
+						<isEqual property="searchCondition2" compareValue="PRCUSE_PRPOS">
+							AND openapi_application.PRCUSE_PRPOS  LIKE '%'||#searchKeyword#||'%' 
+						</isEqual>
+						<!-- 일일한도 이상 -->
+						<isEqual property="searchCondition2" compareValue="DALY_PERM_TRFIC_OVER">
+							<![CDATA[AND openapi_application.DALY_PERM_TRFIC >= #searchKeyword#]]> 
+						</isEqual>
+						<!-- 일일한도 이하 -->
+						<isEqual property="searchCondition2" compareValue="DALY_PERM_TRFIC_DOWN">
+							<![CDATA[AND openapi_application.DALY_PERM_TRFIC <= #searchKeyword#]]>
+						</isEqual>
+					</isNotEmpty>
+					
+					<isNotEmpty property="sort_gbn">					  
+					ORDER BY 
+						$sort_gbn$
+					</isNotEmpty>
+					<![CDATA[
+					) ALL_LIST
+				)
+			WHERE  RNUM > #firstIndex#
+			AND  RNUM <= #firstIndex# + #recordCountPerPage#
+		]]>
+	</select>
+	
+	<!-- openapi 조회 총 건수를 조회한다. -->	
+	<select id="RcmManageDAO.selectAilListTotCnt" parameterClass="RcmManageSearchVO" resultClass="int">
+		SELECT 
+			COUNT(*) totcnt
+		FROM
+			openapi_application
+			,COMMON_DETAIL_CODE
+  		WHERE 
+  			COMMON_DETAIL_CODE.code_id = 'RKS017'
+  			AND COMMON_DETAIL_CODE.CODE = openapi_application.STTUS_CODE
+		
+		<!-- 승인상태 -->
+		<isNotEmpty property="searchCondition1">
+			AND openapi_application.STTUS_CODE = #searchCondition1#
+		</isNotEmpty>
+	
+		<!-- 구분 -->				
+		<isNotEmpty property="searchKeyword">
+			<!-- 신청기관명 -->
+			<isEqual property="searchCondition2" compareValue="REQST_INSTT_NM">
+				AND openapi_application.REQST_INSTT_NM LIKE '%'||#searchKeyword#||'%'
+			</isEqual>
+			<!-- 담당자명 -->
+			<isEqual property="searchCondition2" compareValue="CHARGER_NM">
+				AND openapi_application.CHARGER_NM LIKE '%'||#searchKeyword#||'%'
+			</isEqual>
+			<!-- 담당자 아이디 -->
+			<isEqual property="searchCondition2" compareValue="UNITY_ID">
+				AND openapi_application.UNITY_ID  LIKE '%'||#searchKeyword#||'%' 
+			</isEqual>
+			<!-- 담당자 이메일 -->
+			<isEqual property="searchCondition2" compareValue="CHARGER_EMAIL">
+				AND openapi_application.CHARGER_EMAIL  LIKE '%'||#searchKeyword#||'%' 
+			</isEqual>
+			<!-- 활용용도 밍 서비스 -->
+			<isEqual property="searchCondition2" compareValue="PRCUSE_PRPOS">
+				AND openapi_application.PRCUSE_PRPOS  LIKE '%'||#searchKeyword#||'%' 
+			</isEqual>
+			<!-- 일일한도 이상 -->
+			<isEqual property="searchCondition2" compareValue="DALY_PERM_TRFIC_OVER">
+				<![CDATA[AND openapi_application.DALY_PERM_TRFIC >= #searchKeyword#]]> 
+			</isEqual>
+			<!-- 일일한도 이하 -->
+			<isEqual property="searchCondition2" compareValue="DALY_PERM_TRFIC_DOWN">
+				<![CDATA[AND openapi_application.DALY_PERM_TRFIC <= #searchKeyword#]]>
+			</isEqual>
+		</isNotEmpty>  
+	</select>	
+    
+    <!-- openapi 상세정보를 조회한다. -->
+    <select id="RcmManageDAO.selectAiDetail" parameterClass="RcmManageVO" resultClass="RcmManageVO">
+		SELECT
+			openapi_application.UNITY_ID AS unityId
+			,openapi_application.CRTFC_KEY AS crtfcKey
+			,openapi_application.FRST_REGISTER_ID AS frstRegisterId
+			,SUBSTR(openapi_application.FRST_REGIST_PNTTM,0,10) AS frstRegistPnttm
+			,COMMON_DETAIL_CODE.CODE_NM AS sttusNm
+			,openapi_application.STTUS_CODE AS sttusCode
+			,openapi_application.DALY_PERM_TRFIC AS dalyPermTrfic
+			,openapi_application.PRCUSE_PRPOS AS prcusePrpos
+			,openapi_application.DC
+			,openapi_application.REQST_INSTT_NM AS reqstInsttNm
+			,openapi_application.CHARGER_NM AS chargerNm
+			,openapi_application.CHARGER_EMAIL AS chargerEmail
+			,openapi_application.CHARGER_TELNO AS chargerTelno
+			,openapi_application.RM
+			,TO_CHAR(openapi_application.CONFM_PNTTM,'YYYY-MM-DD HH24:MI:SS') AS confmPnttm
+		FROM
+			openapi_application
+			,COMMON_DETAIL_CODE
+  		WHERE 
+  			COMMON_DETAIL_CODE.code_id = 'RKS017'
+  			AND COMMON_DETAIL_CODE.CODE = openapi_application.STTUS_CODE
+  			AND openapi_application.UNITY_ID = #unityId#    
+    </select>
+	
+	<!-- openapi 신청 정보를 수정한다. -->
+    <update id="RcmManageDAO.updateAiDetail" parameterClass="RcmManageVO">    
+    	UPDATE 
+    		openapi_application
+    	SET  
+    		REQST_INSTT_NM		= #reqstInsttNm# 
+			,CHARGER_NM			= #chargerNm# 
+			,CHARGER_EMAIL		= #chargerEmail# 
+			,CHARGER_TELNO		= #chargerTelno# 
+			,PRCUSE_PRPOS		= #prcusePrpos#
+    		,DALY_PERM_TRFIC 	= #dalyPermTrfic#
+    		,STTUS_CODE			= #sttusCode#
+			,RM					= #rm#
+			,LAST_UPDUSR_ID		= #unityId#
+			,LAST_UPDT_PNTTM	= SYSDATE
+    		
+    		<isEqual property="sttusCode" compareValue="STC02">
+    		,CONFM_PNTTM		= SYSDATE
+    		</isEqual>
+    		
+		WHERE
+			UNITY_ID 			= #unityId#    
+    </update>	
+    
+    <!-- openapi 신청 정보를 삭제(차단)한다. -->
+    <update id="RcmManageDAO.deleteAiDetail" parameterClass="RcmManageVO">    
+    	UPDATE 
+    		openapi_application
+    	SET  
+    		STTUS_CODE 			= 'STC03'
+    		,LAST_UPDT_PNTTM 	= SYSDATE
+		WHERE
+			UNITY_ID 			= #unityId#  
+    </update>	    
+    
+    <!-- openapi 이용 내역을 조회한다. -->
+	<select id="RcmManageDAO.selectAuList" parameterClass="RcmManageSearchVO" resultClass="egovMap">
+	<![CDATA[ 
+		SELECT 
+			ALL_LIST.UNITY_ID
+			,ALL_LIST.REQST_INSTT_NM
+			,SUM(ALL_LIST.MINUTES_CO) AS MINUTES_CO
+			,SUM(ALL_LIST.BILL_CO) AS BILL_CO
+			,SUM(ALL_LIST.ASSEMBLYINFO_CO) AS ASSEMBLYINFO_CO
+		FROM  (		
+				SELECT
+					OPENAPI_APPLICATION.UNITY_ID
+					,OPENAPI_APPLICATION.REQST_INSTT_NM
+					,OPENAPI_LOG.OPENAPI_SE_CODE
+					,CASE WHEN OPENAPI_LOG.OPENAPI_SE_CODE = 'minutes'
+						THEN 1
+						ELSE 0
+					END	AS MINUTES_CO
+					,CASE WHEN OPENAPI_LOG.OPENAPI_SE_CODE = 'bill'
+						THEN 1
+						ELSE 0
+					END	AS BILL_CO
+					,CASE WHEN OPENAPI_LOG.OPENAPI_SE_CODE = 'assemblyinfo'
+						THEN 1
+						ELSE 0
+					END	AS ASSEMBLYINFO_CO
+				FROM
+					OPENAPI_APPLICATION
+					,OPENAPI_LOG
+				WHERE
+					OPENAPI_APPLICATION.CRTFC_KEY = OPENAPI_LOG.CRTFC_KEY
+	]]>
+					<isNotEmpty property="schDt1">
+						<isNotEmpty property="schDt2">
+							AND TRIM(OCCRRNC_DE) BETWEEN #schDt1# AND #schDt2#
+						</isNotEmpty>
+						<isEmpty property="schDt2">
+							<![CDATA[
+							AND TRIM(OCCRRNC_DE) > #schDt1#
+							]]>
+						</isEmpty>
+					</isNotEmpty>
+					<isEmpty property="schDt1">
+						<isNotEmpty property="schDt2">
+							<![CDATA[
+							AND TRIM(OCCRRNC_DE) < #schDt2#
+							]]>
+						</isNotEmpty>
+					</isEmpty>
+	<![CDATA[						
+			) ALL_LIST
+			GROUP BY
+				ALL_LIST.UNITY_ID
+				,ALL_LIST.REQST_INSTT_NM
+	]]>		
+	</select>    
+	
+    <select id="RcmManageDAO.selectAuListTotCnt" parameterClass="RcmManageSearchVO" resultClass="int">
+	<![CDATA[ 
+		SELECT 
+			COUNT(*) totcnt
+		FROM  (		
+				SELECT
+					OPENAPI_APPLICATION.UNITY_ID
+					,OPENAPI_APPLICATION.REQST_INSTT_NM
+					,OPENAPI_LOG.OPENAPI_SE_CODE
+					,CASE WHEN OPENAPI_LOG.OPENAPI_SE_CODE = 'minutes'
+						THEN 1
+						ELSE 0
+					END	AS MINUTES_CO
+					,CASE WHEN OPENAPI_LOG.OPENAPI_SE_CODE = 'bill'
+						THEN 1
+						ELSE 0
+					END	AS BILL_CO
+					,CASE WHEN OPENAPI_LOG.OPENAPI_SE_CODE = 'assemblyinfo'
+						THEN 1
+						ELSE 0
+					END	AS ASSEMBLYINFO_CO
+				FROM
+					OPENAPI_APPLICATION
+					,OPENAPI_LOG
+				WHERE
+					OPENAPI_APPLICATION.CRTFC_KEY = OPENAPI_LOG.CRTFC_KEY
+	]]>
+					<isNotEmpty property="schDt1">
+						<isNotEmpty property="schDt2">
+							AND TRIM(OCCRRNC_DE) BETWEEN #schDt1# AND #schDt2#
+						</isNotEmpty>
+						<isEmpty property="schDt2">
+							<![CDATA[
+							AND TRIM(OCCRRNC_DE) > #schDt1#
+							]]>
+						</isEmpty>
+					</isNotEmpty>
+					<isEmpty property="schDt1">
+						<isNotEmpty property="schDt2">
+							<![CDATA[
+							AND TRIM(OCCRRNC_DE) < #schDt2#
+							]]>
+						</isNotEmpty>
+					</isEmpty>
+	<![CDATA[						
+			) ALL_LIST
+			GROUP BY
+				ALL_LIST.UNITY_ID
+				,ALL_LIST.REQST_INSTT_NM
+	]]>
+    </select>		
+    
+</sqlMap>
